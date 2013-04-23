@@ -45,6 +45,9 @@ class TrackFitter{
   **/
   TrackFitter(int nb);
   virtual ~TrackFitter();
+  /**
+     \brief Performs any initialization if needed.
+  **/
   virtual void initialize()=0;
   /**
      \brief Add a pattern to the existing list.

@@ -35,7 +35,14 @@ class KarimakiTrackFitter:public TrackFitter{
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
  public:
+  /**
+     \brief Default constructor   
+  **/
   KarimakiTrackFitter();
+  /**
+     \brief Constructor   
+     \param nb Layers number
+  **/  
   KarimakiTrackFitter(int nb);
   ~KarimakiTrackFitter();
 

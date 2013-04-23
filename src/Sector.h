@@ -123,17 +123,6 @@ class Sector{
   void addModules(int layer, int ladder, int firstModule, int nbModules);
 
   /**
-     \brief Add a list of modules to the sector
-     \param layer The layer ID
-     \param ladder The ladder ID
-     \param moduleMin The ID of the starting module on this ladder
-     \param moduleNumber The number of consecutive modules on this ladder
-  **/
-  //void addModules(int layer, int ladder, int moduleMin, int moduleNumber);
-
-  //void addModule(int layer, int ladder, int module);
-
-  /**
      \brief Get the ladder code in the sector (to be used in the patternLayer). This is the position of the ladder in the layer
      \param layer The layer ID
      \param ladder The ladder ID
@@ -149,20 +138,6 @@ class Sector{
      \return The position of the module in the ladder, which is the code to use in the pattern
   **/
   int getModuleCode(int layer, int ladder, int module);
-
-  /**
-     \brief Get the smallest ladder of a given layer
-     \param l The layer ID
-     \return The number of the smallest ladder from the layer
-  **/
-  //int getMin(int l);
-
-  /**
-     \brief Get the biggest ladder of a given layer
-     \param l The layer ID
-     \return The number of the biggest ladder from the layer
-  **/
-  //int getMax(int l);
 
   /**
      \brief Get the number of layers in the sector

@@ -25,8 +25,13 @@ class PatternLayer{
      \brief Number of bits per patternLayer
   **/
   static const int LAYER_BITS=16;
+  /**
+     \brief Number of maximum DC bits
+  **/
   static const int DC_BITS=3;
-  
+   /**
+     \brief Map between GRAY code and decimal values
+   **/
   static map<string, int> GRAY_POSITIONS;
   
   /**
@@ -43,6 +48,10 @@ class PatternLayer{
   **/
   virtual PatternLayer* clone()=0;
 
+  /**
+     \brief Returns the ladder's position in phi
+     \return The ladder's phi position
+  **/
   virtual short getPhi()=0;
 
   /**
@@ -76,6 +85,7 @@ class PatternLayer{
      \brief Retrieve the SuperStrip objects corresponding to the PatternLayer from the Detector structure
      \param l The layer of the PatternLayer (starting from 0)
      \param ladd The ladders of this layer for the current sector
+     \param modules The modules in the current sector
      \param d The detector structure
      \return A list of SuperStrip*. If no DC bits are used we have only one value.
   **/

@@ -67,7 +67,7 @@ class CMSPatternLayer : public PatternLayer{
   short getModule();
   /**
      \brief Returns the ladder phi position
-     \return The ladder's phi position (0 or 1)
+     \return The ladder's phi position
   **/
   short getPhi();
   /**
@@ -83,7 +83,7 @@ class CMSPatternLayer : public PatternLayer{
 
   /**
      \brief Get the ID of the ladder from the ladder ID in the muon file. Used to change the IDs between the root file and the simulation program (if needed).
-     \brief Ladders numbering must start at 0
+     \brief After a call to this method, ladders numbering must start at 0
      \param layerID The layer ID (TIB : 5,6,7 - TOB : 8,9,10 - TEC : 11,12,13,14,15,16,17 and 18,19,20,21,22,23,24)
      \param ladderID The ladder ID in the muon file
      \return The ID to use in the program
@@ -93,7 +93,7 @@ class CMSPatternLayer : public PatternLayer{
  /**
      \brief Get the ID of the module from the module ID in the muon file. Used to change the IDs between the root file and the simulation program (if needed).
      \brief This method allows to change the module resolution (you can divide the ID by 2) or the numbering.
-     \brief Modules numbering must start at 0
+     \brief After a call to this method, modules numbering must start at 0
      \param layerID The layer ID (TIB : 5,6,7 - TOB : 8,9,10 - TEC : 11,12,13,14,15,16,17 and 18,19,20,21,22,23,24)
      \param moduleID The module ID in the muon file
      \return The ID to use in the program
@@ -110,8 +110,19 @@ class CMSPatternLayer : public PatternLayer{
   **/
   static int getSegmentCode(int layerID, int ladderID, int segmentID);
 
+  /**
+     \brief Gives the number of ladders in the detector for a given layer
+     \param layerID The layer ID
+     \return The number of ladders on the layer layerID
+  **/
   static int getNbLadders(int layerID);
 
+  /**
+     \brief Gives the number of modules in the detector for a given layer/ladder
+     \param layerID The layer ID
+     \param ladderID The ladder ID
+     \return The number of modules on the layer layerID / ladder ladderID
+  **/
   static int getNbModules(int layerID, int ladderID);  
 
 };

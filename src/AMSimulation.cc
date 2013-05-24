@@ -44,29 +44,29 @@ using namespace std;
    \endcode
    All options can be stored in a file called amsimulation.cfg, here is an example :
    \code
-   #Number of strips in a superstrip {16,32,64,128,256,512,1024}
+   # Number of strips in a superstrip {16,32,64,128,256,512,1024}
    ss_size=32
-   #Number of DC bits to use [0-3]
+   # Number of DC bits to use [0-3]
    dc_bits=3
-   #Minimal PT of tracks used to generate a pattern
+   # Minimal PT of tracks used to generate a pattern
    pt_min=2
-   #Maximal PT of tracks used to generate a pattern
+   # Maximal PT of tracks used to generate a pattern
    pt_max=10
-   #Minimal ETA of tracks used to generate a pattern
+   # Minimal ETA of tracks used to generate a pattern
    eta_min=-0.125
-   #Maximal ETA of tracks used to generate a pattern
+   # Maximal ETA of tracks used to generate a pattern
    eta_max=1.375
-   #Directory containing root files with single muon/antimuon events (local or RFIO)
-   input_directory=rfio:/dpm/in2p3.fr/home/cms/data/store/user/sviret/SLHC/GEN/MUBANK_61/
-   #Output file name
+   # Directory containing root files with single muon/antimuon events (local or RFIO)
+   input_directory=rfio:/my/rfio/directory/
+   # Output file name
    bank_name=testOutput.pbk
-   #Coverage [0-1]
+   # Coverage [0-1]
    coverage=0.9
-   #Root file containing sectors definitions
+   # Root file containing sectors definitions
    sector_root_file=sec_test.root
-   #Index of the sector to be used
+   # Index of the sector to be used
    sector_id=17
-   #Layers used
+   # Layers used
    active_layers=6 7 9 10
    \endcode
 

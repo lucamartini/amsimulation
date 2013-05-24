@@ -125,6 +125,8 @@ class CMSPatternLayer : public PatternLayer{
   **/
   static int getNbModules(int layerID, int ladderID);  
 
+  static map<int, pair<float,float> > getLayerDefInEta();
+
 };
 
 #endif

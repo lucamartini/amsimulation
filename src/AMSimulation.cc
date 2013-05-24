@@ -38,58 +38,43 @@ using namespace std;
  
    \section use_sec Using the program
    \subsection generate Generating a pattern bank
-
-   A text user interface is available but not always up to date (does not support the Z for the sectors yet). The easiest way to generate banks is to write a small code creating the sector and running the generation. For an example look at the AMSimulation.cc file in the testCode section. This section is run with the command :
-   \code
-   ./AMSimulation --testCode
-   \endcode
-
-   If you want to use the text user interface (not up to date) to generate a pattern bank file from simulation files (muons + anti muons), enter:
+   To generate a patterns bank, use the command :
    \code
    ./AMSimulation --generateBank
    \endcode
-   You will be asked the following informations :
+   All options can be stored in a file called amsimulation.cfg, here is an example :
    \code
-   Enter the layer numbers (separated by spaces) :
+   #Number of strips in a superstrip {16,32,64,128,256,512,1024}
+   ss_size=32
+   #Number of DC bits to use [0-3]
+   dc_bits=3
+   #Minimal PT of tracks used to generate a pattern
+   pt_min=2
+   #Maximal PT of tracks used to generate a pattern
+   pt_max=10
+   #Minimal ETA of tracks used to generate a pattern
+   eta_min=-0.125
+   #Maximal ETA of tracks used to generate a pattern
+   eta_max=1.375
+   #Directory containing root files with single muon/antimuon events (local or RFIO)
+   input_directory=rfio:/dpm/in2p3.fr/home/cms/data/store/user/sviret/SLHC/GEN/MUBANK_61/
+   #Output file name
+   bank_name=testOutput.pbk
+   #Coverage [0-1]
+   coverage=0.9
+   #Root file containing sectors definitions
+   sector_root_file=sec_test.root
+   #Index of the sector to be used
+   sector_id=17
+   #Layers used
+   active_layers=6 7 9 10
    \endcode
-   You need to enter the layer's ID numbers, for example : "8 9 10" for the 3 outermost layers
-   \code
-   Enter the sector num 1 :
-   \endcode
-   You have to give the sectors for which you want to generate the patterns. You need at least one sector. Enter the number of the ladders on the first layer, separated with spaces, then press the enter key. Enter the ladders on the second layer and so on... Once the first sector is entered, you will be asked for the second one. Proceed as previously until you have entered all your sectors. When you are done, enter '-1' as the ladder number of the first layer of the new sector, this will stop the sectors edition.
-   \code
-   Enter the super strip size :
-   \endcode
-   This is the number of strips contained in a superstrip. The value can be 8, 16, 32, 64, 128, 256, 512, 1024.
-   \code
-   Enter the number of DC bits :
-   \endcode
-   The number of DC bits used for adaptative patterns. This ranges from 0 (no adaptative patterns) to 3.
-   \code
-   Enter the minimum PT :
-   \endcode
-   Tracks having a PT bellow this threshold will not be used
-   \code
-   Enter the maximum PT :
-   \endcode
-   Tracks having a PT above this threshold will not be used
-   \code
-   Enter the muon files directory name :
-   \endcode
-   The directory containing the root files with PG muons and anti muons (local or RFIO).
-   \code
-   Enter the patterns bank file name :
-   \endcode
-   The name of the file that will contain the patterns
-   \code
-   Enter the root output file name :
-   \endcode
-   The name of the Root file that will contain the generation histograms
-   \code
-   Enter the bank growth threshold :
-   \endcode
-   The threshold value to stop the generation (the value is in the range [0-1], for example 0.95). This is the percentage of recognized tracks with the current patterns bank.
 
+   Each option contained in the configuration file can be overwritten via the command line, for example :
+   \code
+   ./AMSimulation --generateBank --ss_size=64
+   \endcode
+   will set the value of the ss_size option to 64, whatever is contained in the configuration file.
    \subsection find Finding patterns in events
    To search for patterns in events, enter :
    \code
@@ -140,49 +125,6 @@ void getLayers(vector<int> &l){
   }
 }
 
-int getSuperStripSize(){
-  cout<<"Enter the super strip size :"<<endl;
-  int result;
-  cin>>result;
-  return result;
-}
-
-int getDCBitsNumber(){
-  cout<<"Enter the number of DC bits :"<<endl;
-  int result;
-  cin>>result;
-  if(result<0)
-    result=0;
-  if(result>3)
-    result=3;
-  return result;
-}
-
-float getThreshold(){
-  cout<<"Enter the bank growth threshold :"<<endl;
-  float result;
-  cin>>result;
-  return result;
-}
-
-float getMinPT(){
-  cout<<"Enter the minimum PT :"<<endl;
-  float result;
-  cin>>result;
-  if(result<0)
-    result=0;
-  return result;
-}
-
-float getMaxPT(){
-  cout<<"Enter the maximum PT :"<<endl;
-  float result;
-  cin>>result;
-  if(result<0)
-    result=0;
-  return result;
-}
-
 float getPhiMin(){
   cout<<"Enter the minimum PHI0 :"<<endl;
   float result;
@@ -219,29 +161,8 @@ float getEtaMax(){
   return result;
 }
 
-string getParticuleDirName(){
-  cout<<"Enter the muon files directory name :"<<endl;
-  string result;
-  cin>>result;
-  return result;
-}
-
-string getPatternBankFileName(){
-  cout<<"Enter the patterns bank file name :"<<endl;
-  string result;
-  cin>>result;
-  return result;
-}
-
 string getSectorDefFileName(){
   cout<<"Enter the sector definition file name :"<<endl;
-  string result;
-  cin>>result;
-  return result;
-}
-
-string getRootOutputFileName(){
-  cout<<"Enter the root output file name :"<<endl;
   string result;
   cin>>result;
   return result;
@@ -569,12 +490,109 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
   delete TT;
 }
 
+// Get the first ladder and number of ladders from a ladders list
+void getOrderData(vector<int> list, int* first, int* nb){
+  sort(list.begin(),list.end());
+  *nb = (int)list.size();
+  if((*nb)>0){
+    int index = list.size()-1;
+    *first = list[index];//greatest value
+    
+    //we decrease the greatest value and stop as soon as there is a gap
+    while(index>0 && list[index-1]==(*first)-1){
+      index--;
+      (*first)--;
+    }
+  }
+}
+
+void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layers, int sector_id){
+
+  Sector s(layers);
+
+  TChain* tree = new TChain("Sectors");
+  tree->Add(fileName.c_str());
+  vector< vector<int> > m_mod_tot;  // Secteurs dans le endcap
+  vector< vector<float> > m_coords;
+  vector< vector<int> > * p_m_mod_tot =  &m_mod_tot;
+  vector< vector<float> > * p_m_coords = &m_coords;
+  tree->SetBranchAddress("sectors",   &p_m_mod_tot);
+  tree->SetBranchAddress("sectors_coord",    &p_m_coords);
+
+  tree->GetEntry(0);
+  
+  vector<int> modules = m_mod_tot[sector_id];
+  cout<<"\tmodule number : "<<modules.size()<<endl;
+
+  vector<float> coords = m_coords[sector_id];
+
+  map<int, vector<int> > ladders_from_layer;
+  map<int, map<int, vector<int> > > modules_from_ladder;
+
+  for(unsigned int i=0;i<modules.size();i++){
+
+    ostringstream oss;
+    oss<<std::setfill('0');
+    oss<<setw(6)<<modules[i];
+    
+    int layer,ladder,module;
+    istringstream ss_layer(oss.str().substr(0,2));
+    ss_layer>>layer;
+    istringstream ss_ladder(oss.str().substr(2,2));
+    ss_ladder>>ladder;
+    ladder = CMSPatternLayer::getLadderCode(layer,ladder);
+    istringstream ss_module(oss.str().substr(4,2));
+    ss_module>>module;
+    module = CMSPatternLayer::getModuleCode(layer,module);
+
+    vector<int> tmp_ladders = ladders_from_layer[layer];
+    if(find(tmp_ladders.begin(),tmp_ladders.end(),ladder)==tmp_ladders.end()){
+      ladders_from_layer[layer].push_back(ladder);
+    }
+
+    vector<int> tmp_modules = modules_from_ladder[layer][ladder];
+    if(find(tmp_modules.begin(),tmp_modules.end(),module)==tmp_modules.end()){
+      modules_from_ladder[layer][ladder].push_back(module);
+    }
+  }
+
+  delete tree;
+
+  for(unsigned int i=0;i<layers.size();i++){
+    vector<int> tmp_ladders = ladders_from_layer[layers[i]];
+    int first, nb;
+    getOrderData(tmp_ladders, &first, &nb);
+    s.addLadders(layers[i], first, nb);
+    for(unsigned int k=0;k<tmp_ladders.size();k++){
+      vector<int> tmp_modules = modules_from_ladder[layers[i]][tmp_ladders[k]];
+      getOrderData(tmp_modules, &first, &nb);
+      s.addModules(layers[i], tmp_ladders[k], first, nb);
+    }
+  }
+
+  cout<<"\tPHI min : "<<coords[0]<<endl;  
+  cout<<"\tPHI max : "<<coords[1]<<endl;  
+  cout<<"\tETA min : "<<coords[2]<<endl;  
+  cout<<"\tETA max : "<<coords[3]<<endl;  
+  cout<<endl;
+
+  st->addSector(s);
+}
+
 int main(int av, char** ac){
   namespace po = boost::program_options;
   // Declare the supported options.
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
+    ("generateBank", "Generates a pattern bank from root simulation file (needs --ss_size --dc_bits --pt_min --pt_max --eta_min --eta_max --coverage --input_directory --bank_name --sector_root_file --sector_id -- active_layers)")
+    ("testSectors", "Get the tracks sectors")
+    ("MergeSectors", "Merge 2 root files having same events but different sectors (needs --inputFile --secondFile and --outputFile)")
+    ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
+    ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
+    ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
+    ("printBank", "Display all patterns from a bank (needs --bankFile)")
+    ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("inputFile", po::value<string>(), "The file to analyse")
     ("secondFile", po::value<string>(), "Second file to merge")
@@ -584,18 +602,24 @@ int main(int av, char** ac){
     ("startEvent", po::value<int>(), "The first event index")
     ("stopEvent", po::value<int>(), "The last event index")
     ("decode", po::value<int>(), "Decode the given super strip")
-    ("generateBank", "Generates a pattern bank from root simulation file")
-    ("testSectors", "Get the tracks sectors")
-    ("MergeSectors", "Merge 2 root files having same events but different sectors (needs --inputFile --secondFile and --outputFile)")
-    ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
-    ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
-    ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
-    ("printBank", "Display all patterns from a bank (needs --bankFile)")
-    ("testCode", "Dev tests")
+    ("ss_size", po::value<int>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}")
+    ("dc_bits", po::value<int>(), "Number of used DC bits [0-3]")
+    ("pt_min", po::value<int>(), "Only tracks having a greater PT will be used to generate a pattern")
+    ("pt_max", po::value<int>(), "Only tracks having a smaller PT will be used to generate a pattern")
+    ("eta_min", po::value<float>(), "Only tracks having a greater ETA will be used to generate a pattern")
+    ("eta_max", po::value<float>(), "Only tracks having a smaller ETA will be used to generate a pattern")
+    ("coverage", po::value<float>(), "Value to reach to stop the process [0-1]")
+    ("input_directory", po::value<string>(), "The directory containing the single particule root files (local or RFIO)")
+    ("sector_root_file", po::value<string>(), "The root file containing the sectors definition")
+    ("sector_id", po::value<int>(), "The index of the sector to use in the root file")
+    ("active_layers", po::value<string>(), "The layers to use in the sector (6 at most)")
+    ("bank_name", po::value<string>(), "The bank file name")    
     ;
      
   po::variables_map vm;
+  std::ifstream in_file( "amsimulation.cfg" ); 
   po::store(po::parse_command_line(av, ac, desc), vm);
+  po::store(po::parse_config_file(in_file, desc), vm);
   po::notify(vm);    
   
   if (vm.count("help")) {
@@ -614,33 +638,71 @@ int main(int av, char** ac){
     TFile f( vm["outputFile"].as<string>().c_str(), "recreate");
     createAnalysis(st);
   } else if (vm.count("generateBank")) {
+    
     vector<int> layers;
     SectorTree st;
-    int stripSize;
-    int dcBits;
-    string partDirName;
-    string bankFileName;
-    string rootFileName;
-    float threshold;
-    float min;
-    float max;
-    float minEta;
-    float maxEta;
-    map<int,pair<float,float> > eta;
-    getLayers(layers);
-    getSectors(layers,st);
-    stripSize=getSuperStripSize();
-    dcBits=getDCBitsNumber();
-    min=getMinPT();
-    max=getMaxPT();
-    minEta=getEtaMin();
-    maxEta=getEtaMax();
-    partDirName=getParticuleDirName();
-    bankFileName=getPatternBankFileName();
-    rootFileName=getRootOutputFileName();
-    threshold=getThreshold();
+    int stripSize=0;
+    int dcBits=0;
+    string partDirName="";
+    string bankFileName="";
+    string rootFileName="";
+    string activeLayers = "";
+    vector<int> active_layers;
+    float threshold=0;
+    float min=0;
+    float max=0;
+    float minEta=0;
+    float maxEta=0;
+    map<int,pair<float,float> > eta;// = CMSPatternLayer::getLayerDefInEta();
+    
+    try{
+      stripSize=vm["ss_size"].as<int>();
+      cout<<"Superstrip size : "<<stripSize<<endl;
+      dcBits=vm["dc_bits"].as<int>();
+      cout<<"DC bits number : "<<dcBits<<endl;
+      min=vm["pt_min"].as<int>();
+      cout<<"PT min : "<<min<<endl;
+      max=vm["pt_max"].as<int>();
+      cout<<"PT max : "<<max<<endl;
+      minEta=vm["eta_min"].as<float>();
+      cout<<"ETA min : "<<minEta<<endl;
+      maxEta=vm["eta_max"].as<float>();
+      cout<<"ETA min : "<<maxEta<<endl;
+      cout<<"Coverage : "<<vm["coverage"].as<float>()<<endl;
+      partDirName=vm["input_directory"].as<string>();
+      cout<<"Using particules from "<<partDirName<<endl;
+      bankFileName=vm["bank_name"].as<string>();
+      cout<<"Output file name is "<<bankFileName<<endl;
+      activeLayers=vm["active_layers"].as<string>();
+      cout<<"Using layers "<<activeLayers<<endl;
+      cout<<"Using sector "<<vm["sector_id"].as<int>()<<" from "<<vm["sector_root_file"].as<string>()<<endl;
+      std::istringstream is( activeLayers );
+      int n;
+      while( is >> n ) {
+	active_layers.push_back(n);
+      }
+      size_t end_index = bankFileName.find(".pbk");
+      if(end_index==string::npos)
+	end_index=bankFileName.length()-4;
+      rootFileName = bankFileName.substr(0,end_index)+"_report.root";
+      threshold=vm["coverage"].as<float>();
+      createSectorFromRootFile(&st,vm["sector_root_file"].as<string>(), active_layers, vm["sector_id"].as<int>());
+    }
+    catch(boost::bad_any_cast e){
+      cout<<"At least one option is missing! Please check : "<<endl;
+      cout<<desc<<endl;
+      return -1;
+    }
+    
+    vector<Sector*> list = st.getAllSectors();
+    cout<<"Sector :"<<endl;
+    for(unsigned int i=0;i<list.size();i++){
+      cout<<*list[i];
+      cout<<endl;
+    }
+    
     PatternGenerator pg(stripSize);//Super strip size
-    pg.setLayers(layers);
+    pg.setLayers(active_layers);
     pg.setParticuleDirName(partDirName);
     pg.setMinPT(min);
     pg.setMaxPT(max);
@@ -664,7 +726,8 @@ int main(int av, char** ac){
       oa << ref;
       cout<<"done."<<endl;
     }
-
+    
+    /*
     vector<Sector*> list = st.getAllSectors();
     int nb_patterns = 0;
     cout<<"************************************************"<<endl;
@@ -679,7 +742,7 @@ int main(int av, char** ac){
 
     cout<<"Total number of patterns : "<<nb_patterns<<endl;
     cout<<"************************************************"<<endl;
-    
+    */
   }
   else if(vm.count("testSectors")) {
     vector<int> layers;
@@ -1028,7 +1091,7 @@ int main(int av, char** ac){
       */
       
       //BARREL
-      layers.push_back(5);
+      //layers.push_back(5);
       layers.push_back(6);
       layers.push_back(7);
       layers.push_back(8);
@@ -1037,14 +1100,15 @@ int main(int av, char** ac){
 
       Sector s(layers);
       
-      s.addLadders(5,2,1);
-      s.addModules(5,2,13,8);
+      //s.addLadders(5,2,1);
+      //s.addModules(5,2,13,8);
       
-      s.addLadders(6,2,3);
-      s.addModules(6,2,12,8);
+      s.addLadders(6,3,1);
+      //s.addModules(6,2,12,8);
       s.addModules(6,3,12,8);
-      s.addModules(6,4,12,8);
-
+      //s.addModules(6,4,12,8);
+      
+      //s.addLadders(7,3,3);
       s.addLadders(7,3,3);
       s.addModules(7,3,11,10);
       s.addModules(7,4,11,10);
@@ -1057,18 +1121,21 @@ int main(int av, char** ac){
       s.addModules(8,7,10,11);
       s.addModules(8,8,10,11);
       
-      s.addLadders(9,4,8);
-      s.addModules(9,4,10,13);
+
+      //s.addLadders(9,4,8);
+      s.addLadders(9,5,6);
+      //s.addModules(9,4,10,13);
       s.addModules(9,5,10,13);
       s.addModules(9,6,10,13);
       s.addModules(9,7,10,13);
       s.addModules(9,8,10,13);
       s.addModules(9,9,10,13);
       s.addModules(9,10,10,13);
-      s.addModules(9,11,10,13);
+      //s.addModules(9,11,10,13);
 
-      s.addLadders(10,4,11);
-      s.addModules(10,4,10,14);
+      //s.addLadders(10,4,11);
+      s.addLadders(10,5,9);
+      //s.addModules(10,4,10,14);
       s.addModules(10,5,10,14);
       s.addModules(10,6,10,14);
       s.addModules(10,7,10,14);
@@ -1078,7 +1145,7 @@ int main(int av, char** ac){
       s.addModules(10,11,10,14);
       s.addModules(10,12,10,14);
       s.addModules(10,13,10,14);
-      s.addModules(10,14,10,14);
+      //s.addModules(10,14,10,14);
 
       cout<<s<<endl;
       
@@ -1172,7 +1239,7 @@ int main(int av, char** ac){
       eta_limits[13]=pair<float,float>(1.28,2.4);
       eta_limits[14]=pair<float,float>(1.35,2.5);
       eta_limits[15]=pair<float,float>(1.43,2.5);
-            
+
       stripSize=32;
       dcBits=3;
       min=50;
@@ -1185,8 +1252,8 @@ int main(int av, char** ac){
       //partDirName="rfio:/dpm/in2p3.fr/home/cms/data/store/user/gbaulieu/SLHC/bankgen_1212/";
       //partDirName="/home/infor/baulieu/private/cms/amsimulation/testFiles/";
       partDirName="rfio:/dpm/in2p3.fr/home/cms/data/store/user/sviret/SLHC/GEN/MUBANK_61/";
-      bankFileName="bank_6L_BARREL_091_138_32ss_3DC_PT50-100_90.pbk";
-      rootFileName="analysis_6L_BARREL_091_138_32ss_3DC_PT50-100_90.root";
+      bankFileName="bank_5L_678910_BARREL_055_102_32ss_3DC_PT50-100_90.pbk";
+      rootFileName="analysis_5L_678910_BARREL_055_101_32ss_3DC_PT50-100_90.root";
       threshold=0.9;
 
       PatternGenerator pg(stripSize);//Super strip size

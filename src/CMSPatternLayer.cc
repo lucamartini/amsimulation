@@ -100,20 +100,6 @@ string CMSPatternLayer::toString(){
   }
   return oss.str();
 }
-/*
-int CMSPatternLayer::getModuleCode(int layerID, int moduleID){
-  return moduleID;
-  //switch(layerID){
-    //case 5 : return (moduleID-30);
-    //case 6 : return (moduleID-26);
-    //case 7 : return (moduleID-25);
-    //case 8 : return moduleID-10;
-    //case 9 : return moduleID-10;
-    //case 10 : return moduleID-10;
-  //default : return moduleID;
-  //}
-}
-*/
 
 int CMSPatternLayer::getSegmentCode(int layerID, int ladderID, int segmentID){
   if(layerID>7 && layerID<11)

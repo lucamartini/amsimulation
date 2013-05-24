@@ -700,6 +700,11 @@ int main(int av, char** ac){
       cout<<*list[i];
       cout<<endl;
     }
+
+    if(active_layers.size()>6){
+      cout<<"ERROR : your sector contains "<<active_layers.size()<<" layers : maximum number of layers is 6!"<<endl;
+      return -1;
+    }
     
     PatternGenerator pg(stripSize);//Super strip size
     pg.setLayers(active_layers);

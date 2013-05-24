@@ -585,7 +585,7 @@ int main(int av, char** ac){
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
-    ("generateBank", "Generates a pattern bank from root simulation file (needs --ss_size --dc_bits --pt_min --pt_max --eta_min --eta_max --coverage --input_directory --bank_name --sector_root_file --sector_id -- active_layers)")
+    ("generateBank", "Generates a pattern bank from root simulation file (needs --ss_size --dc_bits --pt_min --pt_max --eta_min --eta_max --coverage --input_directory --bank_name --sector_root_file --sector_id --active_layers)")
     ("testSectors", "Get the tracks sectors")
     ("MergeSectors", "Merge 2 root files having same events but different sectors (needs --inputFile --secondFile and --outputFile)")
     ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")

@@ -125,6 +125,10 @@ class CMSPatternLayer : public PatternLayer{
   **/
   static int getNbModules(int layerID, int ladderID);  
 
+  /**
+     \brief Returns a map containing the valid ETA range for each layer
+     \return For each layerID, gives the minimum and maximum ETA values
+  **/
   static map<int, pair<float,float> > getLayerDefInEta();
 
 };

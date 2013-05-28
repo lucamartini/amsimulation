@@ -8,8 +8,8 @@ ifeq ($(UNAME), Darwin)
    BOOSTLIBS = -lboost_serialization-mt -lboost_program_options-mt 
 endif
 ifeq ($(UNAME), Linux)
-	FLAG=-O3 -Wall -I `root-config --incdir` -I ${SRC}
-	LIBS = -L ${ROOTSYS}/lib 
+	FLAG=-O3 -Wall -I `root-config --incdir` -I ${SRC} -I `scram tool tag boost INCLUDE`
+	LIBS = -L ${ROOTSYS}/lib -L `scram tool tag boost LIBDIR`
    BOOSTLIBS = -lboost_serialization -lboost_program_options 
 endif
 

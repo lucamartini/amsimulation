@@ -13,8 +13,8 @@
 #include "KarimakiTrackFitter.h"
 
 #ifndef __APPLE__
-BOOST_CLASS_EXPORT(CMSPatternLayer) 
-BOOST_CLASS_EXPORT(PrincipalTrackFitter) 
+BOOST_CLASS_EXPORT_KEY(CMSPatternLayer) 
+BOOST_CLASS_EXPORT_KEY(PrincipalTrackFitter) 
 #endif
 
 using namespace std;

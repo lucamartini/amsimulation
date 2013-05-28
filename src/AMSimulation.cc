@@ -19,6 +19,10 @@
 #include <TH1I.h>
 #include <TFile.h>
 
+#ifndef __APPLE__
+BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer) 
+BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter) 
+#endif
 
 using namespace std;
 

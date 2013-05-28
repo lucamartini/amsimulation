@@ -181,6 +181,7 @@ void PrincipalFitGenerator::generateMultiDim(map<int,pair<float,float> > eta_lim
   }
   cout<<endl;
 
+  /*
   int nb_ladders = -1;
   if(detector_config.find(first_sector->getLayerID(0))!=detector_config.end()){
     nb_ladders = detector_config[first_sector->getLayerID(0)][1];
@@ -189,6 +190,7 @@ void PrincipalFitGenerator::generateMultiDim(map<int,pair<float,float> > eta_lim
     cout<<"We do not know the number of ladders in layer "<<first_sector->getLayerID(0)<<endl;
     return;
   }
+  */
 
   TChain* TT = createTChain();
   int n_entries_TT = TT->GetEntries();

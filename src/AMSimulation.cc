@@ -75,6 +75,11 @@ using namespace std;
    ./AMSimulation --generateBank --ss_size=64
    \endcode
    will set the value of the ss_size option to 64, whatever is contained in the configuration file.
+
+   If you have created 2 banks for the same sector with 2 different PT range (2-10 GeV and 10-50 GeV for example), you can merge the 2 files into a single one using the command :
+   \code
+   ./AMSimulation --MergeBanks --inputFile testPT2-10.pbk --secondFile testPT10-50.pbk --outputFile testPT2-10-50.pbk
+   \endcode
    \subsection find Finding patterns in events
    To search for patterns in events, enter :
    \code
@@ -560,7 +565,7 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
 
   for(unsigned int i=0;i<layers.size();i++){
     vector<int> tmp_ladders = ladders_from_layer[layers[i]];
-    int first, nb;
+    int first=0, nb=0;
     getOrderData(tmp_ladders, &first, &nb);
     s.addLadders(layers[i], first, nb);
     for(unsigned int k=0;k<tmp_ladders.size();k++){

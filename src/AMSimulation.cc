@@ -676,7 +676,7 @@ int main(int av, char** ac){
       minEta=vm["eta_min"].as<float>();
       cout<<"ETA min : "<<minEta<<endl;
       maxEta=vm["eta_max"].as<float>();
-      cout<<"ETA min : "<<maxEta<<endl;
+      cout<<"ETA max : "<<maxEta<<endl;
       cout<<"Coverage : "<<vm["coverage"].as<float>()<<endl;
       partDirName=vm["input_directory"].as<string>();
       cout<<"Using particules from "<<partDirName<<endl;

@@ -24,13 +24,11 @@ void PatternGenerator::setMaxPT(float maxp){
 }
 
 void PatternGenerator::setMinEta(float mine){
-  if(mine>0)
-    etaMin = mine;
+  etaMin = mine;
 }
 
 void PatternGenerator::setMaxEta(float maxe){
-  if(maxe>0)
-    etaMax = maxe;
+  etaMax = maxe;
 }
 
 void PatternGenerator::setLayers(vector<int> l){

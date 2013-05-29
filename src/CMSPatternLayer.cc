@@ -190,5 +190,10 @@ map<int, pair<float,float> > CMSPatternLayer::getLayerDefInEta(){
   eta[13]=pair<float,float>(1.28,2.4);
   eta[14]=pair<float,float>(1.35,2.5);
   eta[15]=pair<float,float>(1.43,2.5);
+  eta[18]=pair<float,float>(-2.1,-1.12);
+  eta[19]=pair<float,float>(-2.25,-1.19);
+  eta[20]=pair<float,float>(-2.4,-1.28);
+  eta[21]=pair<float,float>(-2.5,-1.35);
+  eta[22]=pair<float,float>(-2.5,-1.43);
   return eta;
 }

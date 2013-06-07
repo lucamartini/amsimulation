@@ -61,7 +61,7 @@ void PatternFinder::setEventsFile(string f){
 
 void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inputFile2){
 
-  const int MAX_NB_PATTERNS = 1000;
+  const int MAX_NB_PATTERNS = 1500;
   const int MAX_NB_HITS = 100;
   const int MAX_NB_LADDERS_PER_LAYER = 16;
   const int MAX_NB_LAYERS = 6;
@@ -76,13 +76,13 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   int input1_nb_layers;
   int input1_nb_patterns=0;
   int input1_event_id;
-  int input1_superStrip_layer_0[MAX_NB_PATTERNS];
-  int input1_superStrip_layer_1[MAX_NB_PATTERNS];
-  int input1_superStrip_layer_2[MAX_NB_PATTERNS];
-  int input1_superStrip_layer_3[MAX_NB_PATTERNS];
-  int input1_superStrip_layer_4[MAX_NB_PATTERNS];
-  int input1_superStrip_layer_5[MAX_NB_PATTERNS];
-  int input1_pattern_sector_id[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_0 = new int[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_1 = new int[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_2 = new int[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_3 = new int[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_4 = new int[MAX_NB_PATTERNS];
+  int *input1_superStrip_layer_5 = new int[MAX_NB_PATTERNS];
+  int *input1_pattern_sector_id = new int[MAX_NB_PATTERNS];
 
   //Array containing the strips arrays
   int* input1_superStrips[MAX_NB_LAYERS];
@@ -112,19 +112,30 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   input1_sector_layers_detail[4]=input1_sector_layer_4;
   input1_sector_layers_detail[5]=input1_sector_layer_5;
 
-  int input1_nbHitPerPattern[MAX_NB_PATTERNS];
+  int *input1_nbHitPerPattern = new int[MAX_NB_PATTERNS];
   int input1_totalNbHits=0;
-  short input1_hit_layer[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input1_hit_ladder[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input1_hit_zPos[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input1_hit_segment[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input1_hit_strip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  int input1_hit_tp[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input1_hit_ptGEN[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input1_hit_ip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input1_hit_x[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input1_hit_y[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input1_hit_z[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int input1_nbTracks = 0;
+  float *input1_track_pt = new float[MAX_NB_PATTERNS];
+  float *input1_track_phi = new float[MAX_NB_PATTERNS];
+  float *input1_track_d0 = new float[MAX_NB_PATTERNS];
+  float *input1_track_eta = new float[MAX_NB_PATTERNS];
+  float *input1_track_z0 = new float[MAX_NB_PATTERNS];
+  short *input1_hit_layer = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input1_hit_ladder = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input1_hit_zPos = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input1_hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input1_hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int *input1_hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_etaGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_phi0GEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_ip = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_x = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_y = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_z = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC1->SetBranchAddress("sectorID",            &input1_sector_id);//ID du secteur
   SEC1->SetBranchAddress("nbLayers",            &input1_sector_layers);// nombre de layers dans le secteur
@@ -148,7 +159,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT1->SetBranchAddress("superStrip4",         input1_superStrip_layer_4);
   PATT1->SetBranchAddress("superStrip5",         input1_superStrip_layer_5);
   PATT1->SetBranchAddress("total_nb_stubs",      &input1_totalNbHits);
+  PATT1->SetBranchAddress("nbTracks",            &input1_nbTracks);
   PATT1->SetBranchAddress("nbStubs",             input1_nbHitPerPattern); // nombre de stubs contenus dans chaque pattern
+
+  PATT1->SetBranchAddress("track_pt",            input1_track_pt); // PT of fitted tracks
+  PATT1->SetBranchAddress("track_phi",           input1_track_phi); // PHI0 of fitted tracks
+  PATT1->SetBranchAddress("track_d0",            input1_track_d0); // D0 of fitted tracks
+  PATT1->SetBranchAddress("track_eta",           input1_track_eta); // ETA of fitted tracks
+  PATT1->SetBranchAddress("track_z0",            input1_track_z0); // Z0 of fitted tracks
+
   PATT1->SetBranchAddress("stub_layers",         input1_hit_layer);//layer du stub
   PATT1->SetBranchAddress("stub_ladders",        input1_hit_ladder);//ladder du stub
   PATT1->SetBranchAddress("stub_module",         input1_hit_zPos);//position en Z du module du stub
@@ -156,10 +175,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT1->SetBranchAddress("stub_strip",          input1_hit_strip);//numero de strip du stub
   PATT1->SetBranchAddress("stub_tp",             input1_hit_tp);//numero de la particule du stub
   PATT1->SetBranchAddress("stub_ptGEN",          input1_hit_ptGEN);//PT de la particule du stub
+  PATT1->SetBranchAddress("stub_etaGEN",         input1_hit_etaGEN);//ETA de la particule du stub
+  PATT1->SetBranchAddress("stub_phi0GEN",        input1_hit_phi0GEN);//PHI0 de la particule du stub
   PATT1->SetBranchAddress("stub_IP",             input1_hit_ip);//distance avec l'IP
   PATT1->SetBranchAddress("stub_x",              input1_hit_x);
   PATT1->SetBranchAddress("stub_y",              input1_hit_y);
   PATT1->SetBranchAddress("stub_z",              input1_hit_z);
+  PATT1->SetBranchAddress("stub_X0",             input1_hit_X0);
+  PATT1->SetBranchAddress("stub_Y0",             input1_hit_Y0);
+  PATT1->SetBranchAddress("stub_Z0",             input1_hit_Z0);
 
   /*********************************************/
 
@@ -174,13 +198,13 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   int input2_nb_layers;
   int input2_nb_patterns=0;
   int input2_event_id;
-  int input2_superStrip_layer_0[MAX_NB_PATTERNS];
-  int input2_superStrip_layer_1[MAX_NB_PATTERNS];
-  int input2_superStrip_layer_2[MAX_NB_PATTERNS];
-  int input2_superStrip_layer_3[MAX_NB_PATTERNS];
-  int input2_superStrip_layer_4[MAX_NB_PATTERNS];
-  int input2_superStrip_layer_5[MAX_NB_PATTERNS];
-  int input2_pattern_sector_id[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_0 = new int[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_1 = new int[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_2 = new int[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_3 = new int[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_4 = new int[MAX_NB_PATTERNS];
+  int *input2_superStrip_layer_5 = new int[MAX_NB_PATTERNS];
+  int *input2_pattern_sector_id = new int[MAX_NB_PATTERNS];
 
   //Array containing the strips arrays
   int* input2_superStrips[MAX_NB_LAYERS];
@@ -210,19 +234,30 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   input2_sector_layers_detail[4]=input2_sector_layer_4;
   input2_sector_layers_detail[5]=input2_sector_layer_5;
 
-  int input2_nbHitPerPattern[MAX_NB_PATTERNS];
+  int *input2_nbHitPerPattern = new int[MAX_NB_PATTERNS];
   int input2_totalNbHits=0;
-  short input2_hit_layer[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input2_hit_ladder[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input2_hit_zPos[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input2_hit_segment[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short input2_hit_strip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  int input2_hit_tp[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input2_hit_ptGEN[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input2_hit_ip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input2_hit_x[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input2_hit_y[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float input2_hit_z[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int input2_nbTracks = 0;
+  float *input2_track_pt = new float[MAX_NB_PATTERNS];
+  float *input2_track_phi = new float[MAX_NB_PATTERNS];
+  float *input2_track_d0 = new float[MAX_NB_PATTERNS];
+  float *input2_track_eta = new float[MAX_NB_PATTERNS];
+  float *input2_track_z0 = new float[MAX_NB_PATTERNS];
+  short *input2_hit_layer = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input2_hit_ladder = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input2_hit_zPos = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input2_hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  short *input2_hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int *input2_hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_etaGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_phi0GEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_ip = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_x = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_y = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_z = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC2->SetBranchAddress("sectorID",            &input2_sector_id);//ID du secteur
   SEC2->SetBranchAddress("nbLayers",            &input2_sector_layers);// nombre de layers dans le secteur
@@ -246,7 +281,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("superStrip4",         input2_superStrip_layer_4);
   PATT2->SetBranchAddress("superStrip5",         input2_superStrip_layer_5);
   PATT2->SetBranchAddress("total_nb_stubs",      &input2_totalNbHits);
+  PATT2->SetBranchAddress("nbTracks",            &input2_nbTracks);
   PATT2->SetBranchAddress("nbStubs",             input2_nbHitPerPattern); // nombre de stubs contenus dans chaque pattern
+
+  PATT1->SetBranchAddress("track_pt",            input2_track_pt); // PT of fitted tracks
+  PATT1->SetBranchAddress("track_phi",           input2_track_phi); // PHI0 of fitted tracks
+  PATT1->SetBranchAddress("track_d0",            input2_track_d0); // D0 of fitted tracks
+  PATT1->SetBranchAddress("track_eta",           input2_track_eta); // ETA of fitted tracks
+  PATT1->SetBranchAddress("track_z0",            input2_track_z0); // Z0 of fitted tracks
+
   PATT2->SetBranchAddress("stub_layers",         input2_hit_layer);//layer du stub
   PATT2->SetBranchAddress("stub_ladders",        input2_hit_ladder);//ladder du stub
   PATT2->SetBranchAddress("stub_module",         input2_hit_zPos);//position en Z du module du stub
@@ -254,26 +297,33 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("stub_strip",          input2_hit_strip);//numero de strip du stub
   PATT2->SetBranchAddress("stub_tp",             input2_hit_tp);//numero de la particule du stub
   PATT2->SetBranchAddress("stub_ptGEN",          input2_hit_ptGEN);//PT de la particule du stub
+  PATT2->SetBranchAddress("stub_etaGEN",         input2_hit_etaGEN);//PT de la particule du stub
+  PATT2->SetBranchAddress("stub_phi0GEN",        input2_hit_phi0GEN);//PT de la particule du stub
   PATT2->SetBranchAddress("stub_IP",             input2_hit_ip);//distance avec l'IP
   PATT2->SetBranchAddress("stub_x",              input2_hit_x);
   PATT2->SetBranchAddress("stub_y",              input2_hit_y);
   PATT2->SetBranchAddress("stub_z",              input2_hit_z);
+  PATT2->SetBranchAddress("stub_X0",             input2_hit_X0);
+  PATT2->SetBranchAddress("stub_Y0",             input2_hit_Y0);
+  PATT2->SetBranchAddress("stub_Z0",             input2_hit_Z0);
 
   /*********************OUTPUT FILE *************************************/
   TTree *PATTOUT    = new TTree("Patterns", "Active patterns");
   TTree *SECOUT     = new TTree("Sectors", "Used Sectors");
   TFile *t = new TFile(outputFile.c_str(),"recreate");
 
+  const int MAX_NB_OUTPUT_PATTERNS = 100000;
+
   int nb_layers;
   int nb_patterns=0;
   int event_id;
-  int superStrip_layer_0[MAX_NB_PATTERNS];
-  int superStrip_layer_1[MAX_NB_PATTERNS];
-  int superStrip_layer_2[MAX_NB_PATTERNS];
-  int superStrip_layer_3[MAX_NB_PATTERNS];
-  int superStrip_layer_4[MAX_NB_PATTERNS];
-  int superStrip_layer_5[MAX_NB_PATTERNS];
-  int pattern_sector_id[MAX_NB_PATTERNS];
+  int *superStrip_layer_0 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *superStrip_layer_1 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *superStrip_layer_2 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *superStrip_layer_3 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *superStrip_layer_4 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *superStrip_layer_5 = new int[MAX_NB_OUTPUT_PATTERNS];
+  int *pattern_sector_id = new int[MAX_NB_OUTPUT_PATTERNS];
 
   //Array containing the strips arrays
   int* superStrips[MAX_NB_LAYERS];
@@ -303,19 +353,32 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   sector_layers_detail[4]=sector_layer_4;
   sector_layers_detail[5]=sector_layer_5;
 
-  int nbHitPerPattern[MAX_NB_PATTERNS];
+  int *nbHitPerPattern = new int[MAX_NB_OUTPUT_PATTERNS];
   int totalNbHits=0;
-  short hit_layer[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short hit_ladder[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short hit_zPos[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short hit_segment[MAX_NB_PATTERNS*MAX_NB_HITS];
-  short hit_strip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  int hit_tp[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float hit_ptGEN[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float hit_ip[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float hit_x[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float hit_y[MAX_NB_PATTERNS*MAX_NB_HITS];
-  float hit_z[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int nbTracks = 0;
+
+  float *track_pt = new float[MAX_NB_OUTPUT_PATTERNS];
+  float *track_phi = new float[MAX_NB_OUTPUT_PATTERNS];
+  float *track_d0 = new float[MAX_NB_OUTPUT_PATTERNS];
+  float *track_eta = new float[MAX_NB_OUTPUT_PATTERNS];
+  float *track_z0 = new float[MAX_NB_OUTPUT_PATTERNS];
+
+  short *hit_layer = new  short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  short *hit_ladder = new short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  short *hit_zPos = new short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  short *hit_segment = new  short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  short *hit_strip = new  short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  int *hit_tp = new int[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_ptGEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_etaGEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_phi0GEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_ip = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_x = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_y = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_z = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_X0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_Y0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_Z0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   
   SECOUT->Branch("sectorID",            &sector_id);
   SECOUT->Branch("nbLayers",            &sector_layers);
@@ -341,6 +404,12 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATTOUT->Branch("superStrip5",         superStrip_layer_5, "superStrip5[nbPatterns]/I");
   PATTOUT->Branch("nbStubs",             nbHitPerPattern, "nbStubs[nbPatterns]/I");
   PATTOUT->Branch("total_nb_stubs",      &totalNbHits, "total_nb_stubs/I");
+  PATTOUT->Branch("nbTracks",            &nbTracks, "nbTracks/I");
+  PATTOUT->Branch("track_pt",            track_pt, "track_pt[nbPatterns]/F");
+  PATTOUT->Branch("track_phi",           track_phi, "track_phi[nbPatterns]/F");
+  PATTOUT->Branch("track_d0",            track_d0, "track_d0[nbPatterns]/F");
+  PATTOUT->Branch("track_eta",           track_eta, "track_eta[nbPatterns]/F");
+  PATTOUT->Branch("track_z0",            track_z0, "track_z0[nbPatterns]/F");
   PATTOUT->Branch("stub_layers",         hit_layer,"stub_layers[total_nb_stubs]/S");
   PATTOUT->Branch("stub_ladders",        hit_ladder, "stub_ladders[total_nb_stubs]/S");
   PATTOUT->Branch("stub_module",         hit_zPos, "stub_module[total_nb_stubs]/S");
@@ -348,10 +417,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATTOUT->Branch("stub_strip",          hit_strip, "stub_strip[total_nb_stubs]/S");
   PATTOUT->Branch("stub_tp",             hit_tp,    "stub_tp[total_nb_stubs]/I");
   PATTOUT->Branch("stub_ptGEN",          hit_ptGEN, "stub_ptGEN[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_etaGEN",         hit_etaGEN, "stub_etaGEN[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_phi0GEN",        hit_phi0GEN, "stub_phi0GEN[total_nb_stubs]/F");
   PATTOUT->Branch("stub_IP",             hit_ip, "stub_IP[total_nb_stubs]/F");
   PATTOUT->Branch("stub_x",              hit_x, "stub_x[total_nb_stubs]/F");
   PATTOUT->Branch("stub_y",              hit_y, "stub_y[total_nb_stubs]/F");
   PATTOUT->Branch("stub_z",              hit_z, "stub_z[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_X0",             hit_X0, "stub_X0[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_Y0",             hit_Y0, "stub_Y0[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_Z0",             hit_Z0, "stub_Z0[total_nb_stubs]/F");
   
 
   /*********************************************/
@@ -413,7 +487,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
       break;
     }
 
-    memset(pattern_sector_id,0,MAX_NB_PATTERNS*sizeof(int));
+    memset(pattern_sector_id,0,MAX_NB_OUTPUT_PATTERNS*sizeof(int));
 
     nb_patterns = input1_nb_patterns+input2_nb_patterns;
 
@@ -429,6 +503,23 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(nbHitPerPattern+input1_nb_patterns,input2_nbHitPerPattern,input2_nb_patterns*sizeof(int));
 
     totalNbHits=input1_totalNbHits+input2_totalNbHits;
+    
+    nbTracks=input1_nbTracks+input2_nbTracks;
+
+    memcpy(track_pt,input1_track_pt,input1_nbTracks*sizeof(float));
+    memcpy(track_pt+input1_nbTracks,input2_track_pt,input2_nbTracks*sizeof(float));
+
+    memcpy(track_phi,input1_track_phi,input1_nbTracks*sizeof(float));
+    memcpy(track_phi+input1_nbTracks,input2_track_phi,input2_nbTracks*sizeof(float));
+
+    memcpy(track_d0,input1_track_d0,input1_nbTracks*sizeof(float));
+    memcpy(track_d0+input1_nbTracks,input2_track_d0,input2_nbTracks*sizeof(float));
+
+    memcpy(track_eta,input1_track_eta,input1_nbTracks*sizeof(float));
+    memcpy(track_eta+input1_nbTracks,input2_track_eta,input2_nbTracks*sizeof(float));
+
+    memcpy(track_z0,input1_track_z0,input1_nbTracks*sizeof(float));
+    memcpy(track_z0+input1_nbTracks,input2_track_z0,input2_nbTracks*sizeof(float));
 
     memcpy(hit_layer,input1_hit_layer,input1_totalNbHits*sizeof(short));
     memcpy(hit_layer+input1_totalNbHits,input2_hit_layer,input2_totalNbHits*sizeof(short));
@@ -451,6 +542,12 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(hit_ptGEN,input1_hit_ptGEN,input1_totalNbHits*sizeof(float));
     memcpy(hit_ptGEN+input1_totalNbHits,input2_hit_ptGEN,input2_totalNbHits*sizeof(float));
 
+    memcpy(hit_etaGEN,input1_hit_etaGEN,input1_totalNbHits*sizeof(float));
+    memcpy(hit_etaGEN+input1_totalNbHits,input2_hit_etaGEN,input2_totalNbHits*sizeof(float));
+
+    memcpy(hit_phi0GEN,input1_hit_phi0GEN,input1_totalNbHits*sizeof(float));
+    memcpy(hit_phi0GEN+input1_totalNbHits,input2_hit_phi0GEN,input2_totalNbHits*sizeof(float));
+
     memcpy(hit_ip,input1_hit_ip,input1_totalNbHits*sizeof(float));
     memcpy(hit_ip+input1_totalNbHits,input2_hit_ip,input2_totalNbHits*sizeof(float));
 
@@ -463,6 +560,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(hit_z,input1_hit_z,input1_totalNbHits*sizeof(float));
     memcpy(hit_z+input1_totalNbHits,input2_hit_z,input2_totalNbHits*sizeof(float));
 
+    memcpy(hit_X0,input1_hit_X0,input1_totalNbHits*sizeof(float));
+    memcpy(hit_X0+input1_totalNbHits,input2_hit_X0,input2_totalNbHits*sizeof(float));
+
+    memcpy(hit_Y0,input1_hit_Y0,input1_totalNbHits*sizeof(float));
+    memcpy(hit_Y0+input1_totalNbHits,input2_hit_Y0,input2_totalNbHits*sizeof(float));
+
+    memcpy(hit_Z0,input1_hit_Z0,input1_totalNbHits*sizeof(float));
+    memcpy(hit_Z0+input1_totalNbHits,input2_hit_Z0,input2_totalNbHits*sizeof(float));
+
     PATTOUT->Fill();
   }
 
@@ -470,6 +576,98 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
 
   t->Close();
 
+  delete [] input1_superStrip_layer_0;
+  delete [] input1_superStrip_layer_1;
+  delete [] input1_superStrip_layer_2;
+  delete [] input1_superStrip_layer_3;
+  delete [] input1_superStrip_layer_4;
+  delete [] input1_superStrip_layer_5;
+  delete [] input1_pattern_sector_id;
+
+  delete [] input1_nbHitPerPattern;
+  delete [] input1_track_pt;
+  delete [] input1_track_phi;
+  delete [] input1_track_d0;
+  delete [] input1_track_eta;
+  delete [] input1_track_z0;
+  delete [] input1_hit_layer;
+  delete [] input1_hit_ladder;
+  delete [] input1_hit_zPos;
+  delete [] input1_hit_segment;
+  delete [] input1_hit_strip;
+  delete [] input1_hit_tp;
+  delete [] input1_hit_ptGEN;
+  delete [] input1_hit_etaGEN;
+  delete [] input1_hit_phi0GEN;
+  delete [] input1_hit_ip;
+  delete [] input1_hit_x;
+  delete [] input1_hit_y;
+  delete [] input1_hit_z;
+  delete [] input1_hit_X0;
+  delete [] input1_hit_Y0;
+  delete [] input1_hit_Z0;
+  
+  delete [] input2_superStrip_layer_0;
+  delete [] input2_superStrip_layer_1;
+  delete [] input2_superStrip_layer_2;
+  delete [] input2_superStrip_layer_3;
+  delete [] input2_superStrip_layer_4;
+  delete [] input2_superStrip_layer_5;
+  delete [] input2_pattern_sector_id;
+
+  delete [] input2_nbHitPerPattern;
+  delete [] input2_track_pt;
+  delete [] input2_track_phi;
+  delete [] input2_track_d0;
+  delete [] input2_track_eta;
+  delete [] input2_track_z0;
+  delete [] input2_hit_layer;
+  delete [] input2_hit_ladder;
+  delete [] input2_hit_zPos;
+  delete [] input2_hit_segment;
+  delete [] input2_hit_strip;
+  delete [] input2_hit_tp;
+  delete [] input2_hit_ptGEN;
+  delete [] input2_hit_etaGEN;
+  delete [] input2_hit_phi0GEN;
+  delete [] input2_hit_ip;
+  delete [] input2_hit_x;
+  delete [] input2_hit_y;
+  delete [] input2_hit_z;
+  delete [] input2_hit_X0;
+  delete [] input2_hit_Y0;
+  delete [] input2_hit_Z0;
+
+  delete [] superStrip_layer_0;
+  delete [] superStrip_layer_1;
+  delete [] superStrip_layer_2;
+  delete [] superStrip_layer_3;
+  delete [] superStrip_layer_4;
+  delete [] superStrip_layer_5;
+  delete [] pattern_sector_id;
+  delete [] track_pt;
+  delete [] track_phi;
+  delete [] track_d0;
+  delete [] track_eta;
+  delete [] track_z0;
+  delete [] nbHitPerPattern;
+  delete [] hit_layer;
+  delete [] hit_ladder;
+  delete [] hit_zPos;
+  delete [] hit_segment;
+  delete [] hit_strip;
+  delete [] hit_tp;
+  delete [] hit_ptGEN;
+  delete [] hit_etaGEN;
+  delete [] hit_phi0GEN;
+  delete [] hit_ip;
+  delete [] hit_x;
+  delete [] hit_y;
+  delete [] hit_z;
+  delete [] hit_X0;
+  delete [] hit_Y0;
+  delete [] hit_Z0;
+ 
   delete PATT1;
   delete PATT2;
   delete SEC1;

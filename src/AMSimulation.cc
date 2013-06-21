@@ -518,22 +518,53 @@ void getOrderData(vector<int> list, int* first, int* nb){
 void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layers, int sector_id){
 
   Sector s(layers);
+  TChain* tree = NULL;
+  vector<int> modules;
+  vector<float> coords;
 
-  TChain* tree = new TChain("Sectors");
-  tree->Add(fileName.c_str());
-  vector< vector<int> > m_mod_tot;  // Secteurs dans le endcap
-  vector< vector<float> > m_coords;
-  vector< vector<int> > * p_m_mod_tot =  &m_mod_tot;
-  vector< vector<float> > * p_m_coords = &m_coords;
-  tree->SetBranchAddress("sectors",   &p_m_mod_tot);
-  tree->SetBranchAddress("sectors_coord",    &p_m_coords);
-
-  tree->GetEntry(0);
+  if(fileName.substr(fileName.length()-4,fileName.length()).compare(".csv")==0){
+    ifstream is(fileName.c_str());
+    string line;
+    int line_index=0;
+    if (is.is_open()){
+      while ( is.good() ){
+	getline (is,line);
+	if(line_index==sector_id+1){ // line describing the sector we want
+	  std::stringstream ss(line);
+	  std::string item;
+	  int column_index=0;
+	  while (std::getline(ss, item, ',')) {
+	    if(column_index>1){   
+	      int number;
+	      std::istringstream ss( item );
+	      ss >> number;
+	      modules.push_back(number);
+	    }
+	    column_index++;
+	  }
+	}
+	line_index++;
+      }
+      is.close();
+    }
+  }
+  else{
+    tree = new TChain("Sectors");
+    tree->Add(fileName.c_str());
+    vector< vector<int> > m_mod_tot;  // Secteurs dans le endcap
+    vector< vector<float> > m_coords;
+    vector< vector<int> > * p_m_mod_tot =  &m_mod_tot;
+    vector< vector<float> > * p_m_coords = &m_coords;
+    tree->SetBranchAddress("sectors",   &p_m_mod_tot);
+    tree->SetBranchAddress("sectors_coord",    &p_m_coords);
+    
+    tree->GetEntry(0);
   
-  vector<int> modules = m_mod_tot[sector_id];
-  cout<<"\tmodule number : "<<modules.size()<<endl;
+    modules = m_mod_tot[sector_id];
+    cout<<"\tmodule number : "<<modules.size()<<endl;
 
-  vector<float> coords = m_coords[sector_id];
+    coords = m_coords[sector_id];
+  }
 
   map<int, vector<int> > ladders_from_layer;
   map<int, map<int, vector<int> > > modules_from_ladder;
@@ -565,8 +596,6 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     }
   }
 
-  delete tree;
-
   for(unsigned int i=0;i<layers.size();i++){
     vector<int> tmp_ladders = ladders_from_layer[layers[i]];
     int first=0, nb=0;
@@ -579,11 +608,14 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     }
   }
 
-  cout<<"\tPHI min : "<<coords[0]<<endl;  
-  cout<<"\tPHI max : "<<coords[1]<<endl;  
-  cout<<"\tETA min : "<<coords[2]<<endl;  
-  cout<<"\tETA max : "<<coords[3]<<endl;  
-  cout<<endl;
+  if(tree!=NULL){
+    delete tree;
+    cout<<"\tPHI min : "<<coords[0]<<endl;  
+    cout<<"\tPHI max : "<<coords[1]<<endl;  
+    cout<<"\tETA min : "<<coords[2]<<endl;  
+    cout<<"\tETA max : "<<coords[3]<<endl;  
+    cout<<endl;
+  }
 
   st->addSector(s);
 }
@@ -801,7 +833,7 @@ int main(int av, char** ac){
       boost::progress_timer t;
       int start = vm["startEvent"].as<int>();
       int stop = vm["stopEvent"].as<int>();
-      vector<Sector*> pattern_list2 = pf.find(start, stop);
+      pf.find(start, stop);
       cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
     }
   }

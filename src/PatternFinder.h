@@ -48,9 +48,8 @@ class PatternFinder{
      \brief Look for active patterns in events
      \param start The search will start from this event number
      \param stop The search will end at this event number
-     \return A vector of sectors, each sector containing the active patterns
   **/
-  vector<Sector*> find(int start, int& stop);
+  void find(int start, int& stop);
 
   /**
      \brief Merge 2 files into 1 single file

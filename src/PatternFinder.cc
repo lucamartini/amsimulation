@@ -677,7 +677,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
 
 }
 
-vector<Sector*> PatternFinder::find(int start, int& stop){
+void PatternFinder::find(int start, int& stop){
   /**************** OUTPUT FILE ****************/
   TTree* Out = new TTree("Patterns", "Active patterns");
   TTree* SectorOut = new TTree("Sectors", "Used Sectors");
@@ -835,7 +835,6 @@ vector<Sector*> PatternFinder::find(int start, int& stop){
   /*************************************************/
 
   /***************** INPUT FILE ****************/
-  vector<Sector*> results;
   TChain* TT = new TChain("L1TrackTrigger");
   TT->Add(eventsFilename.c_str());
   
@@ -1080,7 +1079,6 @@ vector<Sector*> PatternFinder::find(int start, int& stop){
   delete t;
 
   delete TT;
-  return results;
 }
 
 vector<Sector*> PatternFinder::find(vector<Hit*> hits){

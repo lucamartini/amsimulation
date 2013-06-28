@@ -230,6 +230,20 @@ int Sector::getNbLayers(){
   return m_modules.size();
 }
 
+bool Sector::contains(const Hit& h){
+  map<int, map<int, vector<int> > >::iterator it = m_modules.find(h.getLayer());
+  if(it==m_modules.end())
+    return false;
+  map<int, vector<int> >::iterator it2 = it->second.find(h.getLadder());
+  if(it2==it->second.end())
+    return false;
+  for(unsigned int i=0;i<it2->second.size();i++){
+    if(it2->second[i]==h.getModule())
+      return true;
+  }
+  return false;
+}
+
 vector<int> Sector::getLadders(int l) const{
   vector<int> v;
   if(l<0 && l>=(int)m_modules.size())//no such layer

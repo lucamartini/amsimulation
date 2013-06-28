@@ -15,6 +15,7 @@ class Hit{
   char zPos;
   char segment;
   short stripNumber;
+  short stub_idx;
   int part_id;
   float part_pt;
   float part_ip;
@@ -37,6 +38,7 @@ class Hit{
      \param zp The Z position of the module
      \param seg The segment of the hit in the module
      \param strip The strip touched
+     \param idx The index of the stub creating this hit
      \param tp The belonging particule's ID (used to check efficiency) 
      \param pt The belonging particule's PT (used to check efficiency) 
      \param ip Distance between particule's origine and interaction point
@@ -49,7 +51,7 @@ class Hit{
      \param p_y0 The Y0 coordinate of the hit in the tracker
      \param p_z0 The Z0 coordinate of the hit in the tracker
   **/
-  Hit(char l, char lad, char zp, char seg, short strip, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0);
+  Hit(char l, char lad, char zp, char seg, short strip, short idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0);
   /**
      \brief The copy Constructor
   **/
@@ -79,6 +81,11 @@ class Hit{
      \return The strip of the Hit
   **/
   short getStripNumber() const;
+  /**
+     \brief Get the ID of the hit in the event
+     \return The ID of the Hit
+  **/
+  short getID() const;
   /**
      \brief Get the original particule ID of the hit
      \return The particule ID of the Hit

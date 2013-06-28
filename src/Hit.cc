@@ -1,11 +1,12 @@
 #include "Hit.h"
 
-Hit::Hit(char l, char lad, char zp, char seg, short strip, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0){
+Hit::Hit(char l, char lad, char zp, char seg, short strip, short idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0){
   layer = l;
   ladder = lad;
   zPos = zp;
   segment = seg;
   stripNumber=strip;
+  stub_idx=idx;
   part_id = tp;
   part_pt = pt;
   part_ip = ip;
@@ -25,6 +26,7 @@ Hit::Hit(const Hit& h){
   zPos = h.zPos;
   segment = h.segment;
   stripNumber=h.stripNumber;
+  stub_idx=h.stub_idx;
   part_id=h.part_id;
   part_pt=h.part_pt;
   part_ip=h.part_ip;
@@ -56,6 +58,10 @@ char Hit::getSegment() const{
 
 short Hit::getStripNumber() const{
   return stripNumber;
+}
+
+short Hit::getID() const{
+  return stub_idx;
 }
 
 int Hit::getParticuleID() const{

@@ -52,6 +52,14 @@ Sector* SectorTree::getSector(vector<int> ladders, vector<int> modules){
   return NULL;
 }
 
+Sector* SectorTree::getSector(const Hit& h){
+  for(unsigned int i=0;i<sector_list.size();i++){
+    if(sector_list[i]->contains(h))
+      return sector_list[i];
+  }
+  return NULL;
+}
+
 void SectorTree::addSector(Sector s){
   Sector* ns = new Sector(s);
   sector_list.push_back(ns);

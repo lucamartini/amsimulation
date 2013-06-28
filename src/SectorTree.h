@@ -69,6 +69,12 @@ class SectorTree{
      \return NULL if no sector was found or a pointer on the Sector (do NOT delete this pointer, it is not a copy). If several sectors match, the first one is returned (smaller ladders)
   **/
   Sector* getSector(vector<int> ladders, vector<int> modules);
+ /**
+     \brief Search for one sector
+     \param h A hit
+     \return NULL if the hit is not in any sector or a pointer on the Sector (do NOT delete this pointer, it is not a copy). If several sectors match, the first one is returned (smaller ladders)
+  **/
+  Sector* getSector(const Hit& h);
   /**
      \brief Add a sector to the SectorTree
      \param s The sector to add

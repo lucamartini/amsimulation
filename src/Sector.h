@@ -163,6 +163,12 @@ class Sector{
   **/
   int getKey();
 
+  /**
+     \brief Does the sector contains the hit?
+     \return True if the hit is in the sector, false otherwise
+  **/
+  bool contains(const Hit& h);
+
 
   /**
      \brief Get the ladders on the given layer

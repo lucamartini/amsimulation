@@ -535,10 +535,13 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
 	  int column_index=0;
 	  while (std::getline(ss, item, ',')) {
 	    if(column_index>1){   
-	      int number;
+	      int number=0;
 	      std::istringstream ss( item );
 	      ss >> number;
-	      modules.push_back(number);
+	      if(number!=0){
+		//cout<<number<<endl;
+		modules.push_back(number);
+	      }
 	    }
 	    column_index++;
 	  }

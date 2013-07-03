@@ -143,7 +143,7 @@ int CMSPatternLayer::getLadderCode(int layerID, int ladderID){
    case 8 : return 48;
    case 9 : return 62;
    case 10 : return 76;
-   default : return 14;
+   default : return 15;
    }
  }
 
@@ -158,20 +158,21 @@ int CMSPatternLayer::getNbModules(int layerID, int ladderID){
     return 24;
   if(layerID>=11 && layerID<=24){
     switch(ladderID){
-    case 0:return 24;
-    case 1:return 26;
+    case 0:return 20;
+    case 1:return 24;
     case 2:return 28;
-    case 3:return 30;
-    case 4:return 34;
-    case 5:return 34;
-    case 6:return 38;
+    case 3:return 28;
+    case 4:return 32;
+    case 5:return 36;
+    case 6:return 36;
     case 7:return 40;
-    case 8:return 48;
-    case 9:return 54;
-    case 10:return 62;
-    case 11:return 66;
-    case 12:return 72;
-    case 13:return 78;
+    case 8:return 40;
+    case 9:return 48;
+    case 10:return 56;
+    case 11:return 64;
+    case 12:return 68;
+    case 13:return 72;
+    case 14:return 80;
     }
   }
   return -1;

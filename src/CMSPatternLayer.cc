@@ -101,6 +101,38 @@ string CMSPatternLayer::toString(){
   return oss.str();
 }
 
+vector<int> CMSPatternLayer::getLayerIDs(){
+  vector<int> layers;
+
+  //BARREL
+  layers.push_back(5);
+  layers.push_back(6);
+  layers.push_back(7);
+  layers.push_back(8);
+  layers.push_back(9);
+  layers.push_back(10);
+
+  //ENDCAP 1
+  layers.push_back(11);
+  layers.push_back(12);
+  layers.push_back(13);
+  layers.push_back(14);
+  layers.push_back(15);
+
+  //ENDCAP 2
+  layers.push_back(18);
+  layers.push_back(19);
+  layers.push_back(20);
+  layers.push_back(21);
+  layers.push_back(22);
+
+  return layers;
+}
+
+int CMSPatternLayer::getNbStripsInSegment(){
+  return 1024;
+}
+
 int CMSPatternLayer::getSegmentCode(int layerID, int ladderID, int segmentID){
   if(layerID>7 && layerID<11)
     return segmentID;
@@ -123,11 +155,6 @@ int CMSPatternLayer::getModuleCode(int layerID, int moduleID){
   default : return moduleID;
   }
 }
-/*
-int CMSPatternLayer::getSegmentCode(int layerID, int ladderID, int segmentID){
-  return segmentID;
-}
-*/
 
 int CMSPatternLayer::getLadderCode(int layerID, int ladderID){
   return ladderID;
@@ -173,6 +200,7 @@ int CMSPatternLayer::getNbModules(int layerID, int ladderID){
     case 12:return 68;
     case 13:return 72;
     case 14:return 80;
+    default:return 80;
     }
   }
   return -1;

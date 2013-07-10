@@ -50,6 +50,15 @@ map< int, vector<int> > Sector::readConfig(string name){
   }
   else{
     cout << "No detector.cfg file found : using default configuration."<<endl;
+    vector<int> layers = CMSPatternLayer::getLayerIDs();
+    for(unsigned int i=0;i<layers.size();i++){
+      vector<int> layer_config;
+      layer_config.push_back(layers[i]);//layer's ID
+      layer_config.push_back(CMSPatternLayer::getNbLadders(layers[i]));//ladder number
+      layer_config.push_back(CMSPatternLayer::getNbModules(layers[i],-1));//max module number
+      layer_config.push_back(CMSPatternLayer::getNbStripsInSegment());//strip number in segment
+      detector_config[layer_config[0]]=layer_config;
+    }
   }
   return detector_config;
 }

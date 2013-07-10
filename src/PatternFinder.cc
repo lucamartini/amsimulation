@@ -18,29 +18,7 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
 	if(detector_config.find(layerID)!=detector_config.end())
 	  tracker.addLayer(detector_config[layerID][0],detector_config[layerID][1],detector_config[layerID][2],detector_config[layerID][3], superStripSize);
 	else
-	  cout<<"WARNING : Layer "<<layerID<<" is used in the sector definition of the bank but is missing in the configuration contained in detector.cfg"<<endl;
-      }
-      else{//default configuration
-	switch(layerID){
-	case 5:
-	  tracker.addLayer(5,16,15, 1024, superStripSize);
-	  break;
-	case 6:
-	  tracker.addLayer(6,24,15, 1024, superStripSize);
-	  break;
-	case 7:
-	  tracker.addLayer(7,36,15, 1024, superStripSize);
-	  break;
-	case 8:
-	  tracker.addLayer(8,48,14, 1024, superStripSize);
-	  break;
-	case 9:
-	  tracker.addLayer(9,60,14, 1024, superStripSize);
-	  break;
-	case 10:
-	  tracker.addLayer(10,76,14, 1024, superStripSize);
-	  break;
-	}
+	  cout<<"WARNING : Layer "<<layerID<<" is used in the sector definition of the bank but is missing in the configuration of the virtual detector"<<endl;
       }
     }
   }

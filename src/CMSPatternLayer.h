@@ -82,6 +82,18 @@ class CMSPatternLayer : public PatternLayer{
   short getSegment();
 
   /**
+     \brief Returns the list of layers IDs in the detector
+     \return a vector containing the layer IDs
+  **/
+  static vector<int> getLayerIDs();
+
+  /**
+     \brief Returns the number of strips in a segment
+     \return an int value
+  **/
+  static int getNbStripsInSegment();
+
+  /**
      \brief Get the ID of the ladder from the ladder ID in the muon file. Used to change the IDs between the root file and the simulation program (if needed).
      \brief After a call to this method, ladders numbering must start at 0
      \param layerID The layer ID (TIB : 5,6,7 - TOB : 8,9,10 - TEC : 11,12,13,14,15,16,17 and 18,19,20,21,22,23,24)

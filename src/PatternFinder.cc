@@ -992,7 +992,7 @@ void PatternFinder::find(int start, int& stop){
 	fitter->clean();
       }
       else{
-	cout<<"Aucun fit trouvé pour ce secteur!"<<endl;
+	cout<<"No fitter found for this sector!"<<endl;
       }
       ///////////////////////
 

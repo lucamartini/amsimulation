@@ -204,7 +204,6 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	      //cout<<"Add stub for sector : "<<ladder_per_layer[j]<<" / "<<module_per_layer[j]<<endl;
 	      //debug=true;
 	      missing_stub=false;//we will create a fake superstrip, so the stub is not missing
-	      cout<<"on utilise quand meme"<<endl;
 	    }
 	  }
 	}

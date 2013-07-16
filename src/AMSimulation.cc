@@ -584,6 +584,16 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     istringstream ss_ladder(oss.str().substr(2,2));
     ss_ladder>>ladder;
     ladder = CMSPatternLayer::getLadderCode(layer,ladder);
+
+    ////// TMP FIX FOR TKLAYOUT NUMBERING (10 JUL 2013)
+    
+    //if(layer<11){
+    //  int tmp_nb_ladders = CMSPatternLayer::getNbLadders(layer);
+    //  ladder = (ladder+tmp_nb_ladders*3/4) % tmp_nb_ladders;
+    //} 
+
+    //////////////////////////////////////////////////
+
     istringstream ss_module(oss.str().substr(4,2));
     ss_module>>module;
     module = CMSPatternLayer::getModuleCode(layer,module);
@@ -697,7 +707,7 @@ int main(int av, char** ac){
     float max=0;
     float minEta=0;
     float maxEta=0;
-    map<int,pair<float,float> > eta;// = CMSPatternLayer::getLayerDefInEta();
+    map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
     
     try{
       stripSize=vm["ss_size"].as<int>();

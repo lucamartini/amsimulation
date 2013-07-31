@@ -13,8 +13,8 @@ ifeq ($(UNAME), Linux)
    BOOSTLIBS = -lboost_serialization -lboost_program_options 
 endif
 
-AMSimulation:AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o
-	g++ -o AMSimulation AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o  ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
+AMSimulation:AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o
+	g++ -o AMSimulation AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
 
 clean:	
 	rm -rf *.o;rm -f ${SRC}/*~;rm -f ${SRC}/*#
@@ -90,6 +90,12 @@ MultiDimFitData.o:${SRC}/MultiDimFitData.h ${SRC}/MultiDimFitData.cc
 
 KarimakiTrackFitter.o:${SRC}/KarimakiTrackFitter.h ${SRC}/KarimakiTrackFitter.cc
 	g++ -c ${FLAG} ${SRC}/KarimakiTrackFitter.cc
+
+HoughFitter.o:${SRC}/HoughFitter.h ${SRC}/HoughFitter.cc
+	g++ -c ${FLAG} ${SRC}/HoughFitter.cc
+
+HoughLocal.o:${SRC}/HoughLocal.h ${SRC}/HoughLocal.cc
+	g++ -c ${FLAG} ${SRC}/HoughLocal.cc
 
 AMSimulation.o:${SRC}/AMSimulation.cc
 	g++ -c ${FLAG} ${SRC}/AMSimulation.cc

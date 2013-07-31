@@ -11,6 +11,7 @@
 #include "CMSPatternLayer.h"
 #include "PrincipalTrackFitter.h"
 #include "KarimakiTrackFitter.h"
+#include "HoughFitter.h"
 
 #ifndef __APPLE__
 BOOST_CLASS_EXPORT_KEY(CMSPatternLayer) 

@@ -587,10 +587,10 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
 
     ////// TMP FIX FOR TKLAYOUT NUMBERING (10 JUL 2013)
     
-    //if(layer<11){
-    //  int tmp_nb_ladders = CMSPatternLayer::getNbLadders(layer);
-    //  ladder = (ladder+tmp_nb_ladders*3/4) % tmp_nb_ladders;
-    //} 
+    if(layer<11){
+      int tmp_nb_ladders = CMSPatternLayer::getNbLadders(layer);
+      ladder = (ladder+tmp_nb_ladders*3/4) % tmp_nb_ladders;
+    } 
 
     //////////////////////////////////////////////////
 
@@ -830,11 +830,12 @@ int main(int av, char** ac){
     }
 
     ///////////////////////////////////////////////////////////////
-    // If we don't have a fitter -> create a Karimaki default one
+    // If we don't have a fitter -> create a Hough default one
     vector<Sector*> sectors = st.getAllSectors();
     for(unsigned int i=0;i<sectors.size();i++){
       if(sectors[i]->getFitter()==NULL){
-	TrackFitter* fitter = new KarimakiTrackFitter(sectors[i]->getNbLayers());
+	//TrackFitter* fitter = new KarimakiTrackFitter(sectors[i]->getNbLayers());
+	TrackFitter* fitter = new HoughFitter(sectors[i]->getNbLayers());
 	sectors[i]->setFitter(fitter);
 	sectors[i]->updateFitterPhiRotation();
       }

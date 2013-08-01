@@ -25,6 +25,7 @@ class PatternGenerator{
   float ptMax;
   float etaMin;
   float etaMax;
+  int nbMaxFakeSuperstrips;
   vector<int> tracker_layers;
   string particuleDirName;
 
@@ -85,6 +86,11 @@ class PatternGenerator{
      \param maxe The maximum Eta
   **/
   void setMaxEta(float maxe);
+  /**
+     \brief Change the maximum number of fake superstrips that can be used in a pattern
+     \param maxe The maximum number of fakse superstrips in a pattern
+  **/
+  void setMaxFakeSuperstrips(int mf);
  /**
      \brief Sets the layers used
      \param l A vector of int, each integer is a layer number (ex : 8 9 10 for the last 3 layers)

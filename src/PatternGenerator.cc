@@ -31,6 +31,13 @@ void PatternGenerator::setMaxEta(float maxe){
   etaMax = maxe;
 }
 
+void PatternGenerator::setMaxFakeSuperstrips(int mf){
+  if(mf>-1)
+    nbMaxFakeSuperstrips = mf;
+  else
+    nbMaxFakeSuperstrips = 0;
+}
+
 void PatternGenerator::setLayers(vector<int> l){
   tracker_layers = l;
   sort(tracker_layers.begin(),tracker_layers.end());
@@ -197,7 +204,7 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	  if(eta_limits.find(tracker_layers[j])!=eta_limits.end()){//we have eta boundaries for this layer
 	    pair<float,float> limits = eta_limits[tracker_layers[j]];
 	    if(current_eta<limits.first || current_eta>limits.second){ // we are outside the eta limits for this layer -> we will add a fake superstrip for this layer
-	      if(nbFakeSuperstrip<3){//we don't want to have more than 3 fake superstrips in the pattern
+	      if(nbFakeSuperstrip<nbMaxFakeSuperstrips){//we don't want to have more than nbMaxFakeSuperstrips fake superstrips in the pattern
 		//cout<<"missing hit on layer "<<tracker_layers[j]<<" for track with eta="<<current_eta<<endl;
 		layers[j]=-2;
 		//we put a ladder and a module just to be inside the sector

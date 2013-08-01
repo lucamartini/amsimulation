@@ -662,6 +662,7 @@ int main(int av, char** ac){
     ("pt_max", po::value<int>(), "Only tracks having a smaller PT will be used to generate a pattern")
     ("eta_min", po::value<float>(), "Only tracks having a greater ETA will be used to generate a pattern")
     ("eta_max", po::value<float>(), "Only tracks having a smaller ETA will be used to generate a pattern")
+    ("maxFakeSStrips", po::value<int>(), "The maximum number of fake superstrips used in a pattern (0=desactivated)")
     ("coverage", po::value<float>(), "Value to reach to stop the process [0-1]")
     ("input_directory", po::value<string>(), "The directory containing the single particule root files (local or RFIO)")
     ("sector_root_file", po::value<string>(), "The root file containing the sectors definition")
@@ -707,6 +708,7 @@ int main(int av, char** ac){
     float max=0;
     float minEta=0;
     float maxEta=0;
+    int maxNbFake=0;
     map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
     
     try{
@@ -722,6 +724,8 @@ int main(int av, char** ac){
       cout<<"ETA min : "<<minEta<<endl;
       maxEta=vm["eta_max"].as<float>();
       cout<<"ETA max : "<<maxEta<<endl;
+      maxNbFake=vm["maxFakeSStrips"].as<int>();
+      cout<<"Max number of fake superstrips : "<<maxNbFake<<endl;
       cout<<"Coverage : "<<vm["coverage"].as<float>()<<endl;
       partDirName=vm["input_directory"].as<string>();
       cout<<"Using particules from "<<partDirName<<endl;
@@ -767,6 +771,7 @@ int main(int av, char** ac){
     pg.setMaxPT(max);
     pg.setMinEta(minEta);
     pg.setMaxEta(maxEta);
+    pg.setMaxFakeSuperstrips(maxNbFake);
     TFile f(rootFileName.c_str(), "recreate");
     pg.setVariableResolution(dcBits);
     pg.generate(&st, 40000, threshold, eta);

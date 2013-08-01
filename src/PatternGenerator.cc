@@ -189,6 +189,7 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
     We need at least one stub per layer
     **************************************/
     bool missing_stub = false;
+    int nbFakeSuperstrip = 0;
     for(unsigned int j=0;j<tracker_layers.size();j++){
       if(layers[j]==-1){
 	missing_stub=true;
@@ -196,14 +197,17 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	  if(eta_limits.find(tracker_layers[j])!=eta_limits.end()){//we have eta boundaries for this layer
 	    pair<float,float> limits = eta_limits[tracker_layers[j]];
 	    if(current_eta<limits.first || current_eta>limits.second){ // we are outside the eta limits for this layer -> we will add a fake superstrip for this layer
-	      //cout<<"missing hit on layer "<<tracker_layers[j]<<" for track with eta="<<current_eta<<endl;
-	      layers[j]=-2;
-	      //we put a ladder and a module just to be inside the sector
-	      ladder_per_layer[j]=sectors->getAllSectors()[0]->getLadders(j)[0];
-	      module_per_layer[j]=sectors->getAllSectors()[0]->getModules(j,ladder_per_layer[j])[0];
-	      //cout<<"Add stub for sector : "<<ladder_per_layer[j]<<" / "<<module_per_layer[j]<<endl;
-	      //debug=true;
-	      missing_stub=false;//we will create a fake superstrip, so the stub is not missing
+	      if(nbFakeSuperstrip<3){//we don't want to have more than 3 fake superstrips in the pattern
+		//cout<<"missing hit on layer "<<tracker_layers[j]<<" for track with eta="<<current_eta<<endl;
+		layers[j]=-2;
+		//we put a ladder and a module just to be inside the sector
+		ladder_per_layer[j]=sectors->getAllSectors()[0]->getLadders(j)[0];
+		module_per_layer[j]=sectors->getAllSectors()[0]->getModules(j,ladder_per_layer[j])[0];
+		//cout<<"Add stub for sector : "<<ladder_per_layer[j]<<" / "<<module_per_layer[j]<<endl;
+		//debug=true;
+		missing_stub=false;//we will create a fake superstrip, so the stub is not missing
+		nbFakeSuperstrip++;
+	      }
 	    }
 	  }
 	}

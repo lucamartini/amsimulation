@@ -78,6 +78,19 @@ TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
       }
     }
   }
+  else{//TSystemDirectory not supported for xrootd
+    /*
+     If using xrootd, directoryName should be a file (not a directory) containing one input file name per line 
+    */
+    ifstream in(directoryName.c_str());
+    string fname;
+    
+    while (std::getline(in,fname)){
+      TT->Add(fname.c_str());      
+    }
+    
+    in.close();
+  }
 
   //  p_m_stub_tp = &m_stub_tp; 
   p_m_stub_layer = &m_stub_layer; 

@@ -948,7 +948,7 @@ void PatternFinder::find(int start, int& stop){
 
     //Traitement des patterns actif : enregistrement, affichage...
     nb_layers = tracker.getNbLayers();
-    event_id=n_evt;
+    event_id=num_evt;//we use the index in the file as event_id (most of our input files do not have a valid event_id)
     nb_patterns = 0;
     ori_nb_stubs = (int)hits.size();
     

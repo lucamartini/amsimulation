@@ -1,4 +1,4 @@
-#include <HoughLocal.h>
+#include "HoughLocal.h"
 #include <TLine.h>
 #include <TEllipse.h>
 
@@ -84,8 +84,8 @@ void HoughLocal::findMaxima(std::vector< std::pair<uint32_t,uint32_t> >& maxval,
 	  for (int irb=-1;irb<=1;irb++)
 	    {
 	      if (ithb==0 && irb==0) continue;
-	      if ((ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
-	      if ((ir+irb)<0 || (ir+irb)>theNbinR_) continue;
+	      if ((int)(ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
+	      if ((int)(ir+irb)<0 || (ir+irb)>theNbinR_) continue;
 	      notmax= notmax || (count<theHoughImage_[ith+ithb][ir+irb]);
 	    }
 	if (notmax) continue;
@@ -130,8 +130,8 @@ void HoughLocal::findMaximumBins(std::vector< std::pair<double,double> >& maxval
 	  for (int irb=-1;irb<=1;irb++)
 	    {
 	      if (ithb==0 && irb==0) continue;
-	      if ((ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
-	      if ((ir+irb)<0 || (ir+irb)>theNbinR_) continue;
+	      if ((int)(ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
+	      if ((int)(ir+irb)<0 || (ir+irb)>theNbinR_) continue;
 	      notmax= notmax || (count<theHoughImage_[ith+ithb][ir+irb]);
 	    }
 	if (notmax) continue;
@@ -248,8 +248,8 @@ void HoughLocal::findMaxima(std::vector< std::pair<double,double> >& maxval,uint
 	    for (int irb=-1;irb<=1;irb++)
 	      {
 		if (ithb==0 && irb==0) continue;
-		if ((ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
-		if ((ir+irb)<0 || (ir+irb)>theNbinR_) continue;
+		if ((int)(ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
+		if ((int)(ir+irb)<0 || (ir+irb)>theNbinR_) continue;
 		notmax= notmax || (theHoughImage_[ith][ir]<theHoughImage_[ith+ithb][ir+irb]);
 	      }
 	  if (notmax) continue;
@@ -259,8 +259,8 @@ void HoughLocal::findMaxima(std::vector< std::pair<double,double> >& maxval,uint
 	  for (int ithb=-1;ithb<=1;ithb++)
 	    for (int irb=-1;irb<=1;irb++)
 	      {
-		if ((ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
-		if ((ir+irb)<0 || (ir+irb)>theNbinR_) continue;
+		if ((int)(ith+ithb)<0 || (ith+ithb)>theNbinTheta_) continue;
+		if ((int)(ir+irb)<0 || (ir+irb)>theNbinR_) continue;
 		double thetab = (this->getTheta(ith+ithb)+this->getTheta(ith+ithb+1))/2;
 		double rb = (this->getR(ir+irb)+this->getR(ir+irb+1))/2;
 		double wb=theHoughImage_[ith+ithb][ir+irb]*1.;

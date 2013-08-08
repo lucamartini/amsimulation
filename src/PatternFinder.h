@@ -21,8 +21,6 @@ class PatternFinder{
   string outputFileName;
   Detector tracker;
 
-  vector<Sector*> find(vector<Hit*> hits);
-
  public:
  /**
      \brief Constructor
@@ -50,6 +48,11 @@ class PatternFinder{
      \param stop The search will end at this event number
   **/
   void find(int start, int& stop);
+
+  /**
+     \brief Get active patterns from list of hits (public for CMSSW).
+  **/
+  vector<Sector*> find(vector<Hit*> hits);
 
   /**
      \brief Merge 2 files into 1 single file

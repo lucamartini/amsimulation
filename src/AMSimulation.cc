@@ -630,6 +630,8 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     cout<<endl;
   }
 
+  s.setOfficialID(sector_id);
+
   st->addSector(s);
 }
 
@@ -709,6 +711,7 @@ int main(int av, char** ac){
     float minEta=0;
     float maxEta=0;
     int maxNbFake=0;
+    int sector_tklayout_id=0;
     map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
     
     try{
@@ -733,7 +736,8 @@ int main(int av, char** ac){
       cout<<"Output file name is "<<bankFileName<<endl;
       activeLayers=vm["active_layers"].as<string>();
       cout<<"Using layers "<<activeLayers<<endl;
-      cout<<"Using sector "<<vm["sector_id"].as<int>()<<" from "<<vm["sector_root_file"].as<string>()<<endl;
+      sector_tklayout_id=vm["sector_id"].as<int>();
+      cout<<"Using sector "<<sector_tklayout_id<<" from "<<vm["sector_root_file"].as<string>()<<endl;
       std::istringstream is( activeLayers );
       int n;
       while( is >> n ) {
@@ -744,7 +748,7 @@ int main(int av, char** ac){
 	end_index=bankFileName.length()-4;
       rootFileName = bankFileName.substr(0,end_index)+"_report.root";
       threshold=vm["coverage"].as<float>();
-      createSectorFromRootFile(&st,vm["sector_root_file"].as<string>(), active_layers, vm["sector_id"].as<int>());
+      createSectorFromRootFile(&st,vm["sector_root_file"].as<string>(), active_layers, sector_tklayout_id);
     }
     catch(boost::bad_any_cast e){
       cout<<"At least one option is missing! Please check : "<<endl;
@@ -1005,348 +1009,30 @@ int main(int av, char** ac){
   }
   else if(vm.count("testCode")) {
     //cout<<"Nothing to be done"<<endl;
-    /*
-    cout<<"Taille CMSPatternLayer : "<<sizeof(CMSPatternLayer)*8<<" bits"<<endl;
-    cout<<"Taille bitset<15> : "<<sizeof(bitset<15>)*8<<" bits"<<endl;
-    cout<<"Taille char : "<<sizeof(char)*8<<" bits"<<endl;
-    cout<<"Taille  vector< PatternLayer* > : "<<sizeof( vector< PatternLayer* >)*8<<" bits"<<endl;
-    cout<<"Taille char[3] : "<<sizeof(char[3])*8<<" bits"<<endl;
-    cout<<"Taille GradedPattern : "<<sizeof(GradedPattern)*8<<" bits"<<endl;
-    cout<<"Taille PatternTrunk : "<<sizeof(PatternTrunk)*8<<" bits"<<endl;
-    cout<<"Taille PatternTree : "<<sizeof(PatternTree)*8<<" bits"<<endl;
-    cout<<"Taille SuperStrip : "<<sizeof(SuperStrip)*8<<" bits"<<endl;
-    cout<<"Taille Pattern : "<<sizeof(Pattern)*8<<" bits"<<endl;
-    cout<<"Taille Hit : "<<sizeof(Hit)*8<<" bits"<<endl;
-    cout<<"Taille short : "<<sizeof(short)*8<<" bits"<<endl;
-    cout<<"Taille int : "<<sizeof(int)*8<<" bits"<<endl;
-    cout<<"Taille float : "<<sizeof(float)*8<<" bits"<<endl;
-    cout<<"Taille string : "<<sizeof(string)*8<<" bits"<<endl;
-    cout<<"Taille string \"1234567891234567\" : "<<sizeof("1234567891234567")*8<<" bits"<<endl;
-
-    CMSPatternLayer tt;
-    tt.setValues(14,7,42,1);
-    cout<<tt.toString()<<endl;
-    */
-
+   
     string result;
     {
-      /*
       SectorTree sTest;
       cout<<"Loading pattern bank..."<<endl;
       {
-	std::ifstream ifs("/home/infor/baulieu/private/cms/AMSimulation/bank_GIO_5L_32ss_2DC_PT2-100_10.pbk");
+	//std::ifstream ifs("/home/infor/baulieu/private/cms/CMSSW_6_1_2_SLHC3/src/amsimulation/test.pbk");
+	std::ifstream ifs("/home/infor/baulieu/private/cms/CMSSW_6_1_2_SLHC3/src/amsimulation/612_SLHC6_MUBANK_lowmidhig_sec0_ss64_cov40.pbk");
 	boost::archive::text_iarchive ia(ifs);
 	ia >> sTest;
       }
       cout<<"Sector :"<<endl;
       cout<<*(sTest.getAllSectors()[0])<<endl;
-      cout<<"loaded "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns"<<endl;
-      
-      //SectorTree newST;
-      //newST.setSuperStripSize(16);
-      //Sector newSector(*(st.getAllSectors()[0]));
-      //Sector newSector;
-      //newST.addSector(newSector);
-      //PatternTree* newPT = newST.getAllSectors()[0]->getPatternTree();
-      //vector<GradedPattern*> list = st.getAllSectors()[0]->getPatternTree()->getLDPatterns();
-      
-      //struct sysinfo info;
-      //sysinfo(&info);
-      //cout<<"RAM free : "<<info.freeram<<endl;
-      */
-
+      cout<<"loaded "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns for sector "<<sTest.getAllSectors()[0]->getOfficialID()<<endl;
       /*
       cout<<"saving pattern bank..."<<endl;
       {
-	const SectorTree& ref = newST;
-	cout<<"trying to save "<<newST.getAllSectors()[0]->getLDPatternNumber()<<" patterns"<<endl;
-	std::ofstream ofs("/home/infor/baulieu/private/cms/AMSimulation/bank16_3L_78_DCXXX_70_.pbk");
+	const SectorTree& ref = sTest;
+	cout<<"trying to save "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns"<<endl;
+	std::ofstream ofs("/home/infor/baulieu/private/cms/CMSSW_6_1_2_SLHC3/src/amsimulation/testOut.pbk");
 	boost::archive::text_oarchive oa(ofs);
 	oa << ref;
       } 
       */
-
-      vector<int> layers;
-      SectorTree st;
-      int stripSize;
-      int dcBits;
-      string partDirName;
-      string bankFileName;
-      string rootFileName;
-      float threshold;
-      float min;
-      float max;
-      float minEta;
-      float maxEta;
-      
-      /*      
-      //ENDCAP
-
-      layers.push_back(11);
-      layers.push_back(12);
-      layers.push_back(13);
-      layers.push_back(14);
-      layers.push_back(15);
-
-      Sector s(layers);
-      s.addLadder(11,1,10);
-      s.addModules(11,1,1,3);
-      s.addModules(11,2,2,4);
-      s.addModules(11,3,1,4);
-      s.addModules(11,4,1,5);
-      s.addModules(11,5,1,5);
-      s.addModules(11,6,1,5);
-      s.addModules(11,7,1,6);
-      s.addModules(11,8,2,6);
-      s.addModules(11,9,2,8);
-      s.addModules(11,10,3,9);
-
-      s.addLadder(12,1,11);
-      s.addModules(12,1,1,3);
-      s.addModules(12,2,1,4);
-      s.addModules(12,3,1,4);
-      s.addModules(12,4,1,5);
-      s.addModules(12,5,1,5);
-      s.addModules(12,6,1,5);
-      s.addModules(12,7,2,6);
-      s.addModules(12,8,2,7);
-      s.addModules(12,9,2,8);
-      s.addModules(12,10,2,10);
-      s.addModules(12,11,3,11);
-
-      s.addLadder(13,2,11);
-      s.addModules(13,2,1,4);
-      s.addModules(13,3,1,4);
-      s.addModules(13,4,1,5);
-      s.addModules(13,5,1,5);
-      s.addModules(13,6,1,6);
-      s.addModules(13,7,2,6);
-      s.addModules(13,8,2,7);
-      s.addModules(13,9,2,8);
-      s.addModules(13,10,2,10);
-      s.addModules(13,11,2,11);
-      s.addModules(13,12,3,12);
-
-      s.addLadder(14,3,11);
-      s.addModules(14,3,1,4);
-      s.addModules(14,4,1,5);
-      s.addModules(14,5,1,5);
-      s.addModules(14,6,1,6);
-      s.addModules(14,7,1,6);
-      s.addModules(14,8,2,7);
-      s.addModules(14,9,2,8);
-      s.addModules(14,10,2,10);
-      s.addModules(14,11,2,11);
-      s.addModules(14,12,2,12);
-      s.addModules(14,13,2,14);
-
-      s.addLadder(15,11, 11);
-      s.addModules(15,3,1,4);
-      s.addModules(15,4,1,5);
-      s.addModules(15,5,1,5);
-      s.addModules(15,6,2,6);
-      s.addModules(15,7,2,7);
-      s.addModules(15,8,2,8);
-      s.addModules(15,9,2,10);
-      s.addModules(15,10,2,11);
-      s.addModules(15,11,2,12);
-      s.addModules(15,12,2,14);
-      s.addModules(15,13,2,15);
-
-      */
-      
-      //BARREL
-      //layers.push_back(5);
-      layers.push_back(6);
-      layers.push_back(7);
-      layers.push_back(8);
-      layers.push_back(9);
-      layers.push_back(10);
-
-      Sector s(layers);
-      
-      //s.addLadders(5,2,1);
-      //s.addModules(5,2,13,8);
-      
-      s.addLadders(6,3,1);
-      //s.addModules(6,2,12,8);
-      s.addModules(6,3,12,8);
-      //s.addModules(6,4,12,8);
-      
-      //s.addLadders(7,3,3);
-      s.addLadders(7,3,3);
-      s.addModules(7,3,11,10);
-      s.addModules(7,4,11,10);
-      s.addModules(7,5,11,10);
-      
-      s.addLadders(8,4,5);
-      s.addModules(8,4,10,11);
-      s.addModules(8,5,10,11);
-      s.addModules(8,6,10,11);
-      s.addModules(8,7,10,11);
-      s.addModules(8,8,10,11);
-      
-
-      //s.addLadders(9,4,8);
-      s.addLadders(9,5,6);
-      //s.addModules(9,4,10,13);
-      s.addModules(9,5,10,13);
-      s.addModules(9,6,10,13);
-      s.addModules(9,7,10,13);
-      s.addModules(9,8,10,13);
-      s.addModules(9,9,10,13);
-      s.addModules(9,10,10,13);
-      //s.addModules(9,11,10,13);
-
-      //s.addLadders(10,4,11);
-      s.addLadders(10,5,9);
-      //s.addModules(10,4,10,14);
-      s.addModules(10,5,10,14);
-      s.addModules(10,6,10,14);
-      s.addModules(10,7,10,14);
-      s.addModules(10,8,10,14);
-      s.addModules(10,9,10,14);
-      s.addModules(10,10,10,14);
-      s.addModules(10,11,10,14);
-      s.addModules(10,12,10,14);
-      s.addModules(10,13,10,14);
-      //s.addModules(10,14,10,14);
-
-      cout<<s<<endl;
-      
-      /*
-      //BARREL+ENDCAP
-      layers.push_back(6);
-      layers.push_back(7);
-      layers.push_back(8);
-      layers.push_back(9);
-      layers.push_back(11);
-      layers.push_back(12);
-
-      Sector s(layers);
-
-      s.addLadder(6,4);
-      s.addModules(6,4,4,13);
-
-      s.addLadder(7,4);
-      s.addModules(7,4,5,16);
-      s.addLadder(7,5);
-      s.addModules(7,5,5,16);
-      s.addLadder(7,6);
-      s.addModules(7,6,5,16);
-      
-      s.addLadder(8,5);
-      s.addModules(8,5,6,12);
-      s.addLadder(8,6);
-      s.addModules(8,6,6,12);
-      s.addLadder(8,7);
-      s.addModules(8,7,5,12);
-      s.addLadder(8,8);
-      s.addModules(8,8,6,12);
-      s.addLadder(8,9);
-      s.addModules(8,9,6,12);
-      
-      s.addLadder(9,5);
-      s.addModules(9,5,8,12);
-      s.addLadder(9,6);
-      s.addModules(9,6,8,12);
-      s.addLadder(9,7);
-      s.addModules(9,7,7,12);
-      s.addLadder(9,8);
-      s.addModules(9,8,7,12);
-      s.addLadder(9,9);
-      s.addModules(9,9,7,12);
-      s.addLadder(9,10);
-      s.addModules(9,10,8,12);
-      s.addLadder(9,11);
-      s.addModules(9,11,8,12);
-
-      s.addLadder(11,9);
-      s.addModules(11,9,2,8);
-      s.addLadder(11,10);
-      s.addModules(11,10,3,9);
-      s.addLadder(11,11);
-      s.addModules(11,11,2,12);
-      s.addModule(11,11,60);
-      s.addLadder(11,12);
-      s.addModules(11,12,3,11);
-      s.addLadder(11,13);
-      s.addModules(11,13,2,14);
-      s.addLadder(11,14);
-      s.addModules(11,14,3,13);
-
-      s.addLadder(12,10);
-      s.addModules(12,10,2,10);
-      s.addLadder(12,11);
-      s.addModules(12,11,2,12);
-      s.addLadder(12,12);
-      s.addModules(12,12,2,12);
-      s.addLadder(12,13);
-      s.addModules(12,13,2,14);
-      s.addModule(12,13,69);
-      s.addLadder(12,14);
-      s.addModules(12,14,2,16);
-      */
-      //TrackFitter* fitter = new PrincipalTrackFitter(s.getNbLayers(),1000);
-      //s.setFitter(fitter);
-
-      st.addSector(s);
-
-      map<int,pair<float,float> > eta_limits;// eta values for which each layer does exist
-      eta_limits[5]=pair<float,float>(-1.69,1.69);
-      eta_limits[6]=pair<float,float>(-1.69,1.69);
-      eta_limits[7]=pair<float,float>(-1.41,1.41);
-      eta_limits[8]=pair<float,float>(-1.19,1.19);
-      eta_limits[9]=pair<float,float>(-1.02,1.02);
-      eta_limits[10]=pair<float,float>(-0.87,0.87);
-      eta_limits[11]=pair<float,float>(1.12,2.1);
-      eta_limits[12]=pair<float,float>(1.19,2.25);
-      eta_limits[13]=pair<float,float>(1.28,2.4);
-      eta_limits[14]=pair<float,float>(1.35,2.5);
-      eta_limits[15]=pair<float,float>(1.43,2.5);
-
-      stripSize=32;
-      dcBits=3;
-      min=50;
-      max=100;
-      minEta=0;
-      maxEta=0.87;
-      //partDirName="/gridgroup/cms/viret/SLHC/MuBank/";
-      //partDirName="/scratch/baulieu/bank/";
-      //partDirName="/Users/baulieu/Documents/dev/CMS/AMSimulation/data/1301/bank/";
-      //partDirName="rfio:/dpm/in2p3.fr/home/cms/data/store/user/gbaulieu/SLHC/bankgen_1212/";
-      //partDirName="/home/infor/baulieu/private/cms/amsimulation/testFiles/";
-      partDirName="rfio:/dpm/in2p3.fr/home/cms/data/store/user/sviret/SLHC/GEN/MUBANK_61/";
-      bankFileName="bank_5L_678910_BARREL_055_102_32ss_3DC_PT50-100_90.pbk";
-      rootFileName="analysis_5L_678910_BARREL_055_101_32ss_3DC_PT50-100_90.root";
-      threshold=0.9;
-
-      PatternGenerator pg(stripSize);//Super strip size
-      pg.setLayers(layers);
-      pg.setMinPT(min);
-      pg.setMaxPT(max);
-      pg.setMinEta(minEta);
-      pg.setMaxEta(maxEta);
-      pg.setParticuleDirName(partDirName);
-      TFile f(rootFileName.c_str(), "recreate");
-      pg.setVariableResolution(dcBits);
-      pg.generate(&st, 40000, threshold, eta_limits);
-      
-      
-      if(pg.getVariableResolutionState()>0){
-	cout<<"HD Patterns : "<<st.getFDPatternNumber()<<endl;
-	cout<<"LD Patterns : "<<st.getLDPatternNumber()<<endl;
-      }
-      
-      cout<<"Saving SectorTree...";
-      {
-	const SectorTree& ref = st;
-	std::ofstream ofs(bankFileName.c_str());
-	boost::archive::text_oarchive oa(ofs);
-	oa << ref;
-	cout<<"done."<<endl;
-      }
-      
     }
   }
 }

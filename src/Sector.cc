@@ -66,6 +66,7 @@ map< int, vector<int> > Sector::readConfig(string name){
 Sector::Sector(){
   patterns = new PatternTree();
   fitter = NULL;
+  officialID=-1;
 }
 
 Sector::Sector(vector<int> layersID){
@@ -77,6 +78,7 @@ Sector::Sector(vector<int> layersID){
   }
   patterns = new PatternTree();
   fitter = NULL;
+  officialID=-1;
 }
 
 Sector::Sector(const Sector& s){
@@ -87,6 +89,7 @@ Sector::Sector(const Sector& s){
   //  fitter = s.fitter->clone();
   //else
   fitter=NULL;
+  officialID=s.officialID;
 }
 
 Sector::~Sector(){
@@ -99,6 +102,7 @@ Sector& Sector::operator=(Sector& s){
   m_modules = s.m_modules; 
   m_ladders = s.m_ladders;
   fitter=NULL;
+  officialID=s.officialID;
   return *this;
 }
 
@@ -129,24 +133,6 @@ void Sector::addLadders(int layer, int firstLadder, int nbLadders){
     }
   }
 }
-/*
-void Sector::addModule(int layer, int ladder, int module){
-  map<int, map<int, vector<int> > >::iterator it;
-  it=m_modules.find(layer);
-  if(it!=m_modules.end()){//the layer does exist
-    map<int, vector<int> >::iterator it_ladder;
-    it_ladder=it->second.find(ladder);
-    if(it_ladder!=it->second.end()){//the ladder does exist
-      for(unsigned int i=0;i<it_ladder->second.size();i++){
-	if(it_ladder->second[i]==module)//the module is already in the sector
-	  return;
-      }
-      it_ladder->second.push_back(module);
-      sort(it_ladder->second.begin(),it_ladder->second.end());
-    }
-  }
-}
-*/
 
 void Sector::addModules(int layer, int ladder, int firstModule, int nbModules){
   map<int, map<int, vector<int> > >::iterator it;
@@ -204,37 +190,6 @@ int Sector::getModuleCode(int layer, int ladder, int module){
       
 }
 
-/*
-int Sector::getMin(int l){
-  map<int, map<int, vector<int> > >::iterator it;
-  it=m_modules.find(l);
-  if(it!=m_modules.end()){//the layer does exist
-    int min = 1000;
-    map<int, vector<int> >::iterator it_ladder;
-    for(it_ladder=it->second.begin();it_ladder!=it->second.end();it_ladder++){
-      if(it_ladder->first<min)
-	min=it_ladder->first;
-    }
-    return min;
-  }
-  return -1;
-}
-
-int Sector::getMax(int l){
-  map<int, map<int, vector<int> > >::iterator it;
-  it=m_modules.find(l);
-  if(it!=m_modules.end()){//the layer does exist
-    int max = -1;
-    map<int, vector<int> >::iterator it_ladder;
-    for(it_ladder=it->second.begin();it_ladder!=it->second.end();it_ladder++){
-      if(it_ladder->first>max)
-	max=it_ladder->first;
-    }
-    return max;
-  }
-  return -1;
-}
-*/
 int Sector::getNbLayers(){
   return m_modules.size();
 }
@@ -334,6 +289,17 @@ string Sector::getIDString(){
     oss<<" ";
   }
   return oss.str();  
+}
+
+void Sector::setOfficialID(int id){
+  if(id>-1)
+    officialID=id;
+  else
+    officialID=-1;
+}
+
+int Sector::getOfficialID(){
+  return officialID;
 }
 
 int Sector::getKey(){

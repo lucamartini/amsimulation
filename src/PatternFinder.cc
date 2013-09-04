@@ -809,7 +809,9 @@ void PatternFinder::find(int start, int& stop){
   vector<Sector*> all_sectors = sectors->getAllSectors();
   for(unsigned int i=0;i<all_sectors.size();i++){
     Sector* tmpSec = all_sectors[i];
-    sector_id=tmpSec->getKey();
+    sector_id=tmpSec->getOfficialID();
+    if(sector_id==-1)
+      sector_id=tmpSec->getKey();
     sector_layers = tmpSec->getNbLayers();
     for(int j=0;j<sector_layers;j++){
       vector<int> sec_l = tmpSec->getLadders(j);

@@ -34,6 +34,7 @@ class Sector{
   map<int, vector<int> > m_ladders; // map<layer_id, vector<ladder_id>> : needed to keep the order of the ladders (order not kept in maps)
   PatternTree* patterns;
   TrackFitter* fitter;
+  int officialID;
   void getRecKeys(vector< vector<int> > &v, int level, string temp, vector<string> &res);
 
   friend class boost::serialization::access;
@@ -42,6 +43,7 @@ class Sector{
     ar << m_modules;
     ar << m_ladders;
     ar << patterns;
+    ar << officialID;
     int exists;
     if(fitter==NULL){
       exists = 0;
@@ -57,7 +59,11 @@ class Sector{
   template<class Archive> void load(Archive & ar, const unsigned int version){
     ar >> m_modules;
     ar >> m_ladders;
-    ar >> patterns; 
+    ar >> patterns;
+    if(version>0)// Add support of the Sector ID coming from the TKLayout
+      ar >> officialID;
+    else
+      officialID=-1;
     int exists;
     ar >> exists;
     if(exists==1){
@@ -164,6 +170,17 @@ class Sector{
   int getKey();
 
   /**
+     \brief Get the TKLayout ID of the sector
+     \return The TKLayout ID of the sector, -1 if not known
+  **/
+  int getOfficialID();
+
+  /**
+     \brief Set the Sector official ID (id must be > -1)
+  **/
+  void setOfficialID(int id);
+
+  /**
      \brief Does the sector contains the hit?
      \return True if the hit is in the sector, false otherwise
   **/
@@ -258,4 +275,5 @@ class Sector{
 
   static map< int, vector<int> > readConfig(string name);
 };
+BOOST_CLASS_VERSION(Sector, 1)
 #endif

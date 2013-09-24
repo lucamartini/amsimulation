@@ -359,7 +359,7 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
   cout<<"Event index : "<<*evtIndex<<endl;
   cout<<"Nb Events with stubs on all layers : "<<nbInLayer<<endl;
   cout<<"Nb Events in sectors : "<<nbInSector<<endl;
-  cout<<"Nb Events in good modules : "<<nbModuleOk<<endl;
+  //cout<<"Nb Events in good modules : "<<nbModuleOk<<endl;
 
   if(variableRes)
     return sectors->getFDPatternNumber();

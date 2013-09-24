@@ -67,7 +67,7 @@ using namespace std;
    # Coverage [0-1]
    coverage=0.9
    # Root file containing sectors definitions
-   sector_root_file=sec_test.root
+   sector_file=sec_test.root
    # Index of the sector to be used
    sector_id=17
    # Layers used
@@ -641,7 +641,7 @@ int main(int av, char** ac){
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
-    ("generateBank", "Generates a pattern bank from root simulation file (needs --ss_size --dc_bits --pt_min --pt_max --eta_min --eta_max --coverage --input_directory --bank_name --sector_root_file --sector_id --active_layers)")
+    ("generateBank", "Generates a pattern bank from root simulation file (needs --ss_size --dc_bits --pt_min --pt_max --eta_min --eta_max --coverage --input_directory --bank_name --sector_file --sector_id --active_layers)")
     ("testSectors", "Get the tracks sectors")
     ("MergeSectors", "Merge 2 root files having same events but different sectors (needs --inputFile --secondFile and --outputFile)")
     ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
@@ -667,8 +667,8 @@ int main(int av, char** ac){
     ("maxFakeSStrips", po::value<int>(), "The maximum number of fake superstrips used in a pattern (0=desactivated)")
     ("coverage", po::value<float>(), "Value to reach to stop the process [0-1]")
     ("input_directory", po::value<string>(), "The directory containing the single particule root files (local or RFIO)")
-    ("sector_root_file", po::value<string>(), "The root file containing the sectors definition")
-    ("sector_id", po::value<int>(), "The index of the sector to use in the root file")
+    ("sector_file", po::value<string>(), "The file (.root or .csv) containing the sectors definition")
+    ("sector_id", po::value<int>(), "The index of the sector to use in the sector file. In a CSV file the first sector has index 0.")
     ("active_layers", po::value<string>(), "The layers to use in the sector (6 at most)")
     ("bank_name", po::value<string>(), "The bank file name")    
     ;
@@ -737,7 +737,7 @@ int main(int av, char** ac){
       activeLayers=vm["active_layers"].as<string>();
       cout<<"Using layers "<<activeLayers<<endl;
       sector_tklayout_id=vm["sector_id"].as<int>();
-      cout<<"Using sector "<<sector_tklayout_id<<" from "<<vm["sector_root_file"].as<string>()<<endl;
+      cout<<"Using sector "<<sector_tklayout_id<<" from "<<vm["sector_file"].as<string>()<<endl;
       std::istringstream is( activeLayers );
       int n;
       while( is >> n ) {
@@ -748,7 +748,7 @@ int main(int av, char** ac){
 	end_index=bankFileName.length()-4;
       rootFileName = bankFileName.substr(0,end_index)+"_report.root";
       threshold=vm["coverage"].as<float>();
-      createSectorFromRootFile(&st,vm["sector_root_file"].as<string>(), active_layers, sector_tklayout_id);
+      createSectorFromRootFile(&st,vm["sector_file"].as<string>(), active_layers, sector_tklayout_id);
     }
     catch(boost::bad_any_cast e){
       cout<<"At least one option is missing! Please check : "<<endl;

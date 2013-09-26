@@ -106,6 +106,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   short *input1_hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   short *input1_hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   int *input1_hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int *input1_hit_idx = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_etaGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_phi0GEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -156,6 +157,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT1->SetBranchAddress("stub_segment",        input1_hit_segment);//segment du stub
   PATT1->SetBranchAddress("stub_strip",          input1_hit_strip);//numero de strip du stub
   PATT1->SetBranchAddress("stub_tp",             input1_hit_tp);//numero de la particule du stub
+  PATT1->SetBranchAddress("stub_idx",             input1_hit_idx);//index du stub dans l'evenement
   PATT1->SetBranchAddress("stub_ptGEN",          input1_hit_ptGEN);//PT de la particule du stub
   PATT1->SetBranchAddress("stub_etaGEN",         input1_hit_etaGEN);//ETA de la particule du stub
   PATT1->SetBranchAddress("stub_phi0GEN",        input1_hit_phi0GEN);//PHI0 de la particule du stub
@@ -232,6 +234,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   short *input2_hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   short *input2_hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   int *input2_hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int *input2_hit_idx = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_etaGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_phi0GEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -282,6 +285,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("stub_segment",        input2_hit_segment);//segment du stub
   PATT2->SetBranchAddress("stub_strip",          input2_hit_strip);//numero de strip du stub
   PATT2->SetBranchAddress("stub_tp",             input2_hit_tp);//numero de la particule du stub
+  PATT2->SetBranchAddress("stub_idx",             input2_hit_idx);//index du stub dans l'evenement
   PATT2->SetBranchAddress("stub_ptGEN",          input2_hit_ptGEN);//PT de la particule du stub
   PATT2->SetBranchAddress("stub_etaGEN",         input2_hit_etaGEN);//PT de la particule du stub
   PATT2->SetBranchAddress("stub_phi0GEN",        input2_hit_phi0GEN);//PT de la particule du stub
@@ -357,6 +361,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   short *hit_segment = new  short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   short *hit_strip = new  short[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   int *hit_tp = new int[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  int *hit_idx = new int[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_ptGEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_etaGEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_phi0GEN = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
@@ -406,6 +411,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATTOUT->Branch("stub_segment",        hit_segment, "stub_segment[total_nb_stubs]/S");
   PATTOUT->Branch("stub_strip",          hit_strip, "stub_strip[total_nb_stubs]/S");
   PATTOUT->Branch("stub_tp",             hit_tp,    "stub_tp[total_nb_stubs]/I");
+  PATTOUT->Branch("stub_idx",            hit_idx,    "stub_idx[total_nb_stubs]/I");
   PATTOUT->Branch("stub_ptGEN",          hit_ptGEN, "stub_ptGEN[total_nb_stubs]/F");
   PATTOUT->Branch("stub_etaGEN",         hit_etaGEN, "stub_etaGEN[total_nb_stubs]/F");
   PATTOUT->Branch("stub_phi0GEN",        hit_phi0GEN, "stub_phi0GEN[total_nb_stubs]/F");
@@ -531,6 +537,9 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(hit_tp,input1_hit_tp,input1_totalNbHits*sizeof(int));
     memcpy(hit_tp+input1_totalNbHits,input2_hit_tp,input2_totalNbHits*sizeof(int));
 
+    memcpy(hit_idx,input1_hit_idx,input1_totalNbHits*sizeof(int));
+    memcpy(hit_idx+input1_totalNbHits,input2_hit_idx,input2_totalNbHits*sizeof(int));
+
     memcpy(hit_ptGEN,input1_hit_ptGEN,input1_totalNbHits*sizeof(float));
     memcpy(hit_ptGEN+input1_totalNbHits,input2_hit_ptGEN,input2_totalNbHits*sizeof(float));
 
@@ -588,6 +597,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input1_hit_segment;
   delete [] input1_hit_strip;
   delete [] input1_hit_tp;
+  delete [] input1_hit_idx;
   delete [] input1_hit_ptGEN;
   delete [] input1_hit_etaGEN;
   delete [] input1_hit_phi0GEN;
@@ -619,6 +629,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input2_hit_segment;
   delete [] input2_hit_strip;
   delete [] input2_hit_tp;
+  delete [] input2_hit_idx;
   delete [] input2_hit_ptGEN;
   delete [] input2_hit_etaGEN;
   delete [] input2_hit_phi0GEN;
@@ -649,6 +660,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] hit_segment;
   delete [] hit_strip;
   delete [] hit_tp;
+  delete [] hit_idx;
   delete [] hit_ptGEN;
   delete [] hit_etaGEN;
   delete [] hit_phi0GEN;
@@ -737,6 +749,7 @@ void PatternFinder::find(int start, int& stop){
   short hit_segment[MAX_NB_PATTERNS*MAX_NB_HITS];
   short hit_strip[MAX_NB_PATTERNS*MAX_NB_HITS];
   int hit_tp[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int hit_idx[MAX_NB_PATTERNS*MAX_NB_HITS];
   float hit_ptGEN[MAX_NB_PATTERNS*MAX_NB_HITS];
   float hit_etaGEN[MAX_NB_PATTERNS*MAX_NB_HITS];
   float hit_phi0GEN[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -789,6 +802,7 @@ void PatternFinder::find(int start, int& stop){
   Out->Branch("stub_segment",        hit_segment, "stub_segment[total_nb_stubs]/S");
   Out->Branch("stub_strip",          hit_strip, "stub_strip[total_nb_stubs]/S");
   Out->Branch("stub_tp",             hit_tp,    "stub_tp[total_nb_stubs]/I");
+  Out->Branch("stub_idx",            hit_idx,    "stub_idx[total_nb_stubs]/I");
   Out->Branch("stub_ptGEN",          hit_ptGEN, "stub_ptGEN[total_nb_stubs]/F");
   Out->Branch("stub_etaGEN",         hit_etaGEN, "stub_etaGEN[total_nb_stubs]/F");
   Out->Branch("stub_phi0GEN",        hit_phi0GEN, "stub_phi0GEN[total_nb_stubs]/F");
@@ -961,6 +975,7 @@ void PatternFinder::find(int start, int& stop){
     memset(hit_layer,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(short));
     memset(hit_ladder,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(short));
     memset(hit_tp,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
+    memset(hit_idx,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
     memset(hit_ptGEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_etaGEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_phi0GEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
@@ -1040,6 +1055,7 @@ void PatternFinder::find(int start, int& stop){
 	  hit_segment[stubIndex]=active_hits[k]->getSegment();
 	  hit_strip[stubIndex]=active_hits[k]->getStripNumber();
 	  hit_tp[stubIndex]=active_hits[k]->getParticuleID();
+	  hit_idx[stubIndex]=active_hits[k]->getID();
 	  hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
 	  hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
 	  hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();

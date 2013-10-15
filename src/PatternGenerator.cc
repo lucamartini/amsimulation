@@ -320,7 +320,8 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
       cout<<endl;
       */
 
-      last_pt = sqrt(m_stub_pxGEN[stub_number]*m_stub_pxGEN[stub_number]+m_stub_pyGEN[stub_number]*m_stub_pyGEN[stub_number]);
+      if(stub_number!=-2)//this is not a fake stub
+	last_pt = sqrt(m_stub_pxGEN[stub_number]*m_stub_pxGEN[stub_number]+m_stub_pyGEN[stub_number]*m_stub_pyGEN[stub_number]);
       CMSPatternLayer pat;
       CMSPatternLayer lowDef_layer;
       pat.setValues(module, ladder, strip, seg);

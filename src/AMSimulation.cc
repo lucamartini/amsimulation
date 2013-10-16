@@ -763,8 +763,8 @@ int main(int av, char** ac){
       cout<<endl;
     }
 
-    if(active_layers.size()>6){
-      cout<<"ERROR : your sector contains "<<active_layers.size()<<" layers : maximum number of layers is 6!"<<endl;
+    if(active_layers.size()>8){
+      cout<<"ERROR : your sector contains "<<active_layers.size()<<" layers : maximum number of layers is 8!"<<endl;
       return -1;
     }
     

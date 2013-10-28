@@ -669,7 +669,7 @@ int main(int av, char** ac){
     ("input_directory", po::value<string>(), "The directory containing the single particule root files (local or RFIO)")
     ("sector_file", po::value<string>(), "The file (.root or .csv) containing the sectors definition")
     ("sector_id", po::value<int>(), "The index of the sector to use in the sector file. In a CSV file the first sector has index 0.")
-    ("active_layers", po::value<string>(), "The layers to use in the sector (6 at most)")
+    ("active_layers", po::value<string>(), "The layers to use in the sector (8 at most)")
     ("bank_name", po::value<string>(), "The bank file name")    
     ;
      
@@ -705,6 +705,8 @@ int main(int av, char** ac){
     string rootFileName="";
     string activeLayers = "";
     vector<int> active_layers;
+    vector<int> forced_layers;
+    vector<int> desactivated_layers;
     float threshold=0;
     float min=0;
     float max=0;
@@ -738,11 +740,65 @@ int main(int av, char** ac){
       cout<<"Using layers "<<activeLayers<<endl;
       sector_tklayout_id=vm["sector_id"].as<int>();
       cout<<"Using sector "<<sector_tklayout_id<<" from "<<vm["sector_file"].as<string>()<<endl;
-      std::istringstream is( activeLayers );
+
+      //Get the active/forced/inactive layers
+      //layersWithoutSigns : list of all layers
+
+      //forceLayers : layers prefixed with a '+' : no fake stub will be allowed
+      //if there is no stub on this layer -> there will be no pattern
+
+      //inactiveLayers : layers prefixed with a '-' : only fake stubs on this layer
+      //even if there is a stub it will be replaced with a fake one
+
+      string layersWithoutSigns = activeLayers;
+      string forceLayers="";
+      string inactiveLayers="";
+      size_t found = layersWithoutSigns.find("+");
+      while (found!=string::npos){
+	layersWithoutSigns.erase(found,1);//remove the '+'
+	size_t endIndex = layersWithoutSigns.find(" ", found);
+	if(endIndex!=string::npos)
+	  endIndex=endIndex-found+1;
+	forceLayers.append(layersWithoutSigns.substr(found,endIndex));//add the layer number and the following space
+	found = layersWithoutSigns.find("+"); // search for the next '+'
+      }
+      found = layersWithoutSigns.find("-");
+      while (found!=string::npos){
+	layersWithoutSigns.erase(found,1);
+	size_t endIndex = layersWithoutSigns.find(" ", found);
+	if(endIndex!=string::npos)
+	  endIndex=endIndex-found+1;
+	inactiveLayers.append(layersWithoutSigns.substr(found,endIndex));
+	found = layersWithoutSigns.find("-");
+      }
+
+      std::istringstream is( layersWithoutSigns );
       int n;
       while( is >> n ) {
 	active_layers.push_back(n);
       }
+      std::istringstream fl( forceLayers );
+      while( fl >> n ) {
+	forced_layers.push_back(n);
+      }
+      std::istringstream il( inactiveLayers );
+      while( il >> n ) {
+	desactivated_layers.push_back(n);
+      }
+
+      //remove the force_layers from the eta list -> no fake stub will be added
+      for(unsigned int i=0;i<forced_layers.size();i++){
+	map<int,pair<float,float> >::iterator it = eta.find(forced_layers[i]);
+	eta.erase(it);
+      }
+
+      //change the eta definition of the desactivated layers
+      //they will not be reachable and a fake stub will be created
+      for(unsigned int i=0;i<desactivated_layers.size();i++){
+	eta[desactivated_layers[i]].first=10;
+	eta[desactivated_layers[i]].second=10;
+      }
+
       size_t end_index = bankFileName.find(".pbk");
       if(end_index==string::npos)
 	end_index=bankFileName.length()-4;
@@ -770,6 +826,7 @@ int main(int av, char** ac){
     
     PatternGenerator pg(stripSize);//Super strip size
     pg.setLayers(active_layers);
+    pg.setInactiveLayers(desactivated_layers);
     pg.setParticuleDirName(partDirName);
     pg.setMinPT(min);
     pg.setMaxPT(max);
@@ -795,22 +852,6 @@ int main(int av, char** ac){
       cout<<"done."<<endl;
     }
     
-    /*
-    vector<Sector*> list = st.getAllSectors();
-    int nb_patterns = 0;
-    cout<<"************************************************"<<endl;
-    cout<<"We have "<<list.size()<<" sectors :"<<endl;
-    for(unsigned int i=0;i<list.size();i++){
-      cout<<*list[i];
-      int nb = list[i]->getLDPatternNumber();
-      cout<<nb<<" generated patterns"<<endl;
-      cout<<endl;
-      nb_patterns+=nb;
-    }
-
-    cout<<"Total number of patterns : "<<nb_patterns<<endl;
-    cout<<"************************************************"<<endl;
-    */
   }
   else if(vm.count("testSectors")) {
     vector<int> layers;

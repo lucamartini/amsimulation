@@ -43,6 +43,10 @@ void PatternGenerator::setLayers(vector<int> l){
   sort(tracker_layers.begin(),tracker_layers.end());
 }
 
+void PatternGenerator::setInactiveLayers(vector<int> l){
+  inactive_layers = l;
+}
+
 void PatternGenerator::setParticuleDirName(string f){
   particuleDirName = f;
 }
@@ -182,6 +186,12 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	continue;
       }
       int layer = m_stub_layer[j];
+
+      vector<int>::iterator iter;
+      iter=find(inactive_layers.begin(),inactive_layers.end(),layer);
+      if(iter!=inactive_layers.end()){
+	continue;
+      }
 
       int layer_position=-1;
       for(unsigned int cpt=0;cpt<tracker_layers.size();cpt++){

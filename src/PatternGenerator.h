@@ -27,6 +27,7 @@ class PatternGenerator{
   float etaMax;
   int nbMaxFakeSuperstrips;
   vector<int> tracker_layers;
+  vector<int> inactive_layers;
   string particuleDirName;
 
   // Containers to load the TTree branches
@@ -96,6 +97,11 @@ class PatternGenerator{
      \param l A vector of int, each integer is a layer number (ex : 8 9 10 for the last 3 layers)
   **/
   void setLayers(vector<int> l);
+ /**
+     \brief Sets the inactive layers (will have only fake stubs but will be present in the bank)
+     \param l A vector of int, each integer is a layer number (ex : 8 9 10 for the last 3 layers)
+  **/
+  void setInactiveLayers(vector<int> l);
   /**
      \brief Set the name of the directory containing the root files with muons informations
      \param f The name of the directory

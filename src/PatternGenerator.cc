@@ -413,8 +413,12 @@ void PatternGenerator::generate(SectorTree* sectors, int step, float threshold, 
       tracks[loop-1]=nbPatterns;
       patterns[loop-1]=(1-dif)*100;
     }
-    if(loop>1)
-      cout<<"Current patterns bank size : "<<nbPatterns<<" (Coverage : "<<(1-dif)*100<<"%)"<<endl;
+    if(loop>1){
+      if(iterationNbTracks==0)
+	cout<<"No more tracks to use : final patterns bank size : "<<nbPatterns<<endl;
+      else
+	cout<<"Current patterns bank size : "<<nbPatterns<<" (Coverage : "<<(1-dif)*100<<"%)"<<endl;
+    }
   }
 
   //free the TChain

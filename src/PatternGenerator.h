@@ -53,7 +53,10 @@ class PatternGenerator{
   vector<float>                 *p_m_stub_etaGEN;
 
   TChain* createTChain(string directoryName, string tchainName);
-  int generate(TChain* TT, int* evtIndex, int evtNumber, int* nbTrack, SectorTree* sectors, map<int,pair<float,float> > eta_limits);
+  /**
+     If coverageEstimation!=NULL we do not create patterns, we just test the coverage of the existing bank with new tracks
+   **/
+  int generate(TChain* TT, int* evtIndex, int evtNumber, int* nbTrack, SectorTree* sectors, map<int,pair<float,float> > eta_limits, int* coverageEstimation=NULL);
   
  public:
  /**

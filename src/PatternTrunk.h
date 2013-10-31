@@ -92,6 +92,13 @@ class PatternTrunk{
   **/
   GradedPattern* getActivePattern(int active_threshold);
 
+  /**
+     \brief Check if the high resolution pattern is already in the bank when DC bits are activated
+     \param hp The attern to check
+     \result True if the pattern is already in tha bank, false otherwise
+   **/
+  bool checkPattern(Pattern* hp);
+
  private:
   GradedPattern* lowDefPattern;
   map<string, GradedPattern*> fullDefPatterns;

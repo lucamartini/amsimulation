@@ -162,24 +162,14 @@ void PatternTrunk::computeAdaptativePattern(short r){
   for(int i=0;i<nb_layers;i++){
     memset(strips,false,size*sizeof(bool));
     PatternLayer* pl = lowDefPattern->getLayerStrip(i);
-    //cout<<pl->toString()<<endl;
     int ld_position = pl->getStrip();
     
     for(map<string, GradedPattern*>::iterator itr = fullDefPatterns.begin(); itr != fullDefPatterns.end(); ++itr){
       PatternLayer* fd_pl = itr->second->getLayerStrip(i);
-      //cout<<"  "<<fd_pl->toString()<<endl;
       int index = fd_pl->getStrip()-size*ld_position;
       strips[index]=true;
     }
-    /*
-    for(int j=0;j<size;j++){
-      if(strips[j])
-	cout<<"X";
-      else
-	cout<<"-";
-    }
-    cout<<endl;
-    */
+   
     vector<int> bits;
     computeDCBits(bits,strips,size,0);
 
@@ -233,5 +223,21 @@ void PatternTrunk::updateDCBits(GradedPattern* p){
 	pl->setDC(j,bits[j]);
       }
     }
+  }
+}
+
+bool PatternTrunk::checkPattern(Pattern* hp){
+  if(hp==NULL)
+    return false;
+  if(fullDefPatterns.size()!=0){
+    string key=hp->getKey();
+    map<string, GradedPattern*>::iterator it = fullDefPatterns.find(key);
+    if(it==fullDefPatterns.end())//not found
+      return false;
+    else
+      return true;
+  }
+  else{
+    return lowDefPattern->contains(hp);
   }
 }

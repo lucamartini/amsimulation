@@ -839,7 +839,6 @@ int main(int av, char** ac){
 
 
     if(pg.getVariableResolutionState()>0){
-      cout<<"HD Patterns : "<<st.getFDPatternNumber()<<endl;
       cout<<"LD Patterns : "<<st.getLDPatternNumber()<<endl;
     }
   

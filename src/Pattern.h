@@ -93,10 +93,16 @@ class Pattern{
   vector<Hit*> getHits(int layerPosition);
 
   /**
+     \brief Check if hdp is fully included in the pattern
+     \param hdp The pattern to check
+     \return True if hdp is included in the pattern
+   **/
+  bool contains(Pattern* hdp);
+
+  /**
      \brief Allows to display a Pattern as a string
   **/
   friend ostream& operator<<(ostream& out, const Pattern& s);
-
 
  private:
   int nb_layer;

@@ -123,7 +123,7 @@ TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
   return TT;
 }
 
-int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nbTrackUsed, SectorTree* sectors, map<int,pair<float,float> > eta_limits){
+int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nbTrackUsed, SectorTree* sectors, map<int,pair<float,float> > eta_limits, int* coverageEstimation){
 
   if(tracker_layers.size()==0){
     cout<<"No layer defined!"<<endl;
@@ -131,7 +131,8 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
   }
   vector<Pattern*> patterns;
 
-  sectors->setSuperStripSize(superStripSize);
+  if(coverageEstimation==NULL)
+    sectors->setSuperStripSize(superStripSize);
 
   //--> Signification (et dimension) des variables
 
@@ -352,13 +353,21 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
     //cout<<"creation pattern : "<<endl;
     //cout<<*lowDef_p<<endl;
     
-    if(variableRes){
-      sector->getPatternTree()->addPattern(lowDef_p,p, last_pt);
+    if(coverageEstimation==NULL){
+      if(variableRes){
+	sector->getPatternTree()->addPattern(lowDef_p,p, last_pt);
+      }
+      else{
+	sector->getPatternTree()->addPattern(p,NULL, last_pt);
+      }
     }
     else{
-      sector->getPatternTree()->addPattern(p,NULL, last_pt);
+      if(variableRes){
+	if(sector->getPatternTree()->checkPattern(lowDef_p, p))//does the bank contains the pattern?
+	  (*coverageEstimation)++;
+      }
     }
-
+    
     delete p;
     if(lowDef_p!=NULL)
         delete lowDef_p;
@@ -367,16 +376,18 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 
   *nbTrackUsed=nbModuleOk;
 
-  cout<<"Event index : "<<*evtIndex<<endl;
-  cout<<"Nb Events with stubs on all layers : "<<nbInLayer<<endl;
-  cout<<"Nb Events in sectors : "<<nbInSector<<endl;
-  //cout<<"Nb Events in good modules : "<<nbModuleOk<<endl;
+  if(coverageEstimation==NULL){
+    cout<<"Event index : "<<*evtIndex<<endl;
+    cout<<"Nb Events with stubs on all layers : "<<nbInLayer<<endl;
+    cout<<"Nb Events in sectors : "<<nbInSector<<endl;
 
-  if(variableRes)
-    return sectors->getFDPatternNumber();
+    if(variableRes)
+      return sectors->getFDPatternNumber();
+    else
+      return sectors->getLDPatternNumber();
+  }
   else
-    return sectors->getLDPatternNumber();
-
+    return 0;
 }
 
 
@@ -420,9 +431,6 @@ void PatternGenerator::generate(SectorTree* sectors, int step, float threshold, 
 	cout<<"Current patterns bank size : "<<nbPatterns<<" (Coverage : "<<(1-dif)*100<<"%)"<<endl;
     }
   }
-
-  //free the TChain
-  delete tc;
   
   TGraph* nbPatt = new TGraph(loop-1,tracks,patterns);
   nbPatt->SetTitle("Pattern Bank Generation");
@@ -436,8 +444,21 @@ void PatternGenerator::generate(SectorTree* sectors, int step, float threshold, 
   if(variableRes){
     cout<<"Creating variable resolution bank..."<<endl;
     sectors->computeAdaptativePatterns(variableRes);
+    if(iterationNbTracks==step){
+      cout<<"Estimating coverage..."<<endl;
+      int recognizedTracks=0;
+      generate(tc, &indexPart, step, &nbTracks, sectors, eta_limits,&recognizedTracks);
+      float cov = recognizedTracks*100/nbTracks;
+      cout<<"Estimated coverage with variable resolution : "<<cov<<"% (estimated on "<<nbTracks<<" tracks)"<<endl;
+    }
+    else{
+      cout<<"Not enough tracks to estimate the coverage."<<endl;
+    }
   }
-  
+
+  //free the TChain
+  delete tc;
+
   vector<Sector*> v_sector = sectors->getAllSectors();
   for(unsigned int k=0;k<v_sector.size();k++){
     vector<int> PT = v_sector[k]->getPatternTree()->getPTHisto();

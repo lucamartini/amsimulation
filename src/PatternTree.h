@@ -78,6 +78,15 @@ class PatternTree{
      \param p The PatternTree containing the patterns to add
   **/
   void addPatternsFromTree(PatternTree* p);
+  
+  /**
+     \brief Check if the given pattern is contained in the bank (using DC bits)
+     \brief Should only be used with a DC bit activated bank
+     \param lp The low definition pattern
+     \param hp The high definition version of the pattern
+     \return True if the pattern is already in the bank, false otherwise
+   **/
+  bool checkPattern(Pattern* lp, Pattern* hp);
 
  private:
   map<string, PatternTrunk*> patterns;

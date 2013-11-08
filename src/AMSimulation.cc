@@ -648,7 +648,7 @@ int main(int av, char** ac){
     ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
     ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
-    ("printBankBinary", "Display all patterns from a bank using binary representation of patterns (needs --bankFile)")
+    ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("inputFile", po::value<string>(), "The file to analyse")

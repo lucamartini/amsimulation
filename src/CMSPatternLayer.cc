@@ -101,6 +101,22 @@ string CMSPatternLayer::toString(){
   return oss.str();
 }
 
+string CMSPatternLayer::toStringBinary(){
+  ostringstream oss;
+  oss<<getIntValue();
+  if(dc_bits[0]!=3){
+    oss<<" (";
+    for(int i=0;i<DC_BITS;i++){
+      if(dc_bits[i]==2)
+	oss<<"X";
+      else if(dc_bits[i]!=3)
+	oss<<(int)dc_bits[i];
+    }
+    oss<<")";
+  }
+  return oss.str();
+}
+
 vector<int> CMSPatternLayer::getLayerIDs(){
   vector<int> layers;
 

@@ -60,6 +60,13 @@ class CMSPatternLayer : public PatternLayer{
      \return A string describing the PatternLayer
   **/
   string toString();
+
+  /**
+     \brief Returns a string representation of the PatternLayer, using binary values
+     \return A string describing the PatternLayer
+  **/
+  string toStringBinary();
+
   /**
      \brief Returns the module's Z position
      \return The module's Z position

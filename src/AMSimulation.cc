@@ -648,6 +648,7 @@ int main(int av, char** ac){
     ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
     ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
+    ("printBankBinary", "Display all patterns from a bank using binary representation of patterns (needs --bankFile)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("inputFile", po::value<string>(), "The file to analyse")
@@ -955,29 +956,28 @@ int main(int av, char** ac){
 	cout<<endl;
       }
     }
-    /*
+  }
+  else if(vm.count("printBankBinary")) {
+    SectorTree st;
+    cout<<"Loading pattern bank..."<<endl;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      boost::archive::text_iarchive ia(ifs);
+      ia >> st;
+    }
     vector<Sector*> sectors = st.getAllSectors();
     for(unsigned int i=0;i<sectors.size();i++){
-      set<string> combinaisons;
       Sector* mySector = sectors[i];
       vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
-      cout<<patterns.size()<<" patterns in the bank"<<endl;
       for(unsigned int j=0;j<patterns.size();j++){
-	ostringstream oss;
 	Pattern* p = patterns[j];
-	for(int k=0;k<p->getNbLayers()-3;k++){
+	for(int k=0;k<p->getNbLayers();k++){
 	  PatternLayer* mp = p->getLayerStrip(k);
-	  oss<<((CMSPatternLayer*)mp)->getPhi()<<"/"<<((CMSPatternLayer*)mp)->getModule()<<" - ";
+	  cout<<((CMSPatternLayer*)mp)->toStringBinary()<<" - ";
 	}
-	combinaisons.insert(oss.str());
-      }
-      cout<<"Nb combinaisons : "<<combinaisons.size()<<endl;
-      std::set<string>::iterator it;
-      for(it=combinaisons.begin();it!=combinaisons.end();it++){
-	cout<< *it <<endl;
+	cout<<endl;
       }
     }
-    */
   }
   else if(vm.count("MergeSectors")) {
     PatternFinder::mergeFiles(vm["outputFile"].as<string>().c_str(), vm["inputFile"].as<string>().c_str(), vm["secondFile"].as<string>().c_str());

@@ -15,7 +15,7 @@
 using namespace std;
 
 /**
-   \brief A PatternTrunk can contain one low definition pattern and all the associated full definitions patterns
+   \brief A PatternTrunk can contain one low definition pattern and all the associated full definitions patterns (all high definition patterns contnained have the same low resolution version). Used to store patterns and compute variable resolution patterns : we keep the low resolution versions and compute the DC bits values from the high resolution patterns.
 **/
 
 class PatternTrunk{

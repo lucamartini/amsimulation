@@ -15,7 +15,8 @@ using namespace std;
 
 /**
    \brief Layer part of a pattern
-   This class contains the bits for one layer
+   This class contains the bits for one layer.
+   This is an abstract class which should be implemented to be used (see class CMSPatternLayer for an example).
 **/
 
 class PatternLayer{
@@ -121,14 +122,17 @@ class PatternLayer{
 
 
  protected:
+  /**
+     The value of the pattern layer (16 bits)
+   **/
   bitset<LAYER_BITS> bits;
-  /*  
+  /**  
       4 possible values for a DC bit:
-      0 : 0
-      1 : 1
-      2 : X (Don't Care)
-      3 : UNUSED
-  */
+        - 0 : 0
+        - 1 : 1
+	- 2 : X (Don't Care)
+	- 3 : UNUSED
+  **/
   char dc_bits[DC_BITS];
 
   friend class boost::serialization::access;

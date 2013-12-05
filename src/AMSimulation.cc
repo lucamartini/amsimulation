@@ -41,6 +41,11 @@ using namespace std;
    If everything goes fine, you should get a binary file called "AMSimulation".
  
    \section use_sec Using the program
+   \subsection help Informations on how to use the program
+   To get the list of options and parameters :
+   \code
+   ./AMSimulation --help
+   \endcode
    \subsection generate Generating a pattern bank
    To generate a patterns bank, use the command :
    \code
@@ -90,7 +95,7 @@ using namespace std;
    ./AMSimulation --findPatterns --inputFile <path to Root File containing events (local or RFIO)> --bankFile <path to your pattern bank file> --outputFile <Root output file> --ss_threshold <minimum number of stubs to activate the pattern> --startEvent <Index of first event to analyse> --stopEvent <Index of last event to analyse>
    \endcode
 
-  The program is using a virtual detector during the search process. The geometry of this detector (layers, ladders, Z modules and strips per segment) is contained in the detector.cfg file located in the root directory of the program. Here is an example of the syntax :
+  The program is using a virtual detector during the search process. The geometry of this detector (layers, ladders, Z modules and strips per segment) is contained in the CMSPatternLayer class but can be overwritten with a detector.cfg file located in the root directory of the program. Here is an example of the syntax :
   \code
   #layerID,nb ladders,nb Z modules,nb strips per segment
   5,16,15,1024
@@ -113,6 +118,10 @@ using namespace std;
    You can display the patterns contained in a patterns bank file using the command :
    \code
    ./AMSimulation --printBank --bankFile <You patterns bank file>
+   \endcode
+   If you are more interested in the encoding of the patterns you can display the patterns with a decimal representation of each pattern layer :
+   \code
+   ./AMSimulation --printBankBinary --bankFile <You patterns bank file>
    \endcode
 
    It should display one pattern per line.

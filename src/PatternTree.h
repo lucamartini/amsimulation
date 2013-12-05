@@ -7,7 +7,7 @@
 
 using namespace std;
 /**
-   \brief A map of PatternTrunks
+   \brief This class is used to store all the patterns (both low and high resolutions). To quickly find a pattern, PatternTrunk objects are stored in a map using the low resolution pattern value as the map key (string made of the decimal representation of the patternLayers values).
 **/
 class PatternTree{
  public:

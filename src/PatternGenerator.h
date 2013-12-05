@@ -16,6 +16,7 @@ using namespace std;
 
 /**
    \brief Creates a pattern bank from root muons simulation files.
+   Each event contains only one track. To be used in the pattern creation, it must have at least one stub per used layer (except in the case of fake stubs). 
 **/
 class PatternGenerator{
  private:
@@ -92,7 +93,7 @@ class PatternGenerator{
   void setMaxEta(float maxe);
   /**
      \brief Change the maximum number of fake superstrips that can be used in a pattern
-     \param maxe The maximum number of fakse superstrips in a pattern
+     \param mf The maximum number of fake superstrips in a pattern
   **/
   void setMaxFakeSuperstrips(int mf);
  /**

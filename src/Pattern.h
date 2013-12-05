@@ -14,7 +14,7 @@
 using namespace std;
 
 /**
-   \brief A Pattern contains one PatternLayer per layer
+   \brief Representation of a pattern, a Pattern contains one PatternLayer per layer.
 **/
 
 class Pattern{

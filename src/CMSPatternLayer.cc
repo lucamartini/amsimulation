@@ -54,6 +54,35 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
   return v;
 }
 
+#ifdef USE_CUDA
+void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, int layerID, unsigned int* v){
+  int nb_dc = getDCBitsNumber();
+  int factor = (int)pow(2.0,nb_dc);
+
+  if(getPhi()==15){ // this is a fake superstrip! -> No index
+    return;
+  }
+  else{
+    int layer_index = cuda_layer_index[layerID];
+    if(layer_index!=-1){
+      int ladderID = ladd[getPhi()];//getPhi() is the position in the sector;ladd[getPhi()] gives the ID of the ladder
+      map<int, vector<int> >::const_iterator iterator = modules.find(ladderID); // get the vector of module IDs for this ladder
+      int moduleID = iterator->second[getModule()];// get the module ID from its position
+      int segment = getSegment();
+      int base_index = getStrip()*factor;
+      vector<string> positions;
+      getPositionsFromDC(positions);
+      for(unsigned int i=0;i<positions.size();i++){
+	int index = layer_index*SIZE_LAYER+ladderID*SIZE_LADDER+moduleID*SIZE_MODULE+segment*SIZE_SEGMENT+base_index+PatternLayer::GRAY_POSITIONS[positions[i]];
+	v[i]=index;
+      }
+      return;
+    }
+    cout<<"Error : can not link layer "<<l<<" ladder "<<ladd[getPhi()]<<" module "<<getModule()<<" segment "<<getSegment()<<" strip "<<getStrip()<<endl;
+  }
+}
+#endif
+
 void CMSPatternLayer::setValues(short m, short phi, short strip, short seg){
   bits |= (m&MOD_MASK)<<MOD_START_BIT |
     (phi&PHI_MASK)<<PHI_START_BIT |

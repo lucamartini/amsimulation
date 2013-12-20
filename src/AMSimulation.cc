@@ -14,6 +14,7 @@
 #include "Detector.h"
 #include "PrincipalTrackFitter.h"
 #include "PrincipalFitGenerator.h"
+#include "gpu.h"
 
 
 #include <TH1I.h>
@@ -1058,7 +1059,48 @@ int main(int av, char** ac){
   }
   else if(vm.count("testCode")) {
     //cout<<"Nothing to be done"<<endl;
-   
+#ifdef USE_CUDA
+    deviceDetector d_detector;
+    patternBank d_pb;
+    deviceStubs d_stubs;
+    //printCard();
+    //map< int, vector<int> > detector_config = Sector::readConfig("detector.cfg");
+    {
+      SectorTree sTest;
+      cout<<"Loading pattern bank..."<<endl;
+      {
+	//	std::ifstream ifs("./sec26.pbk");
+	std::ifstream ifs("./sec26.pbk");
+	boost::archive::text_iarchive ia(ifs);
+	ia >> sTest;
+      }
+      cout<<"Sector :"<<endl;
+      cout<<*(sTest.getAllSectors()[0])<<endl;
+      cout<<"loaded "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns for sector "<<sTest.getAllSectors()[0]->getOfficialID()<<endl;
+
+      resetCard();
+      allocateDetector(&d_detector);
+      allocateBank(&d_pb,sTest.getAllSectors()[0]->getLDPatternNumber());
+      allocateStubs(&d_stubs);
+
+      sTest.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
+      
+      //cudaShowBank(&pb);
+      PatternFinder pf(sTest.getSuperStripSize(), 5, &sTest,  "PU4T_01_light.root",  "outputFile.root", &d_pb, &d_detector, &d_stubs);
+      {
+	boost::progress_timer t;
+	int start = 0;
+	int stop = 1000;
+	pf.findCuda(start, stop);
+	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
+      }
+
+      freeDetector(&d_detector);
+      freeBank(&d_pb);
+      freeStubs(&d_stubs);
+      resetCard();
+    }
+#else
     string result;
     {
       SectorTree sTest;
@@ -1083,5 +1125,6 @@ int main(int av, char** ac){
       } 
       */
     }
+#endif
   }
 }

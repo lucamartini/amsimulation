@@ -255,15 +255,6 @@ int Sector::getLayerID(int i) const{
     return -1;
 }
 
-vector<int> Sector::getLayersID() const{
-  vector<int> l;
-  for(map<int, map<int, vector<int> > >::const_iterator it=m_modules.begin();it!=m_modules.end();it++){
-    l.push_back(it->first);
-  }
-  sort(l.begin(),l.end());
-  return l;
-}
-
 int Sector::getLayerIndex(int i) const{
   vector<int> l;
   for(map<int, map<int, vector<int> > >::const_iterator it=m_modules.begin();it!=m_modules.end();it++){
@@ -434,38 +425,6 @@ void Sector::link(Detector& d){
 
   patterns->link(d, ladders, modules);
 }
-
-#ifdef USE_CUDA
-void Sector::linkCuda(patternBank* p, deviceDetector* d){
-
-  vector<vector<int> > ladders;
-  vector<map<int, vector<int> > > modules;
-  vector<int> layer_list;
-  for(map<int, map<int, vector<int> > >::const_iterator it_layer=m_modules.begin();it_layer!=m_modules.end();it_layer++){
-    layer_list.push_back(it_layer->first);
-  }
-  sort(layer_list.begin(), layer_list.end());
-
-  for(unsigned int i=0;i<layer_list.size();i++){
-    vector<int> lad = m_ladders[layer_list[i]];
-    vector<int> ladder_list;
-    for(unsigned int j=0;j<lad.size();j++){
-      ladder_list.push_back(lad[j]);
-    }
-    ladders.push_back(ladder_list);
-    modules.push_back(m_modules[layer_list[i]]);
-  }
-
-  for(unsigned int i=0;i<ladders.size();i++){
-    for(unsigned int j=0;j<ladders[i].size();j++){
-      cout<<ladders[i][j]<<" ";
-    }
-    cout<<endl;
-  }
-
-  patterns->linkCuda(p, d, ladders, modules, getLayersID());
-}
-#endif
 
 vector<GradedPattern*> Sector::getActivePatterns(int active_threshold){
   vector<GradedPattern*> active_patterns;

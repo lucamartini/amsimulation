@@ -9,10 +9,6 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/export.hpp>
 
-#ifdef USE_CUDA
-#include "gpu.h"
-#endif
-
 using namespace std;
 
 
@@ -58,9 +54,7 @@ class CMSPatternLayer : public PatternLayer{
   CMSPatternLayer();
   CMSPatternLayer* clone();
   vector<SuperStrip*> getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d);
-#ifdef USE_CUDA
-  void getSuperStripCuda(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, int layerID, unsigned int* v);
-#endif
+  
   /**
      \brief Set the values in the patternLayer
      \param m The module Z position (0 to 13 for modules 23 to 47)

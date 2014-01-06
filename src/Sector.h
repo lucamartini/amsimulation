@@ -210,12 +210,6 @@ class Sector{
   **/
   int getLayerID(int i) const;
 
-  /**
-     \brief Get the layers ID
-     \return The layer ids in a vector
-  **/
-  vector<int> getLayersID() const;
-
  /**
      \brief Get the layer index
      \param i The ID of the layer
@@ -255,16 +249,6 @@ class Sector{
      \param d The Detector object
   **/
   void link(Detector& d);
-
-#ifdef USE_CUDA
-  /**
-     Link all the patterns in the patternBank region to the super strips contained in the deviceDetector object
-     \param d The Detector object on the device
-     \param p The patterns bank on the device
-  **/
-  void linkCuda(patternBank* p, deviceDetector* d);
-#endif
-
   /**
      \brief Get the active patterns of the sector
      \param active_threshold The minimum number of hit super strips to activate the pattern

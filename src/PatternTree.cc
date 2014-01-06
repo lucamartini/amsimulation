@@ -94,20 +94,6 @@ void PatternTree::link(Detector& d, const vector< vector<int> >& sec, const vect
   }
 }
 
-#ifdef USE_CUDA
-void PatternTree::linkCuda(patternBank* p, deviceDetector* d, const vector< vector<int> >& sec, const vector<map<int, vector<int> > >& modules, vector<int> layers){
-  int counter=0;
-  unsigned int* cache = new unsigned int[PATTERN_LAYERS*PATTERN_SSTRIPS];
-  cudaSetNbPatterns(p, patterns.size());
-  for(map<string, PatternTrunk*>::iterator itr = patterns.begin(); itr != patterns.end(); ++itr){
-    //cout<<"pattern "<<counter<<endl;
-    itr->second->linkCuda(p, d, counter, sec, modules, layers, cache);
-    counter++;
-  } 
-  delete[] cache;
-}
-#endif
-
 void PatternTree::getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns){
   for(map<string, PatternTrunk*>::iterator itr = patterns.begin(); itr != patterns.end(); ++itr){
     GradedPattern* p = itr->second->getActivePattern(active_threshold);

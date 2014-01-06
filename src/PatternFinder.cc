@@ -40,9 +40,10 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   d_p_bank = p;
   d_stubs = s;
 
+  //we use 1024 threads and want to compute the number of blocks
   int nb_patterns = sectors->getAllSectors()[0]->getLDPatternNumber();
-  int nbIter = nb_patterns/1024/1024+1;
   nb_threads = 1024;
+  int nbIter = nb_patterns/nb_threads/1024+1;//we want nb_blocks<1025
   nb_blocks = nb_patterns/nbIter/nb_threads+1;
 }
 #endif
@@ -1134,10 +1135,10 @@ void PatternFinder::find(int start, int& stop){
 	  hit_y0[stubIndex]=active_hits[k]->getY0();
 	  hit_z0[stubIndex]=active_hits[k]->getZ0();
 
-	  unsigned int tmp_size = stub_ids.size();
+	  //unsigned int tmp_size = stub_ids.size();
 	  stub_ids.insert(active_hits[k]->getID());
-	  if(stub_ids.size()>tmp_size)
-	    cout<<*active_hits[k]<<endl;
+	  //if(stub_ids.size()>tmp_size)
+	  //  cout<<*active_hits[k]<<endl;
 	  
 	  stubIndex++;
 	}

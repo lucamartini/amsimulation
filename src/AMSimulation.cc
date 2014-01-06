@@ -657,9 +657,6 @@ int main(int av, char** ac){
     ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
     ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
     ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
-#ifdef USE_CUDA
-    ("useGPU", "Use the GPU card to accelerate the pattern recognition (needs cuda libraries and a configured GPU card)")
-#endif
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("testCode", "Dev tests")
@@ -905,46 +902,15 @@ int main(int av, char** ac){
     }
     ///////////////////////////////////////////////////////////////
 
-#ifdef USE_CUDA
-    if(vm.count("useGPU")){
-      deviceDetector d_detector;
-      patternBank d_pb;
-      deviceStubs d_stubs;
-      resetCard();
-      allocateDetector(&d_detector);
-      allocateBank(&d_pb,st.getAllSectors()[0]->getLDPatternNumber());
-      allocateStubs(&d_stubs);
-
-      st.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
-
-      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), &d_pb, &d_detector, &d_stubs); 
-      {
-	boost::progress_timer t;
-	int start = vm["startEvent"].as<int>();
-	int stop = vm["stopEvent"].as<int>();
-	pf.findCuda(start, stop);
-	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
-      }
-
-      freeDetector(&d_detector);
-      freeBank(&d_pb);
-      freeStubs(&d_stubs);
-      resetCard();
+    PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
+    {
+      boost::progress_timer t;
+      int start = vm["startEvent"].as<int>();
+      int stop = vm["stopEvent"].as<int>();
+      pf.find(start, stop);
+      cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
     }
-    else{
-#endif
-      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
-      {
-	boost::progress_timer t;
-	int start = vm["startEvent"].as<int>();
-	int stop = vm["stopEvent"].as<int>();
-	pf.find(start, stop);
-	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
-      }
-    }
-#ifdef USE_CUDA
   }
-#endif
   else if(vm.count("buildFitParams")) {
     SectorTree st;
     cout<<"Loading pattern bank..."<<endl;

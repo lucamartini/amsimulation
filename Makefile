@@ -2,32 +2,19 @@ UNAME := $(shell uname)
 
 SRC=src
 
-CUDA_ENABLED=true
-
 ifeq ($(UNAME), Darwin)
 	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
 	LIBS = -L ${ROOTSYS}/lib -L /opt/local/lib/
    BOOSTLIBS = -lboost_serialization-mt -lboost_program_options-mt 
 endif
 ifeq ($(UNAME), Linux)
-ifeq ($(CUDA_ENABLED),true)
-	FLAG=-DUSE_CUDA -O3 -Wall -Werror=type-limits -I `root-config --incdir` -I ${SRC} 
-	LIBS = -L ${ROOTSYS}/lib -L/usr/local/cuda/lib64 -lcuda -lcudart
-else
-	FLAG=-O3 -Wall -Werror=type-limits -I `root-config --incdir` -I ${SRC} 
-	LIBS = -L ${ROOTSYS}/lib 
-endif
+	FLAG=-O3 -Wall -Werror=type-limits -I `root-config --incdir` -I ${SRC} -I `scram tool tag boost INCLUDE`
+	LIBS = -L ${ROOTSYS}/lib -L `scram tool tag boost LIBDIR`
    BOOSTLIBS = -lboost_serialization -lboost_program_options 
 endif
 
-ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o gpu.o
-else
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o
-endif
-
-AMSimulation:$(OBJECTS)
-	g++ -o AMSimulation $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
+AMSimulation:AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o
+	g++ -o AMSimulation AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
 
 clean:	
 	rm -rf *.o;rm -f ${SRC}/*~;rm -f ${SRC}/*#
@@ -112,9 +99,6 @@ HoughLocal.o:${SRC}/HoughLocal.h ${SRC}/HoughLocal.cc
 
 AMSimulation.o:${SRC}/AMSimulation.cc
 	g++ -c ${FLAG} ${SRC}/AMSimulation.cc
-
-gpu.o:${SRC}/gpu.h ${SRC}/gpu_struct.h ${SRC}/gpu.cu 
-	/usr/local/cuda-5.5/bin/nvcc -ccbin g++ -I ~mirabito/cuda_examples/NVIDIA_CUDA-5.5_Samples/common/inc  -m64 -arch compute_30    -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"  -o gpu.o -c src/gpu.cu
 
 doc:doxygen.cfg
 	doxygen doxygen.cfg

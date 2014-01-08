@@ -4,9 +4,22 @@ HoughFitter::HoughFitter():TrackFitter(){
 }
 
 HoughFitter::HoughFitter(int nb):TrackFitter(nb){
+  cuts = new HoughCut();
+  ch = new ComputerHough(cuts);
+  h_x= new float[1024];
+  h_y= new float[1024];
+  h_z= new float[1024];
+  h_layer= new unsigned int[1024];
+  ch->DefaultCuts();
 }
 
 HoughFitter::~HoughFitter(){
+  delete ch;
+  delete cuts;
+  delete [] h_x;
+  delete [] h_y;
+  delete [] h_z;
+  delete [] h_layer;
 }
 
 void HoughFitter::initialize(){
@@ -23,8 +36,6 @@ void HoughFitter::mergeTracks(){
 
 void HoughFitter::fit(){
 
-  int min_nb_stubs = 4;
-
   vector<Hit*> activatedHits;
 
   //////// Get the list of unique stubs from all the patterns ///////////
@@ -39,118 +50,43 @@ void HoughFitter::fit(){
 	activatedHits.push_back(allHits[j]);
     }
   }
-  ///////////////////////////////////////////////////////////////////////
 
-  //low resolution hough
-  HoughLocal* htl = new HoughLocal(0.5-PI/2,0,-0.01,0.01,32,32);
+  if(activatedHits.size()>1024){
+    cout<<"ERROR : too many stubs for fitting!"<<endl;
+    return;
+  }
 
-  //Add stubs to hough space
+  memset(h_x,0,1024*sizeof(float));
+  memset(h_y,0,1024*sizeof(float));
+  memset(h_z,0,1024*sizeof(float));
+  memset(h_layer,0,1024*sizeof(unsigned int));
+ 
+  //Collect the stubs
   //cout<<activatedHits.size()<<" selected stubs"<<endl;
   for(unsigned int j=0;j<activatedHits.size();j++){
     //cout<<j<<" : "<<*(activatedHits[j])<<endl;
-    htl->fill(activatedHits[j]->getX(), activatedHits[j]->getY());
+    h_x[j]=activatedHits[j]->getX();
+    h_y[j]=activatedHits[j]->getY();
+    h_z[j]=activatedHits[j]->getZ();
+    h_layer[j]=activatedHits[j]->getLayer();
   }
   //cout<<endl;
+
+  //Actual computing
+  ch->ComputeOneShot(sector_id,activatedHits.size(),h_x,h_y,h_z,h_layer);
+  std::vector<mctrack_t> &v=ch->getCandidates();
+
+  //format the results and feed the tracks vector
+  for (std::vector<mctrack_t>::iterator it=v.begin();it!=v.end();it++){
+    Track* fit_track = new Track((*it).pt, 0, (*it).phi, (*it).eta, (*it).z0);
+    tracks.push_back(fit_track);
+  }
   
-  /*
-    //DISPLAY HOUGH SPACE
-  for(int i=0;i<32;i++){
-    for(int j=0;j<32;j++){
-      cout<<htl->getValue(i,j);
-    }
-    cout<<endl;
-  }
-  */
-  std::vector < std::pair<double,double> > hbins;
-  htl->findMaximumBins(hbins,min_nb_stubs-1);//we are more permissive the first time
-  if (htl->getVoteMax()>=(unsigned int)min_nb_stubs-1){
-    //cout<<"etape 1 OK (vote max = "<<htl->getVoteMax()<<" bins : "<<hbins.size()<<")"<<endl;
-    for (std::vector < std::pair<double,double> >::iterator ihb=hbins.begin();ihb<hbins.end();ihb++){
-      double ith=(*ihb).first;
-      double ir=(*ihb).second;
-				
-      //printf("Bin  studied %f %f %f %f => \n",ith-2*htl->getThetaBin(),ith+2*htl->getThetaBin(),ir-2*htl->getRBin(),ir+2*htl->getRBin());
-      //HoughLocal::PrintConvert(ith,ir);
-      double R=1./2./TMath::Abs(ir);
-      double pth=0.3*3.8*R/100.;
-      uint32_t nbinf=64;
-      if (pth<5) nbinf=128;
-      if (pth>=5 && pth<10) nbinf=192;
-      if (pth>=10  && pth<30) nbinf=256;
-      if (pth>=30) nbinf=320;
-      
-      //for each candidate at low res, creates a new houh at high res
-      HoughLocal *htp = new HoughLocal(ith-2*htl->getThetaBin(),ith+2*htl->getThetaBin(),ir-2*htl->getRBin(),ir+2*htl->getRBin(),nbinf,nbinf);
-      
-      htp->clear();
-
-      //add the stubs
-      for(unsigned int j=0;j<activatedHits.size();j++){
-	htp->fill(activatedHits[j]->getX(), activatedHits[j]->getY());
-      }
-      /*
-      for(unsigned int i=0;i<nbinf;i++){
-	for(unsigned int j=0;j<nbinf;j++){
-	  cout<<htp->getValue(i,j);
-	}
-	cout<<endl;
-      }
-      */
-      std::vector< std::pair<double,double> > hfbins;hfbins.clear();
-	
-      //cout<<"etape 2 (vote max = "<<htp->getVoteMax()<<")"<<endl;
-    
-      //we are more restrictive at high res
-      if (htp->getVoteMax()<(unsigned int)min_nb_stubs){
-	delete htp;
-	continue;
-      }
-
-      //we will keep only one candidate at high res : let's keep only the best ones
-      htp->findMaximumBins(hfbins,htp->getVoteMax());//we know getVoteMax is at least min_nb_stubs
-      
-      //cout<<"Bins : "<<hfbins.size()<<endl;
-
-      if(hfbins.size()>0){
-	for (std::vector < std::pair<double,double> >::iterator ihbp=hfbins.begin();ihbp<hfbins.end();ihbp++){
-	  double theta=(*ihbp).first;
-	  double r=(*ihbp).second;
-	  
-	  double a=-1./tan(theta);
-
-	  double R=1./2./TMath::Abs(r);
-	  double pt=0.3*3.8*R/100.;
-	  double phi=atan(a);
-	  if(pt<1.5){
-	    //cout<<"PT too small -> delete track"<<endl;
-	    continue;
-	  }
-	  if(pt>1000){
-	    //cout<<"PT over 1TeV -> delete track"<<endl;
-	    continue;
-	  }
-
-	  //cout<<"Track found : "<<pt<<" GeV/c Phi="<<phi<<endl;
-	  Track* fit_track = new Track(pt, 0, phi, 0, 0);
-	  tracks.push_back(fit_track);
-	  //cout<<"skip other bins"<<endl;
-	  break;
-	}
-      }
-
-      delete(htp);
-
-    }
-  }
-  else{
-    //cout<<"etape 1 FAILED (vote max = "<<htl->getVoteMax()<<")"<<endl;
-  }
-
-  delete(htl);
 }
 
 TrackFitter* HoughFitter::clone(){
   HoughFitter* fit = new HoughFitter(nb_layers);
   fit->setPhiRotation(sec_phi);
+  fit->setSectorID(sector_id);
   return fit;
 }

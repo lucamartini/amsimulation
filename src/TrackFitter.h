@@ -19,6 +19,7 @@ class TrackFitter{
   vector<Track*> tracks;
   int nb_layers;
   double sec_phi;//used for sector rotation
+  int sector_id;
 
   friend class boost::serialization::access;
   
@@ -30,6 +31,7 @@ class TrackFitter{
   template<class Archive> void load(Archive & ar, const unsigned int version){
     ar >> nb_layers;
     ar >> sec_phi;
+    sector_id=0;
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -89,6 +91,12 @@ class TrackFitter{
 
   void setPhiRotation(double rot);
   double getPhiRotation();
+
+  /**
+     \brief Set the sector used for the fitter
+     \param id The ID of the sector (from 0 to ...)
+  **/
+  void setSectorID(int id);
 
 };
 #endif

@@ -1045,6 +1045,7 @@ void PatternFinder::find(int start, int& stop){
       /////////FITTER////
       TrackFitter* fitter = (sectors_map[pattern_list[i]->getIDString()])->getFitter();
       if(fitter!=NULL){
+	fitter->setSectorID(pattern_list[i]->getOfficialID());
 	for(unsigned int l=0;l<pl.size();l++){
 	  fitter->addPattern(pl[l]);
 	}

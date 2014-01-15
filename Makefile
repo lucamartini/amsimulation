@@ -21,7 +21,7 @@ endif
 endif
 
 ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o gpu.o
+	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o FileEventProxy.o gpu.o
 else
 	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o HoughLocal.o
 endif
@@ -109,6 +109,9 @@ HoughFitter.o:${SRC}/HoughFitter.h ${SRC}/HoughFitter.cc
 
 HoughLocal.o:${SRC}/HoughLocal.h ${SRC}/HoughLocal.cc
 	g++ -c ${FLAG} ${SRC}/HoughLocal.cc
+
+FileEventProxy.o:${SRC}/FileEventProxy.h ${SRC}/FileEventProxy.cc
+	g++ -c ${FLAG} ${SRC}/FileEventProxy.cc
 
 AMSimulation.o:${SRC}/AMSimulation.cc
 	g++ -c ${FLAG} ${SRC}/AMSimulation.cc

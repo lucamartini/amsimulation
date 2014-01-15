@@ -14,6 +14,7 @@
 #include "Detector.h"
 #include "PrincipalTrackFitter.h"
 #include "PrincipalFitGenerator.h"
+#include "FileEventProxy.h"
 #include "gpu.h"
 
 
@@ -1094,46 +1095,163 @@ int main(int av, char** ac){
   else if(vm.count("testCode")) {
     //cout<<"Nothing to be done"<<endl;
 #ifdef USE_CUDA
+
+    //CUDA structures
     deviceDetector d_detector;
     patternBank d_pb;
     deviceStubs d_stubs;
-    //printCard();
-    //map< int, vector<int> > detector_config = Sector::readConfig("detector.cfg");
+
+    int32_t stublen=9;
+    char buf[20000*stublen*sizeof(int32_t)];
+    int32_t* ibuf=( int32_t*) buf;
+    float* vbuf=( float*) buf;
+    FileEventProxy Raw_proxy("/dev/shm/RawData");
+    std::vector<std::string> files;
+    stringstream spat;
+
+    FileEventProxy pattern_proxy("/dev/shm/Pattern");
+    int32_t pattern_stublen=5;
+    char pattern_buf[20000*pattern_stublen*sizeof(int32_t)];
+    int32_t* pattern_ibuf=( int32_t*) pattern_buf;
+    float* pattern_vbuf=( float*) pattern_buf;
+
+    SectorTree sectors;
+    cout<<"Loading pattern bank..."<<endl;
     {
-      SectorTree sTest;
-      cout<<"Loading pattern bank..."<<endl;
-      {
-	//	std::ifstream ifs("./sec26.pbk");
-	std::ifstream ifs("./sec26.pbk");
-	boost::archive::text_iarchive ia(ifs);
-	ia >> sTest;
-      }
-      cout<<"Sector :"<<endl;
-      cout<<*(sTest.getAllSectors()[0])<<endl;
-      cout<<"loaded "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns for sector "<<sTest.getAllSectors()[0]->getOfficialID()<<endl;
-
-      resetCard();
-      allocateDetector(&d_detector);
-      allocateBank(&d_pb,sTest.getAllSectors()[0]->getLDPatternNumber());
-      allocateStubs(&d_stubs);
-
-      sTest.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
-      
-      //cudaShowBank(&pb);
-      PatternFinder pf(sTest.getSuperStripSize(), 5, &sTest,  "PU4T_01_light.root",  "outputFile.root", &d_pb, &d_detector, &d_stubs);
-      {
-	boost::progress_timer t;
-	int start = 0;
-	int stop = 1000;
-	pf.findCuda(start, stop);
-	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
-      }
-
-      freeDetector(&d_detector);
-      freeBank(&d_pb);
-      freeStubs(&d_stubs);
-      resetCard();
+      std::ifstream ifs("612_SLHC6_MUBANK_lowmidhig_sec26_ss32_cov40.pbk");
+      boost::archive::text_iarchive ia(ifs);
+      ia >> sectors;
     }
+
+    resetCard();
+    allocateDetector(&d_detector);
+    allocateBank(&d_pb,sectors.getAllSectors()[0]->getLDPatternNumber());
+    allocateStubs(&d_stubs);
+
+    sectors.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
+      
+    PatternFinder pf(sectors.getSuperStripSize(), 5, &sectors, "PU4T_01_light.root", "outputFile.root", &d_pb, &d_detector, &d_stubs);
+    {
+      char* cuda_hits = new char[5000];
+      int cuda_nb_hits = 0;
+      bool go = true;
+
+      spat<<"Event_*";
+      while(go){
+	Raw_proxy.List(files, spat.str());
+		
+	if(files.size()>0){
+	  initialiseTimer();		     
+	  startTimer();
+	}
+	
+	for (std::vector<std::string>::iterator it=files.begin();it!=files.end();it++){
+
+	  if((*it).compare("Event_stop")==0){
+	    go = false;
+	    continue;
+	  }
+
+	  uint32_t size_buf;
+	  
+	  unsigned pos = (*it).find("_");
+	  string evt_str = (*it).substr (pos+1);
+	  int evt;
+	  std::istringstream ss( evt_str );
+	  ss >> evt;
+	  
+	  Raw_proxy.Read(*it,buf,size_buf);
+	  
+	  int nbStubs = size_buf/stublen/sizeof(int32_t);
+	  
+	  cuda_nb_hits = 0;
+	  vector<Hit*> hits;
+	  
+	  for(int i=0;i<nbStubs;i++){
+	    int index = i*stublen;
+	    
+	    int32_t tp = ibuf[index];
+	    int32_t layer = ibuf[index+1];
+	    int32_t module = CMSPatternLayer::getModuleCode(layer, ibuf[index+2]);
+	    int32_t ladder = CMSPatternLayer::getLadderCode(layer, ibuf[index+3]);
+	    int32_t seg = CMSPatternLayer::getSegmentCode(layer, ladder, ibuf[index+4]);
+	    int32_t strip = ibuf[index+5];
+	    float x = vbuf[index+6];
+	    float y = vbuf[index+7];
+	    float z = vbuf[index+8];
+	    
+	    Hit* h = new Hit(layer,ladder, module, seg, strip, i, tp, 0, 0, 0, 0, x, y, z, 0, 0, 0);
+	    if(sectors.getSector(*h)!=NULL){
+	      hits.push_back(h);
+	      
+	      int cuda_idx = cuda_nb_hits*CUDA_STUB_SIZE;
+	      cuda_hits[cuda_idx]=cuda_layer_index[layer];
+	      cuda_hits[cuda_idx+1]=ladder;
+	      cuda_hits[cuda_idx+2]=module;
+	      cuda_hits[cuda_idx+3]=seg;
+	      cuda_hits[cuda_idx+4]=(char)(strip/sectors.getSuperStripSize());
+	      cuda_nb_hits++;
+	      
+	    }
+	    else
+	      delete(h);
+	  }
+	  cudaCopyStubs(cuda_hits,&d_stubs,cuda_nb_hits); 
+
+	  pf.findCuda(cuda_nb_hits);
+
+	  bool* active_stubs = new bool[cuda_nb_hits];
+	  cudaGetActiveStubs(active_stubs,&d_stubs,cuda_nb_hits); 
+	  int stubIndex = 0;
+	  
+	  unsigned int ns = 0;
+	  uint32_t pattern_size_buf=0;
+	  for(unsigned int i=0;i<hits.size();i++){
+	    if(active_stubs[i]){
+	      
+	      pattern_ibuf[ns*pattern_stublen+0]=hits[i]->getLayer();
+	      pattern_ibuf[ns*pattern_stublen+1]=hits[i]->getParticuleID();
+	      pattern_vbuf[ns*pattern_stublen+2]=hits[i]->getX();
+	      pattern_vbuf[ns*pattern_stublen+3]=hits[i]->getY();
+	      pattern_vbuf[ns*pattern_stublen+4]=hits[i]->getZ();
+	      //printf("%d -> %d %d \n",ns,is->second.layer,ibuf[ns*stublen+0]);
+	      pattern_size_buf+=pattern_stublen*sizeof(uint32_t);
+	      ns++;
+	      
+	      //cout<<*hits[i]<<endl;
+	      stubIndex++;
+	    }
+	  }
+
+	  cout<<"event "<<evt<<" : nombre de stubs distincts apres patterns : "<<stubIndex<<endl;
+
+	  std::stringstream s;
+	  s<<"Event_"<<evt<<"_26";
+	  pattern_proxy.Write(s.str(),pattern_buf,pattern_size_buf);
+	  //Raw_proxy.Erase(*it);
+	  
+	  delete [] active_stubs;
+	  for(unsigned int i=0;i<hits.size();i++){
+	    delete hits[i];
+	  }
+
+	}
+	
+	if(files.size()>0){
+	  float time_laps = stopTimer();
+	  cout<<files.size()<<" events computed in "<<time_laps<<" ms"<<endl;
+	}
+	
+	//cout<<"waiting for data..."<<endl;
+	usleep(100);
+      }
+      delete[] cuda_hits;
+    }
+    
+    freeDetector(&d_detector);
+    freeBank(&d_pb);
+    freeStubs(&d_stubs);
+    resetCard();
 #else
     string result;
     {

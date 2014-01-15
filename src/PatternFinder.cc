@@ -1700,7 +1700,7 @@ int PatternFinder::findCuda(int nb){
       //return sectors->getActivePatternsPerSector(active_threshold);
       //cout<<"Recherche des patterns GPU ("<<nb_blocks<<"x"<<nb_threads<<") : ";
       int res = cudaGetActivePatternsWrapper(d_detector, d_p_bank, d_stubs, active_threshold, nb_blocks, nb_threads);
-      cout<<res<<" patterns actifs"<<endl;
+      //cout<<res<<" patterns actifs"<<endl;
       resetDetector(d_detector);
       
       /*

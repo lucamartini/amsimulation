@@ -30,7 +30,7 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
 }
 
 #ifdef USE_CUDA
-PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceStubs* s){
+PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
   superStripSize = sp;
   active_threshold = at;
   sectors = st;
@@ -38,13 +38,29 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   outputFileName = of;
   d_detector=d;
   d_p_bank = p;
-  d_stubs = s;
+  d_parameters = dp;
 
   //we use 1024 threads and want to compute the number of blocks
   int nb_patterns = sectors->getAllSectors()[0]->getLDPatternNumber();
   nb_threads = 1024;
   int nbIter = nb_patterns/nb_threads/1024+1;//we want nb_blocks<1025
   nb_blocks = nb_patterns/nbIter/nb_threads+1;
+
+  if(cudaSuccess !=cudaMemcpy(d_parameters->threshold,&active_threshold, sizeof(int),cudaMemcpyHostToDevice))
+    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  
+  if(nb_patterns>0){
+    int nbIter = nb_patterns/(nb_blocks*nb_threads)+1;
+    if(nbIter==0)
+      nbIter = 1;
+
+    if(cudaSuccess !=cudaMemcpy(d_parameters->iter,&nbIter, sizeof(int), cudaMemcpyHostToDevice))
+       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+
+    if(cudaSuccess !=cudaMemcpy(d_parameters->nbPatterns,&nb_patterns, sizeof(int), cudaMemcpyHostToDevice))
+       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  }
+
 }
 #endif
 
@@ -1206,7 +1222,7 @@ void PatternFinder::find(int start, int& stop){
 }
 
 #ifdef USE_CUDA
-void PatternFinder::findCuda(int start, int& stop){
+void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 
   /**************** OUTPUT FILE ****************/
 
@@ -1535,14 +1551,14 @@ void PatternFinder::findCuda(int start, int& stop){
     initialiseTimer();		     
     startTimer();
     //cudaShowStubs(d_stubs, cuda_nb_hits);
-    nb_patterns = findCuda(cuda_nb_hits);
+    nb_patterns = findCuda(cuda_nb_hits, d_stubs);
     cout<<"Chargement des stubs et recherche patterns : ";
     stopTimer();
     initialiseTimer();		     
     startTimer();
     
     bool* active_stubs = new bool[cuda_nb_hits];
-    cudaGetActiveStubs(active_stubs,d_stubs,cuda_nb_hits);
+    cudaGetActiveStubs(active_stubs,d_stubs,&cuda_nb_hits);
     /*
     cout<<"Selected stubs : "<<endl;
     for(int i=0;i<cuda_nb_hits;i++){
@@ -1667,7 +1683,7 @@ vector<Sector*> PatternFinder::find(vector<Hit*> hits){
 }
 
 #ifdef USE_CUDA
-int PatternFinder::findCuda(int nb){
+int PatternFinder::findCuda(int nb, deviceStubs* d_stubs, cudaStream_t* stream){
   /*
   cout<<"Copie des stubs dans device : ";
   stopTimer();
@@ -1683,7 +1699,7 @@ int PatternFinder::findCuda(int nb){
   initialiseTimer();		     
   startTimer();
   */
-      cudaSetHitsWrapper(d_stubs,nb,d_detector);
+  cudaSetHitsWrapper(d_stubs,nb,d_detector, stream);
       /*
       int* test_array = new int[SIZE_LAYER*NB_LAYER*MAX_NB_STUBS_PER_SSTRIPS];
       
@@ -1699,9 +1715,9 @@ int PatternFinder::findCuda(int nb){
       */
       //return sectors->getActivePatternsPerSector(active_threshold);
       //cout<<"Recherche des patterns GPU ("<<nb_blocks<<"x"<<nb_threads<<") : ";
-      int res = cudaGetActivePatternsWrapper(d_detector, d_p_bank, d_stubs, active_threshold, nb_blocks, nb_threads);
+  int res = cudaGetActivePatternsWrapper(d_detector, d_p_bank, d_stubs, d_parameters, active_threshold, nb_blocks, nb_threads, stream);
       //cout<<res<<" patterns actifs"<<endl;
-      resetDetector(d_detector);
+  resetDetector(d_detector, stream);
       
       /*
       cout<<"Recherche des patterns GPU ("<<b<<"x"<<t<<") : ";

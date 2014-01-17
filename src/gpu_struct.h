@@ -1,32 +1,28 @@
 #ifndef _GPUSTRUCT_H
 #define _GPUSTRUCT_H
 
-/*
-typedef struct {
-//  int nb_stubs;
-//  int stubs_index[10];
-  bool hit;
-} superstrip;
+const int NB_LAYER = 16;
+const int NB_LADDER = 76;
+const int NB_MODULE = 80;
+const int NB_SEGMENT = 2;
+const int SIZE_SEGMENT = 64;
+const int SIZE_MODULE = NB_SEGMENT*SIZE_SEGMENT;
+const int SIZE_LADDER = NB_MODULE*SIZE_MODULE;
+const int SIZE_LAYER = NB_LADDER*SIZE_LADDER;
 
-typedef struct {
-  superstrip** sstrips;
-} segment;
+const int MAX_NB_STUBS_PER_SSTRIPS = 8;
 
-typedef struct {
-  segment* seg0;
-  segment* seg1;
-} module;
+const int PATTERN_LAYERS = 8;
+const int PATTERN_SSTRIPS = 8;
+const int PATTERN_SIZE = PATTERN_LAYERS*PATTERN_SSTRIPS;
+const unsigned int PATTERN_UNUSED = 4294967295;
 
-typedef struct {
-  int nb_modules;
-  module** modules;
-} ladder;
+const int CUDA_STUB_SIZE = 5;
+const int CUDA_MAX_NB_STUBS = 5000;
 
-typedef struct {
-  int nb_ladders;
-  ladder** ladders;
-} layer;
-*/
+const int CUDA_NB_CORES = 2304;
+
+const int cuda_layer_index[23]={-1,-1,-1,-1,-1,0,1,2,3,4,5,6,7,8,9,10,-1,-1,11,12,13,14,15};
 
 typedef struct {
   bool* sstrips;
@@ -43,5 +39,12 @@ typedef struct {
   bool* active_stubs;
   int* nb_stubs;
 } deviceStubs;
+
+typedef struct {
+  int* result;
+  int* threshold;
+  int* iter;
+  int* nbPatterns;
+} deviceParameters;
 
 #endif

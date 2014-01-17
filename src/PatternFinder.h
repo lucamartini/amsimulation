@@ -6,7 +6,9 @@
 #include <TChain.h>
 #include <TFile.h>
 #include "SectorTree.h"
+#ifdef USE_CUDA
 #include "gpu.h"
+#endif
 
 using namespace std;
 
@@ -25,7 +27,7 @@ class PatternFinder{
 #ifdef USE_CUDA
   deviceDetector* d_detector;  
   patternBank* d_p_bank;
-  deviceStubs* d_stubs;
+  deviceParameters* d_parameters;
   int nb_blocks;
   int nb_threads;
 #endif
@@ -50,13 +52,14 @@ class PatternFinder{
      \param of The name of the output file
      \param p The device pattern bank
      \param d The device detector
+     \param d_p Structure containing device addresses where parameters are stored
   **/
-  PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceStubs* d_stubs);
+  PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp);
 
   /**
      \brief Get active patterns from list of hits (public for CMSSW).
   **/
-  int findCuda(int nb);
+  int findCuda(int nb,  deviceStubs* d_stubs, cudaStream_t* stream=NULL);
 
 #endif
   /**
@@ -83,7 +86,7 @@ class PatternFinder{
      \param start The search will start from this event number
      \param stop The search will end at this event number
   **/
-  void findCuda(int start, int& stop);
+  void findCuda(int start, int& stop, deviceStubs* d_stubs);
 #endif
 
   /**

@@ -10,7 +10,7 @@
 #include <boost/serialization/export.hpp>
 
 #ifdef USE_CUDA
-#include "gpu.h"
+#include "gpu_struct.h"
 #endif
 
 using namespace std;

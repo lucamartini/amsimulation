@@ -14,7 +14,7 @@
 #include "HoughFitter.h"
 
 #ifdef USE_CUDA
-#include "gpu.h"
+#include "gpu_struct.h"
 #endif
 
 #ifndef __APPLE__

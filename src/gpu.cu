@@ -58,11 +58,19 @@ void allocateDetector(deviceDetector* d){
      resetDetector(d);
 }
 
-void resetDetector(deviceDetector* d){
+void resetDetector(deviceDetector* d, cudaStream_t* stream){
+  if(stream==NULL){
      if(cudaSuccess != cudaMemset(d->sstrips,0,sizeof(bool)*SIZE_LAYER*NB_LAYER))
         cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;	
      if(cudaSuccess != cudaMemset(d->stubs, -1, sizeof(int)*SIZE_LAYER*NB_LAYER*MAX_NB_STUBS_PER_SSTRIPS))
         cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;	  
+  }
+  else{
+     if(cudaSuccess != cudaMemsetAsync(d->sstrips,0,sizeof(bool)*SIZE_LAYER*NB_LAYER, *stream))
+        cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;	
+     if(cudaSuccess != cudaMemsetAsync(d->stubs, -1, sizeof(int)*SIZE_LAYER*NB_LAYER*MAX_NB_STUBS_PER_SSTRIPS, *stream))
+        cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;	  
+  }
 }
 
 void freeDetector(deviceDetector* d){
@@ -102,10 +110,26 @@ void freeStubs(deviceStubs* s){
      cudaFree(s->nb_stubs);
 }
 
-//void cudaSetLink(patternBank* p, int index, unsigned int* vals){
-//  if(cudaSuccess != cudaMemcpy(p->banks+index,vals,PATTERN_SSTRIPS*sizeof(unsigned int), cudaMemcpyHostToDevice))
-//      cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-//}
+void allocateParameters(deviceParameters* dp){
+  if(cudaSuccess != cudaMalloc((void**)&dp->result, sizeof(int)))
+    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+
+  if(cudaSuccess != cudaMalloc((void**)&dp->threshold, sizeof(int)))
+    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+ 
+  if(cudaSuccess != cudaMalloc((void**)&dp->iter, sizeof(int)))
+    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+ 
+  if(cudaSuccess != cudaMalloc((void**)&dp->nbPatterns, sizeof(int)))
+    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+}
+
+void freeParameters(deviceParameters* dp){
+  cudaFree(dp->result);
+  cudaFree(dp->threshold);
+  cudaFree(dp->iter);
+  cudaFree(dp->nbPatterns);
+}
 
 void cudaSetLink(patternBank* p, int index, unsigned int* vals){
   if(cudaSuccess != cudaMemcpy(p->banks+index,vals,PATTERN_LAYERS*PATTERN_SSTRIPS*sizeof(unsigned int), cudaMemcpyHostToDevice))
@@ -117,16 +141,30 @@ void cudaSetNbPatterns(patternBank* p, int nb){
       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl; 
 }
 
-void cudaCopyStubs(char* stubs, deviceStubs* d_stubs, int nb){
- if(cudaSuccess != cudaMemcpy(d_stubs->stubs,stubs,nb*CUDA_STUB_SIZE*sizeof(char), cudaMemcpyHostToDevice))
-      cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
- if(cudaSuccess !=cudaMemset(d_stubs->active_stubs,false, nb*sizeof(bool)))
-       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+void cudaCopyStubs(char* stubs, deviceStubs* d_stubs, int nb, cudaStream_t* stream){
+ if(stream==NULL){
+     if(cudaSuccess != cudaMemcpy(d_stubs->stubs,stubs,nb*CUDA_STUB_SIZE*sizeof(char), cudaMemcpyHostToDevice))
+          cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+     if(cudaSuccess !=cudaMemset(d_stubs->active_stubs,false, nb*sizeof(bool)))
+          cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+ }
+ else{
+     if(cudaSuccess != cudaMemcpyAsync(d_stubs->stubs,stubs,nb*CUDA_STUB_SIZE*sizeof(char), cudaMemcpyHostToDevice, *stream))
+          cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+     if(cudaSuccess !=cudaMemsetAsync(d_stubs->active_stubs,false, nb*sizeof(bool), *stream))
+          cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+ }
 }
 
-void cudaGetActiveStubs(bool* active_stubs, deviceStubs* d_stubs, int nb){
-  if(cudaSuccess != cudaMemcpy(active_stubs,d_stubs->active_stubs,nb*sizeof(bool), cudaMemcpyDeviceToHost))
-      cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+void cudaGetActiveStubs(bool* active_stubs, deviceStubs* d_stubs, int* nb, cudaStream_t* stream){
+  if(stream==NULL){
+    if(cudaSuccess != cudaMemcpy(active_stubs,d_stubs->active_stubs,(*nb)*sizeof(bool), cudaMemcpyDeviceToHost))
+        cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  }
+  else{
+    if(cudaSuccess != cudaMemcpyAsync(active_stubs,d_stubs->active_stubs,(*nb)*sizeof(bool), cudaMemcpyDeviceToHost, *stream))
+        cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  }
 }
 
 void cudaShowBank(patternBank*p){
@@ -214,24 +252,11 @@ __global__ void cudaSetHits(char* d_stubs, int nbStubs, bool* d_det, int* d_det_
       int old = atomicCAS(&d_det_stubs[det_stubs_index+count],-1,index);
       if(old==-1)
         break;
-
-//      if(d_det_stubs[det_stubs_index+count]==-1){
-//        d_det_stubs[det_stubs_index+count]=(short)index;
-//	break;
-//      }
     }
-
-//    short count = 0;
-//    while(d_det_stubs[det_stubs_index+count]!=-1 && count<8){
-//      count++;
-//    }
-//    if(count<8)
-//      d_det_stubs[det_stubs_index+count]=(short)index;
   }
 }
 
 __global__ void cudaGetActivePatterns(bool* detector, int* detector_stubs, bool* active_stubs, unsigned int* patterns, int* threshold, int* nbIter, int* nbMaxPatterns, int* nbActivePatterns){
-   //int index = blockIdx.x * PATTERN_SIZE * (*nbIter);
    int index = blockIdx.x * blockDim.x * PATTERN_SIZE * (*nbIter) + threadIdx.x * PATTERN_SIZE * (*nbIter);
    char score = 0;
 
@@ -271,9 +296,9 @@ __global__ void cudaGetActivePatterns(bool* detector, int* detector_stubs, bool*
    // __syncthreads();
 }
 
-void cudaSetHitsWrapper(deviceStubs* d_stubs, int nbStubs, deviceDetector* d_det){
+void cudaSetHitsWrapper(deviceStubs* d_stubs, int nbStubs, deviceDetector* d_det, cudaStream_t* stream){
   if(nbStubs>0){
-    cudaSetHits<<<nbStubs,1>>>(d_stubs->stubs,nbStubs,d_det->sstrips,d_det->stubs);
+    cudaSetHits<<<nbStubs,1,0,((stream==NULL)?0:*stream)>>>(d_stubs->stubs,nbStubs,d_det->sstrips,d_det->stubs);
   }
 }
 
@@ -282,55 +307,30 @@ void getHitsArray(deviceDetector* det, int* list, int nb){
        cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
 }
 
-int cudaGetActivePatternsWrapper(deviceDetector* detector, patternBank* patterns, deviceStubs* stubs, int threshold, int nbThreads, int nbBlocks){
-  int* d_result;
-  int* d_threshold;
-  int* d_iter;
-  int* d_nbPatterns;
+int cudaGetActivePatternsWrapper(deviceDetector* detector, patternBank* patterns, deviceStubs* stubs, deviceParameters* params, int threshold, int nbThreads, int nbBlocks, cudaStream_t* stream){
 
-  if(cudaSuccess != cudaMalloc((void**)&d_result, sizeof(int)))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-   if(cudaSuccess !=cudaMemset(d_result,0, sizeof(int)))
-       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  if(stream==NULL){
+    if(cudaSuccess !=cudaMemset(params->result,0, sizeof(int)))
+         cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  }
+  else{
+    if(cudaSuccess !=cudaMemsetAsync(params->result,0, sizeof(int),*stream))
+         cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+  }
 
-  if(cudaSuccess != cudaMalloc((void**)&d_threshold, sizeof(int)))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-  if(cudaSuccess !=cudaMemcpy(d_threshold,&threshold, sizeof(int),cudaMemcpyHostToDevice))
-       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
- 
-  if(cudaSuccess != cudaMalloc((void**)&d_iter, sizeof(int)))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
- 
-  if(cudaSuccess != cudaMalloc((void**)&d_nbPatterns, sizeof(int)))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-
-  int nbPatterns = 0;
-  if(cudaSuccess != cudaMemcpy(&nbPatterns,patterns->nb_patterns,sizeof(int), cudaMemcpyDeviceToHost))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl; 
-  //cout<<"nombre de patterns : "<<nbPatterns<<endl;
-  
-  if(nbPatterns>0){
     int NB_THREADS=nbThreads;
     int NB_BLOCKS = nbBlocks;
-    int nbIter = nbPatterns/(NB_BLOCKS*NB_THREADS)+1;
-    if(nbIter==0)
-	nbIter = 1;
 
-    if(cudaSuccess !=cudaMemcpy(d_iter,&nbIter, sizeof(int), cudaMemcpyHostToDevice))
-       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
+    if(stream==NULL)
+        cudaGetActivePatterns<<<NB_BLOCKS,NB_THREADS>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
+    else
+        cudaGetActivePatterns<<<NB_BLOCKS,NB_THREADS,0,*stream>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
+  int res=0;
 
-    if(cudaSuccess !=cudaMemcpy(d_nbPatterns,&nbPatterns, sizeof(int), cudaMemcpyHostToDevice))
-       cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-
-    cudaGetActivePatterns<<<NB_BLOCKS,NB_THREADS>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, d_threshold, d_iter, d_nbPatterns, d_result);
+  if(stream==NULL){
+    if(cudaSuccess != cudaMemcpy(&res,params->result,sizeof(int), cudaMemcpyDeviceToHost))
+      cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
   }
-  int res;
-  if(cudaSuccess != cudaMemcpy(&res,d_result,sizeof(int), cudaMemcpyDeviceToHost))
-    cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
-  
-  cudaFree(d_result);
-  cudaFree(d_threshold);
-  cudaFree(d_iter);
-  cudaFree(d_nbPatterns);
+
   return res;
 }

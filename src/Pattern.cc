@@ -179,8 +179,7 @@ bool Pattern::contains(Pattern* hdp){
   for(int i=0;i<nb_layer;i++){
     int factor = (int)pow(2.0,layer_strips[i]->getDCBitsNumber());
     int base_index = layer_strips[i]->getStrip()*factor;
-    vector<string> positions;
-    layer_strips[i]->getPositionsFromDC(positions);
+    vector<string> positions=layer_strips[i]->getPositionsFromDC();
     bool found = false;
     for(unsigned int j=0;j<positions.size();j++){
       if(hdp->getLayerStrip(i)->getStrip()==base_index+PatternLayer::GRAY_POSITIONS[positions[j]]){

@@ -17,8 +17,7 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
   vector<SuperStrip*> v;
 
   if(getPhi()==15){ // this is a fake superstrip! We link it to the dump superstrip
-    vector<string> positions;
-    getPositionsFromDC(positions);
+    vector<string> positions = getPositionsFromDC();
     for(unsigned int i=0;i<positions.size();i++){
       SuperStrip* patternStrip = d.getDump();
       v.push_back(patternStrip);
@@ -38,8 +37,7 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
 	  Segment* patternSegment = patternModule->getSegment(getSegment());
 	  if(patternSegment!=NULL){
 	    int base_index = getStrip()*factor;
-	    vector<string> positions;
-	    getPositionsFromDC(positions);
+	    vector<string> positions=getPositionsFromDC();
 	    for(unsigned int i=0;i<positions.size();i++){
 	      SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(base_index+PatternLayer::GRAY_POSITIONS[positions[i]]);
 	      v.push_back(patternStrip);
@@ -70,8 +68,7 @@ void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const ma
       int moduleID = iterator->second[getModule()];// get the module ID from its position
       int segment = getSegment();
       int base_index = getStrip()*factor;
-      vector<string> positions;
-      getPositionsFromDC(positions);
+      vector<string> positions=getPositionsFromDC();
       for(unsigned int i=0;i<positions.size();i++){
 	int index = layer_index*SIZE_LAYER+ladderID*SIZE_LADDER+moduleID*SIZE_MODULE+segment*SIZE_SEGMENT+base_index+PatternLayer::GRAY_POSITIONS[positions[i]];
 	v[i]=index;

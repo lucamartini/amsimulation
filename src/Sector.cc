@@ -406,7 +406,6 @@ void Sector::computeAdaptativePatterns(short r){
 }
 
 void Sector::link(Detector& d){
-
   vector<vector<int> > ladders;
   vector<map<int, vector<int> > > modules;
   vector<int> layer_list;
@@ -424,20 +423,20 @@ void Sector::link(Detector& d){
     ladders.push_back(ladder_list);
     modules.push_back(m_modules[layer_list[i]]);
   }
-
+  /*
   for(unsigned int i=0;i<ladders.size();i++){
     for(unsigned int j=0;j<ladders[i].size();j++){
       cout<<ladders[i][j]<<" ";
     }
     cout<<endl;
   }
-
+  */
   patterns->link(d, ladders, modules);
 }
 
 #ifdef USE_CUDA
 void Sector::linkCuda(patternBank* p, deviceDetector* d){
-
+  cout<<"Linking..."<<endl;
   vector<vector<int> > ladders;
   vector<map<int, vector<int> > > modules;
   vector<int> layer_list;
@@ -455,14 +454,14 @@ void Sector::linkCuda(patternBank* p, deviceDetector* d){
     ladders.push_back(ladder_list);
     modules.push_back(m_modules[layer_list[i]]);
   }
-
+  /*
   for(unsigned int i=0;i<ladders.size();i++){
     for(unsigned int j=0;j<ladders[i].size();j++){
       cout<<ladders[i][j]<<" ";
     }
     cout<<endl;
   }
-
+  */
   patterns->linkCuda(p, d, ladders, modules, getLayersID());
 }
 #endif

@@ -112,7 +112,13 @@ void PatternLayer::getPositionsFromDC(vector<char> dc, vector<string>& positions
 }
 
 vector<string> PatternLayer::getPositionsFromDC(){
-  string ref(&dc_bits[0]);
+
+  vector<char> v;
+  for(int i=0;i<DC_BITS;i++){
+    v.push_back(dc_bits[i]);
+  }
+
+  string ref(v.begin(),v.end());
   
   //check if we already have the result
   map<string, vector<string> >::iterator it = positions_cache.find(ref);
@@ -121,10 +127,6 @@ vector<string> PatternLayer::getPositionsFromDC(){
   }
   
   //not yet computed
-  vector<char> v;
-  for(int i=0;i<DC_BITS;i++){
-    v.push_back(dc_bits[i]);
-  }
   vector<string> n_vec;
   getPositionsFromDC(v,n_vec); 
   //keep the result for later usage

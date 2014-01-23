@@ -1,6 +1,13 @@
 #include "HoughFitter.h"
 
-HoughFitter::HoughFitter():HoughFitter(0){
+HoughFitter::HoughFitter():TrackFitter(0){
+  cuts = new HoughCut();
+  ch = new ComputerHough(cuts);
+  h_x= new float[1024];
+  h_y= new float[1024];
+  h_z= new float[1024];
+  h_layer= new unsigned int[1024];
+  ch->DefaultCuts();
 }
 
 HoughFitter::HoughFitter(int nb):TrackFitter(nb){

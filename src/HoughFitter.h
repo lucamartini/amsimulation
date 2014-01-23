@@ -66,6 +66,7 @@ class HoughFitter:public TrackFitter{
   void mergePatterns();
   void mergeTracks();
   void fit();
+  void fit(vector<Hit*> hits);
   TrackFitter* clone();
 };
 #endif

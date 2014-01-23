@@ -69,6 +69,11 @@ class TrackFitter{
    **/
   virtual void fit()=0;
   /**
+     \brief Create tracks from a list of hits. The tracks are stored inside the TrackFitter object. If patterns have previously been added to the TrackFitter object, they are not used in this method.
+     \param hits A list of hits to use.
+   **/
+  virtual void fit(vector<Hit*> hits)=0;
+  /**
      \brief Create a copy of the existing object.
      \return A pointer on the copy : you will have to delete this object.
    **/

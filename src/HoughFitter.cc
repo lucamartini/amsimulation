@@ -1,6 +1,6 @@
 #include "HoughFitter.h"
 
-HoughFitter::HoughFitter():TrackFitter(){
+HoughFitter::HoughFitter():HoughFitter(0){
 }
 
 HoughFitter::HoughFitter(int nb):TrackFitter(nb){
@@ -34,6 +34,37 @@ void HoughFitter::mergeTracks(){
   //cout<<"Merging of Tracks not implemented"<<endl;
 }
 
+void HoughFitter::fit(vector<Hit*> hits){
+  if(hits.size()>1024){
+    cout<<"ERROR : too many stubs for fitting!"<<endl;
+    return;
+  }
+
+  memset(h_x,0,1024*sizeof(float));
+  memset(h_y,0,1024*sizeof(float));
+  memset(h_z,0,1024*sizeof(float));
+  memset(h_layer,0,1024*sizeof(unsigned int));
+ 
+  //Collect the stubs
+  for(unsigned int j=0;j<hits.size();j++){
+    h_x[j]=hits[j]->getX();
+    h_y[j]=hits[j]->getY();
+    h_z[j]=hits[j]->getZ();
+    h_layer[j]=hits[j]->getLayer();
+  }
+
+  //Actual computing
+  ch->ComputeOneShot(sector_id,hits.size(),h_x,h_y,h_z,h_layer);
+  std::vector<mctrack_t> &v=ch->getCandidates();
+
+  //format the results and feed the tracks vector
+  for (std::vector<mctrack_t>::iterator it=v.begin();it!=v.end();it++){
+    Track* fit_track = new Track((*it).pt, 0, (*it).phi, (*it).eta, (*it).z0);
+    tracks.push_back(fit_track);
+  }
+  
+}
+
 void HoughFitter::fit(){
 
   vector<Hit*> activatedHits;
@@ -51,37 +82,8 @@ void HoughFitter::fit(){
     }
   }
 
-  if(activatedHits.size()>1024){
-    cout<<"ERROR : too many stubs for fitting!"<<endl;
-    return;
-  }
-
-  memset(h_x,0,1024*sizeof(float));
-  memset(h_y,0,1024*sizeof(float));
-  memset(h_z,0,1024*sizeof(float));
-  memset(h_layer,0,1024*sizeof(unsigned int));
+  fit(activatedHits);
  
-  //Collect the stubs
-  //cout<<activatedHits.size()<<" selected stubs"<<endl;
-  for(unsigned int j=0;j<activatedHits.size();j++){
-    //cout<<j<<" : "<<*(activatedHits[j])<<endl;
-    h_x[j]=activatedHits[j]->getX();
-    h_y[j]=activatedHits[j]->getY();
-    h_z[j]=activatedHits[j]->getZ();
-    h_layer[j]=activatedHits[j]->getLayer();
-  }
-  //cout<<endl;
-
-  //Actual computing
-  ch->ComputeOneShot(sector_id,activatedHits.size(),h_x,h_y,h_z,h_layer);
-  std::vector<mctrack_t> &v=ch->getCandidates();
-
-  //format the results and feed the tracks vector
-  for (std::vector<mctrack_t>::iterator it=v.begin();it!=v.end();it++){
-    Track* fit_track = new Track((*it).pt, 0, (*it).phi, (*it).eta, (*it).z0);
-    tracks.push_back(fit_track);
-  }
-  
 }
 
 TrackFitter* HoughFitter::clone(){

@@ -35,6 +35,7 @@ class ComputerHough
 {
 public:
   ComputerHough(HoughCut* cuts);
+  ~ComputerHough();
   void DefaultCuts();
   void Compute(uint32_t isel,uint32_t nstub,float* x,float* y,float* z,uint32_t* layer);
   void ComputeOneShot(uint32_t isel,uint32_t nstub,float* x,float* y,float* z,uint32_t* layer);

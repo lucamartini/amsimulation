@@ -2,6 +2,7 @@
 #include <stdio.h> 
 #include "ComputerHough.h"
 #include <math.h>
+
 ComputerHough::ComputerHough(HoughCut* cuts) :theCuts_(cuts)
 {
   theNStub_=0;
@@ -18,6 +19,15 @@ ComputerHough::ComputerHough(HoughCut* cuts) :theCuts_(cuts)
 
 
 }
+
+ComputerHough::~ComputerHough(){
+  deleteHoughCPU(&ph_);
+  for (int i=0;i<96;i++)
+    deleteHoughCPU(&phcand_[i]);
+  for (int i=0;i<64;i++)
+    deleteHoughCPU(&phrcand_[i]);
+}
+
 void ComputerHough::DefaultCuts()
 {
   theCuts_->RhoMin=-0.0031;

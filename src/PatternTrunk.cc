@@ -199,8 +199,7 @@ void PatternTrunk::updateDCBits(GradedPattern* p){
       memset(strips,false,size*sizeof(bool));
       PatternLayer* pl = lowDefPattern->getLayerStrip(i);
 
-      vector<string> positions;
-      pl->getPositionsFromDC(positions);
+      vector<string> positions=pl->getPositionsFromDC();
       for(unsigned int j=0;j<positions.size();j++){
 	for(int k=0;k<=max_nb_dc-nb_dc1;k++){
 	  strips[PatternLayer::GRAY_POSITIONS[positions[j]]*(max_nb_dc-nb_dc1+1)+k]=true;
@@ -209,7 +208,7 @@ void PatternTrunk::updateDCBits(GradedPattern* p){
    
       positions.clear();
       PatternLayer* pl2 = p->getLayerStrip(i);
-      pl2->getPositionsFromDC(positions);
+      positions=pl2->getPositionsFromDC();
       for(unsigned int j=0;j<positions.size();j++){
 	for(int k=0;k<=max_nb_dc-nb_dc2;k++){
 	  strips[PatternLayer::GRAY_POSITIONS[positions[j]]*(max_nb_dc-nb_dc2+1)+k]=true;

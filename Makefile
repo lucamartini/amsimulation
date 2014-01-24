@@ -3,6 +3,8 @@ UNAME := $(shell uname)
 SRC=src
 
 CUDA_ENABLED=false
+CUDA_ROOTDIR=/usr/local/cuda/
+CUDA_EXAMPLEDIR=~mirabito/cuda_examples/NVIDIA_CUDA-5.5_Samples/common/
 
 ifeq ($(UNAME), Darwin)
 	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
@@ -13,8 +15,8 @@ ifeq ($(UNAME), Linux)
 
 ifeq ($(CUDA_ENABLED),true)
 	FLAG=-DUSE_CUDA -O3 -Wall -Werror=type-limits
-	INC =-I `root-config --incdir` -I ${SRC} -I ~mirabito/cuda_examples/NVIDIA_CUDA-5.5_Samples/common/inc -I/usr/local/cuda-5.5/targets/x86_64-linux/include/
-	LIBS =-L ${ROOTSYS}/lib -L/usr/local/cuda/lib64 -lcuda -lcudart
+	INC =-I `root-config --incdir` -I ${SRC} -I ${CUDA_EXAMPLEDIR}/inc -I${CUDA_ROOTDIR}/include/
+	LIBS =-L ${ROOTSYS}/lib -L${CUDA_ROOTDIR}/lib64 -lcuda -lcudart
 else
 	FLAG=-O3 -Wall -Werror=type-limits
 	INC =-I `root-config --incdir` -I `scram tool tag boost INCLUDE` -I ${SRC}

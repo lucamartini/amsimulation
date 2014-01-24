@@ -15,6 +15,10 @@
 #include "PrincipalTrackFitter.h"
 #include "PrincipalFitGenerator.h"
 
+#ifdef USE_CUDA
+#include "GPUPooler.h"
+#include "cuda_profiler_api.h"
+#endif
 
 #include <TH1I.h>
 #include <TFile.h>
@@ -656,6 +660,9 @@ int main(int av, char** ac){
     ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
     ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
     ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
+#ifdef USE_CUDA
+    ("useGPU", "Use the GPU card to accelerate the pattern recognition (needs cuda libraries and a configured GPU card)")
+#endif
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("testCode", "Dev tests")
@@ -901,13 +908,46 @@ int main(int av, char** ac){
     }
     ///////////////////////////////////////////////////////////////
 
-    PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
-    {
-      boost::progress_timer t;
-      int start = vm["startEvent"].as<int>();
-      int stop = vm["stopEvent"].as<int>();
-      pf.find(start, stop);
-      cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
+#ifdef USE_CUDA
+    if(vm.count("useGPU")){
+      deviceDetector d_detector;
+      patternBank d_pb;
+      deviceStubs d_stubs;
+      deviceParameters d_param;
+      resetCard();
+      allocateDetector(&d_detector);
+      allocateBank(&d_pb,st.getAllSectors()[0]->getLDPatternNumber());
+      allocateStubs(&d_stubs);
+      allocateParameters(&d_param);
+
+      st.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
+
+      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
+		       &d_pb, &d_detector, &d_param); 
+      {
+	boost::progress_timer t;
+	int start = vm["startEvent"].as<int>();
+	int stop = vm["stopEvent"].as<int>();
+	pf.findCuda(start, stop, &d_stubs);
+	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
+      }
+
+      freeParameters(&d_param);
+      freeDetector(&d_detector);
+      freeBank(&d_pb);
+      freeStubs(&d_stubs);
+      resetCard();
+    }
+    else{
+#endif
+      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
+      {
+	boost::progress_timer t;
+	int start = vm["startEvent"].as<int>();
+	int stop = vm["stopEvent"].as<int>();
+	pf.find(start, stop);
+	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
+      }
     }
   }
   else if(vm.count("buildFitParams")) {
@@ -1057,8 +1097,13 @@ int main(int av, char** ac){
     }
   }
   else if(vm.count("testCode")) {
-    //cout<<"Nothing to be done"<<endl;
-   
+#ifdef USE_CUDA
+    //cuProfilerStart();
+    GPUPooler *gp = new GPUPooler("612_SLHC6_MUBANK_lowmidhig_sec26_ss32_cov40.pbk", "/dev/shm/RawData","/dev/shm/Pattern",5);
+    gp->loopForEvents(100,60000);
+    delete gp;
+    //cuProfilerStop();
+#else
     string result;
     {
       SectorTree sTest;
@@ -1083,5 +1128,6 @@ int main(int av, char** ac){
       } 
       */
     }
+#endif
   }
 }

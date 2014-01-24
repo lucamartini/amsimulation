@@ -948,7 +948,9 @@ int main(int av, char** ac){
 	pf.find(start, stop);
 	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
       }
+#ifdef USE_CUDA
     }
+#endif
   }
   else if(vm.count("buildFitParams")) {
     SectorTree st;

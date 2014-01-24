@@ -2,7 +2,7 @@ UNAME := $(shell uname)
 
 SRC=src
 
-CUDA_ENABLED=true
+CUDA_ENABLED=false
 
 ifeq ($(UNAME), Darwin)
 	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
@@ -17,8 +17,8 @@ ifeq ($(CUDA_ENABLED),true)
 	LIBS =-L ${ROOTSYS}/lib -L/usr/local/cuda/lib64 -lcuda -lcudart
 else
 	FLAG=-O3 -Wall -Werror=type-limits
-	INC =-I `root-config --incdir` -I ${SRC}
-	LIBS =-L ${ROOTSYS}/lib 
+	INC =-I `root-config --incdir` -I `scram tool tag boost INCLUDE` -I ${SRC}
+	LIBS =-L ${ROOTSYS}/lib -L `scram tool tag boost LIBDIR`
 endif
    BOOSTLIBS = -lboost_serialization -lboost_program_options 
 endif

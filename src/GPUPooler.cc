@@ -150,12 +150,12 @@ void GPUPooler::saveEvent(string fileName, int stream){
     }
   }
   
-  cout<<"event "<<eventID[stream]<<" : nombre de stubs distincts apres patterns : "<<stubIndex<<endl;
+  //cout<<"event "<<eventID[stream]<<" : nombre de stubs distincts apres patterns : "<<stubIndex<<endl;
   
   std::stringstream s;
   s<<"Event_"<<eventID[stream]<<"_"<<sectorID;
   pattern_proxy->Write(s.str(),pattern_buf,pattern_size_buf);
-  //Raw_proxy->Erase(fileName);
+  Raw_proxy->Erase(fileName);
   
   for(unsigned int i=0;i<hit_list.size();i++){
     delete hit_list[i];
@@ -185,15 +185,19 @@ void GPUPooler::loopForEvents(int waitingTime, int timeout){
   int max_loop = timeout/waitingTime;
   int nb_loop = 0;
 
+  cout<<"Looking for events..."<<endl;
+
   while(nb_loop<max_loop){
     nb_loop++;
     std::vector<std::string> files;
     Raw_proxy->List(files, spat.str());
     
-    if(files.size()==0)
+    if(files.size()==0){
+      usleep(waitingTime*1000);
       continue;
+    }
     
-    nb_loop = 99999999;
+    nb_loop = 0;
     initialiseTimer();		     
     startTimer();
 
@@ -218,12 +222,13 @@ void GPUPooler::loopForEvents(int waitingTime, int timeout){
     }
     cudaDeviceSynchronize();
     getEventFromDevice(streamIndex);
+    cudaStreamSynchronize(*streams[streamIndex]);
     saveEvent(*it,streamIndex);
 
     float time_laps = stopTimer();
     cout<<files.size()<<" events computed in "<<time_laps<<" ms"<<endl;
     cout<<endl;
-    usleep(waitingTime);
   }
+  cout<<"Timeout reached."<<endl;
 }
      

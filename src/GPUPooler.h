@@ -16,6 +16,9 @@
 #define PATTERN_STUBLEN 5
 #define MAX_NB_STUBS 20000
 
+/**
+   \brief Class used to test the GPU version of the pattern finding. Input data are stored on a filesystem (/dev/shm/ for faster access). The GPUPooler will loop over the files, search for patterns in a given sector, write the selected stubs in an output file system and wait for new files.
+ **/
 class GPUPooler{
  private:
   deviceDetector d_detector;
@@ -50,14 +53,29 @@ class GPUPooler{
 
   cudaStream_t** streams;
 
- public:
-  GPUPooler(string sectorFilename, string inputDirectory, string outputDirectory, int patternThreshold);
-  ~GPUPooler();
   void loadEvent(string fileName, int stream);
   void saveEvent(string fileName, int stream);
   void sendEventToDevice(int stream);
   void getEventFromDevice(int stream);
   void computeEvent(int stream);
+
+ public:
+  /**
+     \brief Constructor
+     \param sectorFilename The pattern bank file
+     \param inputDirectory The directory where the input stubs will be read
+     \param outputDirectory The directory where the output stubs will be written
+   **/
+  GPUPooler(string sectorFilename, string inputDirectory, string outputDirectory, int patternThreshold);
+  /**
+     \brief Destructor
+  **/
+  ~GPUPooler();
+  /**
+     \brief Loop on the input directory for events to analyse.
+     \param waitingTime Time to wait (in miliseconds) between 2 loops
+     \param timeout The loop will stop if no new event appears during timeout milliseconds.
+   **/
   void loopForEvents(int waitingTime, int timeout);
 };
 #endif

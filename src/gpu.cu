@@ -208,7 +208,6 @@ void cudaShowStubs(deviceStubs* s, int nb){
 }
 
 void resetCard(){
-    cout<<"reset card..."<<endl;
     if(cudaSuccess != cudaDeviceReset())
       cout<<"Error : "<<cudaGetErrorString(cudaGetLastError())<<endl;
 }

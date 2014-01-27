@@ -33,17 +33,41 @@ using namespace std;
 /**
    \mainpage
    \section build_sec Building the project
-   In order to build the project, you will need:
-   - Root (http://root.cern.ch) installed and configured ($ROOTSYS must be pointing on the installation directory and $ROOTSYS/bin must be in the PATH)
-   - Boost (http://www.boost.org/) libraries and header files
-   
-   Then from the main directory (above ./src) you only need to type :
+   \subsection CMSSW
+   The project uses the libraries from the CMSSW framework. Once CMSSW is configured (cmsenv command) and from the main directory (above ./src) you only need to enter :
    \code
    make
    \endcode
 
    If everything goes fine, you should get a binary file called "AMSimulation".
  
+   \subsection CUDA
+   Some features of the program (pattern recognition) can use a GPU card to accelarate the computing. If you want to use this feature you will need:
+   - Root (http://root.cern.ch) installed and configured ($ROOTSYS must be pointing on the installation directory and $ROOTSYS/bin must be in the PATH)
+   - Boost (http://www.boost.org/) libraries and header files
+   - Cuda SDK and code samples (https://developer.nvidia.com/cuda-downloads)
+   - A GPU card compatible with CUD
+
+   You will need to modify the Makefile by setting the following variables:
+   \code
+   CUDA_ENABLED=true
+   CUDA_ROOTDIR=/path/to/local/installation
+   CUDA_EXAMPLEDIR=/path/to/cuda/code/samples/common/
+   \endcode
+   You can then launch the compilation :
+   \code
+   make
+   \endcode
+   To check the executable does support CUDA acceleration, you can try the command
+   \code
+   ./AMSimulation --help | grep GPU
+   \endcode
+   which should return :
+   \code
+   --useGPU              Use the GPU card to accelerate the pattern recognition 
+   (needs cuda libraries and a configured GPU card)
+   \endcode
+
    \section use_sec Using the program
    \subsection help Informations on how to use the program
    To get the list of options and parameters :
@@ -109,6 +133,8 @@ using namespace std;
   9,60,14,1024
   10,76,14,1024
   \endcode
+
+If you compiled the program using the cuda libraries, you can add the --useGPU flag to use the GPU device to perform the pattern recognition.
 
    \subsection merge Merging result files
    To merge root files containing results from patterns recognition, you can use the hadd binary distributed with Root. This will work to merge results concerning the same sectors but different events.
@@ -686,7 +712,7 @@ int main(int av, char** ac){
     ("input_directory", po::value<string>(), "The directory containing the single particule root files (local or RFIO)")
     ("sector_file", po::value<string>(), "The file (.root or .csv) containing the sectors definition")
     ("sector_id", po::value<int>(), "The index of the sector to use in the sector file. In a CSV file the first sector has index 0.")
-    ("active_layers", po::value<string>(), "The layers to use in the sector (8 at most)")
+    ("active_layers", po::value<string>(), "The layers to use in the sector (8 at most). If a layer ID is prefixed with '+' it will never contain a fake superstrip, if it's prefixed with '-' it will always contain a fake superstrip.")
     ("bank_name", po::value<string>(), "The bank file name")    
     ;
      

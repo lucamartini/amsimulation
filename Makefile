@@ -128,7 +128,7 @@ AMSimulation.o:${SRC}/AMSimulation.cc
 	g++ -c ${FLAG} ${INC} ${SRC}/AMSimulation.cc
 
 gpu.o:${SRC}/gpu.h ${SRC}/gpu_struct.h ${SRC}/gpu.cu 
-	/usr/local/cuda-5.5/bin/nvcc -ccbin g++ ${INC} -m64 -arch compute_30 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"  -o gpu.o -c src/gpu.cu
+	${CUDA_ROOTDIR}/bin/nvcc -ccbin g++ ${INC} -m64 -arch compute_30 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"  -o gpu.o -c src/gpu.cu
 
 doc:doxygen.cfg
 	doxygen doxygen.cfg

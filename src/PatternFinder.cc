@@ -1471,18 +1471,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 
 
   while(num_evt<n_entries_TT && num_evt<=stop){
-    initialiseTimer();		     
-    startTimer();
-
     TT->GetEntry(num_evt);
-
-    cout<<"Chargement de l'evenement root : ";
-    stopTimer();
-    initialiseTimer();		     
-    startTimer();
-
-    //if(n_evt>1)
-    //  break;
 
     cout<<"Event "<<n_evt<<endl;
     cuda_nb_hits = 0;
@@ -1534,21 +1523,8 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 	delete(h);
     }
 
-    cout<<"Lecture des stubs : ";
-    stopTimer();
-    initialiseTimer();		     
-    startTimer();
     cudaCopyStubs(cuda_hits,d_stubs,cuda_nb_hits); 
-    cout<<"Copie des stubs dans device : ";
-    stopTimer();
-    initialiseTimer();		     
-    startTimer();
-    //cudaShowStubs(d_stubs, cuda_nb_hits);
     nb_patterns = findCuda(cuda_nb_hits, d_stubs);
-    cout<<"Chargement des stubs et recherche patterns : ";
-    stopTimer();
-    initialiseTimer();		     
-    startTimer();
     
     bool* active_stubs = new bool[cuda_nb_hits];
     cudaGetActiveStubs(active_stubs,d_stubs,&cuda_nb_hits);
@@ -1625,9 +1601,6 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
     delete [] active_stubs;
 
     num_evt++;
-
-    cout<<"Traitement des sorties : ";
-    stopTimer(); 
 
   }
 

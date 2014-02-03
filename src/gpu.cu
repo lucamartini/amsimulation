@@ -317,13 +317,10 @@ int cudaGetActivePatternsWrapper(deviceDetector* detector, patternBank* patterns
          cout<<"error! "<<cudaGetErrorString(cudaGetLastError())<<endl;
   }
 
-    int NB_THREADS=nbThreads;
-    int NB_BLOCKS = nbBlocks;
-
     if(stream==NULL)
-        cudaGetActivePatterns<<<NB_BLOCKS,NB_THREADS>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
+        cudaGetActivePatterns<<<nbBlocks,nbThreads>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
     else
-        cudaGetActivePatterns<<<NB_BLOCKS,NB_THREADS,0,*stream>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
+        cudaGetActivePatterns<<<nbBlocks,nbThreads,0,*stream>>>(detector->sstrips, detector->stubs, stubs->active_stubs, patterns->banks, params->threshold, params->iter, params->nbPatterns, params->result);
   int res=0;
 
   if(stream==NULL){

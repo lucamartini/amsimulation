@@ -38,7 +38,32 @@ void HoughFitter::mergePatterns(){
 }
 
 void HoughFitter::mergeTracks(){
-  //cout<<"Merging of Tracks not implemented"<<endl;
+  unsigned int index = 0;
+  vector<Track*>::iterator it = tracks.begin();
+  while(it!=tracks.end()){
+    Track* newTrack = *it;
+    bool found = false;
+    for(unsigned int i=0;i<index;i++){
+      Track* ref = tracks[i];
+      float dpt,dphi,dz,deta;
+      dpt = fabs(newTrack->getCurve()-ref->getCurve());
+      dphi = fabs(newTrack->getPhi0()-ref->getPhi0());
+      dz = fabs(newTrack->getZ0()-ref->getZ0());
+      deta = fabs(newTrack->getEta0()-ref->getEta0());
+      found = (deta<0.02) &&
+	(dphi<0.005) &&
+	(dpt<0.1) &&
+	(dz<0.3);
+      if(found)
+	break;
+    }
+    if(found)
+      tracks.erase(it);
+    else{
+      index++;
+      it++;
+    }
+  }
 }
 
 void HoughFitter::fit(vector<Hit*> hits){
@@ -57,7 +82,15 @@ void HoughFitter::fit(vector<Hit*> hits){
     h_x[j]=hits[j]->getX();
     h_y[j]=hits[j]->getY();
     h_z[j]=hits[j]->getZ();
-    h_layer[j]=hits[j]->getLayer();
+
+    // we tag the stubs we want to use for the linear regression (pixel stubs)
+    uint16_t zinfo=0;
+    unsigned int layer = hits[j]->getLayer();
+    if (layer<=7) 
+      zinfo=1;//pixel on barrel
+    if (layer>10 && hits[j]->getLadder()<9)
+      zinfo=2;//pixel on endcap
+    h_layer[j]= layer | (zinfo<<16);
   }
 
   //Actual computing

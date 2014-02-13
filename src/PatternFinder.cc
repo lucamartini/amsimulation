@@ -939,7 +939,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           m_stub_module; // Position en Z du module contenant le stub
   vector<int>           m_stub_ladder; // Position en PHI du module contenant le stub
   vector<int>           m_stub_seg;    // Segment du module contenant le stub
-  vector<int>           m_stub_strip;  // Strip du cluster interne du stub
+  vector<float>         m_stub_strip;  // Strip du cluster interne du stub
   vector<int>           m_stub_tp;     // particule du stub
   vector<float>         m_stub_px_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_py_gen; // pt initial de la particule ayant genere le stub
@@ -956,7 +956,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           *p_m_stub_module = &m_stub_module;
   vector<int>           *p_m_stub_ladder = &m_stub_ladder;
   vector<int>           *p_m_stub_seg =    &m_stub_seg;
-  vector<int>           *p_m_stub_strip =  &m_stub_strip;
+  vector<float>         *p_m_stub_strip =  &m_stub_strip;
   vector<int>           *p_m_stub_tp =     &m_stub_tp;
   vector<float>         *p_m_stub_pxGEN = &m_stub_px_gen;  
   vector<float>         *p_m_stub_pyGEN = &m_stub_py_gen;  
@@ -1407,7 +1407,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   vector<int>           m_stub_module; // Position en Z du module contenant le stub
   vector<int>           m_stub_ladder; // Position en PHI du module contenant le stub
   vector<int>           m_stub_seg;    // Segment du module contenant le stub
-  vector<int>           m_stub_strip;  // Strip du cluster interne du stub
+  vector<float>         m_stub_strip;  // Strip du cluster interne du stub
   vector<int>           m_stub_tp;     // particule du stub
   vector<float>         m_stub_px_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_py_gen; // pt initial de la particule ayant genere le stub
@@ -1424,7 +1424,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   vector<int>           *p_m_stub_module = &m_stub_module;
   vector<int>           *p_m_stub_ladder = &m_stub_ladder;
   vector<int>           *p_m_stub_seg =    &m_stub_seg;
-  vector<int>           *p_m_stub_strip =  &m_stub_strip;
+  vector<float>         *p_m_stub_strip =  &m_stub_strip;
   vector<int>           *p_m_stub_tp =     &m_stub_tp;
   vector<float>         *p_m_stub_pxGEN = &m_stub_px_gen;  
   vector<float>         *p_m_stub_pyGEN = &m_stub_py_gen;  

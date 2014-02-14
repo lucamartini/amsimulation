@@ -77,9 +77,6 @@ void HoughFitter::fit(vector<Hit*> hits){
   memset(h_z,0,1024*sizeof(float));
   memset(h_layer,0,1024*sizeof(unsigned int));
  
-  set<int> layers;
-  bool barrel = true;
-
   //Collect the stubs
   for(unsigned int j=0;j<hits.size();j++){
     h_x[j]=hits[j]->getX();
@@ -94,36 +91,10 @@ void HoughFitter::fit(vector<Hit*> hits){
     if (layer>10 && hits[j]->getLadder()<9)
       zinfo=2;//pixel on endcap
     h_layer[j]= layer | (zinfo<<16);
-    //check if we are in barrel, hybrid or endcap sector
-    if(layer>10){
-      barrel = false;
-      layers.insert(layer);
-    }
   }
-
-  int sectorType = 0;
-  if(!barrel){
-    float sum=0;
-    for(set<int>::iterator it=layers.begin();it!=layers.end();it++){
-      sum+=*it;
-    }
-    sum=sum/(float)layers.size();
-    if((sum>=11 && sum<=12) || (sum>=18 && sum<=19))
-      sectorType=1;
-    else
-      sectorType=2;
-  }
-
-  int sectorValue = 0;
-  if(sectorType==0)
-    sectorValue=35;//barrel
-  if(sectorType==1)
-    sectorValue=10;//hybrid
-  if(sectorType==2)
-    sectorValue=2;//endcap
 
   //Actual computing
-  ch->ComputeOneShot(sectorValue,hits.size(),h_x,h_y,h_z,h_layer);
+  ch->ComputeOneShot(sector_id,hits.size(),h_x,h_y,h_z,h_layer);
   std::vector<mctrack_t> &v=ch->getCandidates();
 
   //format the results and feed the tracks vector

@@ -65,7 +65,7 @@ TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
 
   cout<<"Loading files from "<<directoryName<<" (this may take several minutes)..."<<endl;
 
-  TChain* TT = new TChain("L1TrackTrigger");
+  TChain* TT = new TChain("BankStubs");
 
   TSystemDirectory dir(directoryName.c_str(), directoryName.c_str());
   TList *files = dir.GetListOfFiles();

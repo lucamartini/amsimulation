@@ -9,7 +9,7 @@ CUDA_EXAMPLEDIR=~mirabito/cuda_examples/NVIDIA_CUDA-5.5_Samples/common/
 ifeq ($(UNAME), Darwin)
 	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
 	LIBS = -L ${ROOTSYS}/lib -L /opt/local/lib/
-   BOOSTLIBS = -lboost_serialization-mt -lboost_program_options-mt 
+   BOOSTLIBS = -lboost_serialization-mt -lboost_program_options-mt -lboost_iostreams 
 endif
 ifeq ($(UNAME), Linux)
 
@@ -22,7 +22,7 @@ else
 	INC =-I `root-config --incdir` -I `scram tool tag boost INCLUDE` -I ${SRC}
 	LIBS =-L ${ROOTSYS}/lib -L `scram tool tag boost LIBDIR`
 endif
-   BOOSTLIBS = -lboost_serialization -lboost_program_options 
+   BOOSTLIBS = -lboost_serialization -lboost_program_options -lboost_iostreams
 endif
 
 ifeq ($(CUDA_ENABLED),true)

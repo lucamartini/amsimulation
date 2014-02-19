@@ -93,7 +93,7 @@ void HoughFitter::fit(vector<Hit*> hits){
       zinfo=1;//pixel on barrel
     if (layer>10 && hits[j]->getLadder()<9)
       zinfo=2;//pixel on endcap
-    h_layer[j]= layer | (zinfo<<16);
+    h_layer[j]= layer | (zinfo<<16) | (hits[j]->getID()<<18);
     //check if we are in barrel, hybrid or endcap sector
     if(layer>10){
       barrel = false;
@@ -129,6 +129,11 @@ void HoughFitter::fit(vector<Hit*> hits){
   //format the results and feed the tracks vector
   for (std::vector<mctrack_t>::iterator it=v.begin();it!=v.end();it++){
     Track* fit_track = new Track((*it).pt, 0, (*it).phi, (*it).eta, (*it).z0);
+    for(unsigned int i=0;i<(*it).layers.size();i++){
+      unsigned int value = (*it).layers[i];
+      short id = value>>18;
+      fit_track->addStubIndex(id);
+    }
     tracks.push_back(fit_track);
   }
   

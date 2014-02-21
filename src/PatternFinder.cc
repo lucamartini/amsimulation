@@ -827,6 +827,7 @@ void PatternFinder::find(int start, int& stop){
   short* hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_idx = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  bool* hit_used_fit = new bool[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_etaGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_phi0GEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -884,6 +885,7 @@ void PatternFinder::find(int start, int& stop){
   Out->Branch("stub_strip",          hit_strip, "stub_strip[total_nb_stubs]/S");
   Out->Branch("stub_tp",             hit_tp,    "stub_tp[total_nb_stubs]/I");
   Out->Branch("stub_idx",            hit_idx,    "stub_idx[total_nb_stubs]/I");
+  Out->Branch("stub_used_fit",       hit_used_fit,"stub_used_fit[total_nb_stubs]/O");
   Out->Branch("stub_ptGEN",          hit_ptGEN, "stub_ptGEN[total_nb_stubs]/F");
   Out->Branch("stub_etaGEN",         hit_etaGEN, "stub_etaGEN[total_nb_stubs]/F");
   Out->Branch("stub_phi0GEN",        hit_phi0GEN, "stub_phi0GEN[total_nb_stubs]/F");
@@ -1057,6 +1059,7 @@ void PatternFinder::find(int start, int& stop){
     memset(hit_ladder,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(short));
     memset(hit_tp,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
     memset(hit_idx,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
+    memset(hit_used_fit,false,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(bool));
     memset(hit_ptGEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_etaGEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_phi0GEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
@@ -1112,6 +1115,24 @@ void PatternFinder::find(int start, int& stop){
 
       set<short> stub_ids;
 
+      set<short> indexOfStubsInTracks;
+      
+      for(unsigned int k=0;k<max_tracks;k++){
+	track_pt[trackIndex] = tracks[k]->getCurve();
+	track_phi[trackIndex]= tracks[k]->getPhi0();
+	track_d0[trackIndex] = tracks[k]->getD0();
+	track_eta[trackIndex]= tracks[k]->getEta0();
+	track_z0[trackIndex] = tracks[k]->getZ0();
+	
+	vector<short> stubsInTrack = tracks[k]->getStubs();
+	for(unsigned int l=0;l<stubsInTrack.size();l++){
+	  indexOfStubsInTracks.insert(stubsInTrack[l]);
+	}
+	
+	delete tracks[k];
+	trackIndex++;
+      }
+      
       for(unsigned int j=0;j<max_patterns;j++){
 	//loop on layers
 	for(int k=0;k<nb_layers;k++){
@@ -1120,6 +1141,7 @@ void PatternFinder::find(int start, int& stop){
 	}
 	//sector of the pattern
 	pattern_sector_id[patternIndex]=sec_id;
+	
 	
 	//stubs of the patterns
 	vector<Hit*> active_hits = pl[j]->getHits();
@@ -1138,6 +1160,9 @@ void PatternFinder::find(int start, int& stop){
 	  hit_strip[stubIndex]=active_hits[k]->getStripNumber();
 	  hit_tp[stubIndex]=active_hits[k]->getParticuleID();
 	  hit_idx[stubIndex]=active_hits[k]->getID();
+	  if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
+	    hit_used_fit[stubIndex]=true;
+	  }
 	  hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
 	  hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
 	  hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();
@@ -1160,15 +1185,6 @@ void PatternFinder::find(int start, int& stop){
 
       sel_nb_stubs = stub_ids.size();
 
-      for(unsigned int j=0;j<max_tracks;j++){
-	track_pt[trackIndex] = tracks[j]->getCurve();
-	track_phi[trackIndex]= tracks[j]->getPhi0();
-	track_d0[trackIndex] = tracks[j]->getD0();
-	track_eta[trackIndex]= tracks[j]->getEta0();
-	track_z0[trackIndex] = tracks[j]->getZ0();
-	delete tracks[j];
-	trackIndex++;
-      }
     }
     Out->Fill();
 
@@ -1202,6 +1218,7 @@ void PatternFinder::find(int start, int& stop){
   delete[] hit_strip;
   delete[] hit_tp;
   delete[]  hit_idx;
+  delete[]  hit_used_fit;
   delete[]  hit_ptGEN;
   delete[]  hit_etaGEN;
   delete[]  hit_phi0GEN;

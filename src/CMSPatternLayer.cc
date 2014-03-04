@@ -256,15 +256,15 @@ map<int, pair<float,float> > CMSPatternLayer::getLayerDefInEta(){
   eta[8]=pair<float,float>(-1.2,1.2);
   eta[9]=pair<float,float>(-1.1,1.1);
   eta[10]=pair<float,float>(-0.9,0.9);
-  eta[11]=pair<float,float>(1.1,2.4);
-  eta[12]=pair<float,float>(1.2,2.4);
-  eta[13]=pair<float,float>(1.3,2.4);
-  eta[14]=pair<float,float>(1.4,2.5);
-  eta[15]=pair<float,float>(1.6,2.5);
-  eta[18]=pair<float,float>(-2.4,-1.1);
-  eta[19]=pair<float,float>(-2.4,-1.2);
-  eta[20]=pair<float,float>(-2.4,-1.3);
-  eta[21]=pair<float,float>(-2.5,-1.4);
-  eta[22]=pair<float,float>(-2.5,-1.6);
+  eta[11]=pair<float,float>(1.08,2.24);
+  eta[12]=pair<float,float>(1.21,2.45);
+  eta[13]=pair<float,float>(1.36,2.5);
+  eta[14]=pair<float,float>(1.49,2.5);
+  eta[15]=pair<float,float>(1.65,2.5);
+  eta[18]=pair<float,float>(-2.24,-1.08);
+  eta[19]=pair<float,float>(-2.45,-1.21);
+  eta[20]=pair<float,float>(-2.5,-1.36);
+  eta[21]=pair<float,float>(-2.5,-1.49);
+  eta[22]=pair<float,float>(-2.5,-1.65);
   return eta;
 }

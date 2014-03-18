@@ -48,7 +48,7 @@ using namespace std;
    - Root (http://root.cern.ch) installed and configured ($ROOTSYS must be pointing on the installation directory and $ROOTSYS/bin must be in the PATH)
    - Boost (http://www.boost.org/) libraries and header files
    - Cuda SDK and code samples (https://developer.nvidia.com/cuda-downloads)
-   - A GPU card compatible with CUD
+   - A GPU card compatible with CUDA
 
    You will need to modify the Makefile by setting the following variables:
    \code
@@ -630,7 +630,7 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     
     if(layer<11){
       int tmp_nb_ladders = CMSPatternLayer::getNbLadders(layer);
-      ladder = (ladder+tmp_nb_ladders*3/4) % tmp_nb_ladders;
+      ladder = (ladder+tmp_nb_ladders*1/4) % tmp_nb_ladders;
     } 
 
     //////////////////////////////////////////////////
@@ -733,7 +733,7 @@ int main(int av, char** ac){
   if (vm.count("analyseBank")) {
     SectorTree st;
     {
-      std::ifstream ifs(vm["inputFile"].as<string>().c_str());
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
       //Decompression
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
@@ -744,7 +744,7 @@ int main(int av, char** ac){
       }
       catch (boost::iostreams::gzip_error& e) {
 	if(e.error()==4){//file is not compressed->read it without decompression
-	  std::ifstream new_ifs(vm["inputFile"].as<string>().c_str());
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
 	  boost::archive::text_iarchive ia(new_ifs);
 	  ia >> st;
 	}

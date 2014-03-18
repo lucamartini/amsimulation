@@ -236,11 +236,11 @@ int CMSPatternLayer::getNbModules(int layerID, int ladderID){
     case 6:return 36;
     case 7:return 40;
     case 8:return 40;
-    case 9:return 48;
+    case 9:return 52;
     case 10:return 56;
     case 11:return 64;
     case 12:return 68;
-    case 13:return 72;
+    case 13:return 76;
     case 14:return 80;
     default:return 80;
     }

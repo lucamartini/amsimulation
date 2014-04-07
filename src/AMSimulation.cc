@@ -556,6 +556,46 @@ void getOrderData(vector<int> list, int* first, int* nb){
   }
 }
 
+// Get the first module and number of modules from a modules list
+void getOrderDataForModules(vector<int> list, int maxNbModules, int* first, int* nb){
+  sort(list.begin(),list.end());
+
+  //Some sectors have holes... If we have one big gap and others are just 1 missing module->we fill these
+  int maxGap=0;
+  vector<int> newList;
+  for(unsigned int i=0;i<list.size()-1;i++){
+    newList.push_back(list[i]);
+    int dif=list[i+1]-list[i];
+    if(dif>maxGap)
+      maxGap=dif;
+    if(dif==2){
+      newList.push_back(list[i]+1);
+    }
+  }
+  newList.push_back(list[list.size()-1]);
+  int dif=maxNbModules-list[list.size()-1]+list[0];
+  if(dif>maxGap)
+    maxGap=dif;
+  if(dif==2){
+    newList.push_back(list[list.size()-1]+1);
+  }
+  
+  if(maxGap>2)
+    list=newList;
+
+  *nb = (int)list.size();
+  if((*nb)>0){
+    int index = list.size()-1;
+    *first = list[index];//greatest value
+    
+    //we decrease the greatest value and stop as soon as there is a gap
+    while(index>0 && list[index-1]==(*first)-1){
+      index--;
+      (*first)--;
+    }
+  }
+}
+
 void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layers, int sector_id){
 
   Sector s(layers);
@@ -657,7 +697,7 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     s.addLadders(layers[i], first, nb);
     for(unsigned int k=0;k<tmp_ladders.size();k++){
       vector<int> tmp_modules = modules_from_ladder[layers[i]][tmp_ladders[k]];
-      getOrderData(tmp_modules, &first, &nb);
+      getOrderDataForModules(tmp_modules, CMSPatternLayer::getNbModules(layers[i], tmp_ladders[k]), &first, &nb);
       s.addModules(layers[i], tmp_ladders[k], first, nb);
     }
   }

@@ -101,5 +101,12 @@ class PatternFinder{
      \brief Merge 2 files into 1 single file
   **/
   static void mergeFiles(string outputFile, string inputFile1, string inputFile2);
+
+  /**
+     \brief Display all the stubs of events as superstrips
+     \param start The search will start from this event number
+     \param stop The search will end at this event number
+   **/
+  void displayEventsSuperstrips(int start, int& stop);
 };
 #endif

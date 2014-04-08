@@ -1011,7 +1011,7 @@ void PatternFinder::find(int start, int& stop){
       int layer = m_stub_layer[i];
       int module = -1;
       module = CMSPatternLayer::getModuleCode(layer, m_stub_module[i]);
-      if(module<0)// the stub is on the third Z position on the other side of the tracker -> out of range
+      if(module<0)
 	continue;
       int ladder = CMSPatternLayer::getLadderCode(layer, m_stub_ladder[i]);
       int segment =  CMSPatternLayer::getSegmentCode(layer, ladder, m_stub_seg[i]);
@@ -1498,7 +1498,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
       int layer = m_stub_layer[i];
       int module = -1;
       module = CMSPatternLayer::getModuleCode(layer, m_stub_module[i]);
-      if(module<0)// the stub is on the third Z position on the other side of the tracker -> out of range
+      if(module<0)
 	continue;
       int ladder = CMSPatternLayer::getLadderCode(layer, m_stub_ladder[i]);
       int segment =  CMSPatternLayer::getSegmentCode(layer, ladder, m_stub_seg[i]);
@@ -1673,3 +1673,76 @@ int PatternFinder::findCuda(int nb, deviceStubs* d_stubs, cudaStream_t* stream){
   return res;
 }
 #endif
+
+void PatternFinder::displayEventsSuperstrips(int start, int& stop){
+  /***************** INPUT FILE ****************/
+  TChain* TT = new TChain("L1TrackTrigger");
+  TT->Add(eventsFilename.c_str());
+  
+  int               n_evt;
+  
+  int m_stub;
+
+  vector<int>           m_stub_layer;  // Layer du stub (5 a 10 pour les 6 layers qui nous interessent)
+  vector<int>           m_stub_module; // Position en Z du module contenant le stub
+  vector<int>           m_stub_ladder; // Position en PHI du module contenant le stub
+  vector<int>           m_stub_seg;    // Segment du module contenant le stub
+  vector<float>         m_stub_strip;  // Strip du cluster interne du stub
+
+  vector<int>           *p_m_stub_layer =  &m_stub_layer;
+  vector<int>           *p_m_stub_module = &m_stub_module;
+  vector<int>           *p_m_stub_ladder = &m_stub_ladder;
+  vector<int>           *p_m_stub_seg =    &m_stub_seg;
+  vector<float>         *p_m_stub_strip =  &m_stub_strip;
+
+  TT->SetBranchAddress("evt",            &n_evt);
+  TT->SetBranchAddress("STUB_n",         &m_stub);
+  TT->SetBranchAddress("STUB_layer",     &p_m_stub_layer);
+  TT->SetBranchAddress("STUB_module",    &p_m_stub_module);
+  TT->SetBranchAddress("STUB_ladder",    &p_m_stub_ladder);
+  TT->SetBranchAddress("STUB_seg",       &p_m_stub_seg);
+  TT->SetBranchAddress("STUB_strip",     &p_m_stub_strip);
+
+  /*******************************************************/
+
+  int n_entries_TT = TT->GetEntries();
+  int num_evt = start;
+  if(stop>n_entries_TT){
+    stop=n_entries_TT-1;
+    cout<<"Last event index too high : reset to "<<stop<<endl;
+  }
+
+  while(num_evt<n_entries_TT && num_evt<=stop){
+    TT->GetEntry(num_evt);
+
+    cout<<"Event "<<n_evt<<endl;
+
+    for(int i=0;i<m_stub;i++){
+      int layer = m_stub_layer[i];
+      int module = -1;
+      module = CMSPatternLayer::getModuleCode(layer, m_stub_module[i]);
+      if(module<0)
+	continue;
+      int ladder = CMSPatternLayer::getLadderCode(layer, m_stub_ladder[i]);
+      int segment =  CMSPatternLayer::getSegmentCode(layer, ladder, m_stub_seg[i]);
+      if(segment<0 || segment>1){
+	cout<<"Invalid segment on event "<<n_evt<<endl;
+	continue;
+      }
+      int strip = m_stub_strip[i];
+      
+      Hit h(layer,ladder, module, segment, strip, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      Sector* firstSector = sectors->getAllSectors()[0];
+      if(sectors->getSector(h)==firstSector){//we manage only one sector
+	module = firstSector->getModuleCode(layer, ladder, module);
+	ladder=firstSector->getLadderCode(layer, ladder);
+	strip = strip/superStripSize;
+	CMSPatternLayer pat;
+	pat.setValues(module, ladder, strip, segment);
+	cout<<layer<<" "<<pat.toStringBinary()<<endl;
+      }
+    }
+    num_evt++;
+  }
+  delete TT;
+}

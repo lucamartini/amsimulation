@@ -735,6 +735,7 @@ int main(int av, char** ac){
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
+    ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
     ("inputFile", po::value<string>(), "The file to analyse")
     ("secondFile", po::value<string>(), "Second file to merge")
     ("bankFile", po::value<string>(), "The patterns bank file to use")
@@ -971,6 +972,34 @@ int main(int av, char** ac){
     int val = vm["decode"].as<int>();
     p.setIntValue(val);
     cout<<p.toString()<<endl;
+  }
+  else if(vm.count("stubsToSuperstrips")) {
+    SectorTree st;
+    cout<<"Loading pattern bank..."<<endl;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      boost::iostreams::filtering_stream<boost::iostreams::input> f;
+      f.push(boost::iostreams::gzip_decompressor());
+      //we try to read a compressed file
+      try { 
+	f.push(ifs);
+	boost::archive::text_iarchive ia(f);
+	ia >> st;
+      }
+      catch (boost::iostreams::gzip_error& e) {
+	if(e.error()==4){//file is not compressed->read it without decompression
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
+	  boost::archive::text_iarchive ia(new_ifs);
+	  ia >> st;
+	}
+      }
+    }
+    PatternFinder pf(st.getSuperStripSize(), 0, &st,  vm["inputFile"].as<string>().c_str(),  "none");
+    {
+      int start = vm["startEvent"].as<int>();
+      int stop = vm["stopEvent"].as<int>();
+      pf.displayEventsSuperstrips(start, stop);
+    }
   }
   else if(vm.count("findPatterns")) {
     SectorTree st;

@@ -310,8 +310,8 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   
   PATT2->SetBranchAddress("nbLayers",            &input2_nb_layers);//nombre de layers pour les patterns
   PATT2->SetBranchAddress("nbPatterns",          &input2_nb_patterns); // nombre de patterns dans l'evenement
-  PATT1->SetBranchAddress("nbStubsInEvt",        &input2_ori_nb_stubs); // nombre de stubs dans l'evenement initial
-  PATT1->SetBranchAddress("nbStubsInPat",        &input2_sel_nb_stubs); // nombre de stubs uniques dans les patterns
+  PATT2->SetBranchAddress("nbStubsInEvt",        &input2_ori_nb_stubs); // nombre de stubs dans l'evenement initial
+  PATT2->SetBranchAddress("nbStubsInPat",        &input2_sel_nb_stubs); // nombre de stubs uniques dans les patterns
   PATT2->SetBranchAddress("eventID",             &input2_event_id); // ID de l'evenement (le meme que dans le fichier de simulation)
   PATT2->SetBranchAddress("sectorID",            input2_pattern_sector_id);// ID du secteur du pattern (permet de retrouver le secteur dans le premier TTree)
   PATT2->SetBranchAddress("superStrip0",         input2_superStrip_layer_0);// tableau de superstrips pour le layer 0
@@ -324,11 +324,11 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("nbTracks",            &input2_nbTracks);
   PATT2->SetBranchAddress("nbStubs",             input2_nbHitPerPattern); // nombre de stubs contenus dans chaque pattern
 
-  PATT1->SetBranchAddress("track_pt",            input2_track_pt); // PT of fitted tracks
-  PATT1->SetBranchAddress("track_phi",           input2_track_phi); // PHI0 of fitted tracks
-  PATT1->SetBranchAddress("track_d0",            input2_track_d0); // D0 of fitted tracks
-  PATT1->SetBranchAddress("track_eta",           input2_track_eta); // ETA of fitted tracks
-  PATT1->SetBranchAddress("track_z0",            input2_track_z0); // Z0 of fitted tracks
+  PATT2->SetBranchAddress("track_pt",            input2_track_pt); // PT of fitted tracks
+  PATT2->SetBranchAddress("track_phi",           input2_track_phi); // PHI0 of fitted tracks
+  PATT2->SetBranchAddress("track_d0",            input2_track_d0); // D0 of fitted tracks
+  PATT2->SetBranchAddress("track_eta",           input2_track_eta); // ETA of fitted tracks
+  PATT2->SetBranchAddress("track_z0",            input2_track_z0); // Z0 of fitted tracks
 
   PATT2->SetBranchAddress("stub_layers",         input2_hit_layer);//layer du stub
   PATT2->SetBranchAddress("stub_ladders",        input2_hit_ladder);//ladder du stub
@@ -549,6 +549,15 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memset(pattern_sector_id,0,MAX_NB_OUTPUT_PATTERNS*sizeof(int));
 
     nb_patterns = input1_nb_patterns+input2_nb_patterns;
+
+    if(nb_patterns>MAX_NB_OUTPUT_PATTERNS){
+      cout<<"Too many output patterns ("<<nb_patterns<<")"<<endl;
+      nb_patterns=MAX_NB_OUTPUT_PATTERNS;
+      int oldValue = input2_nb_patterns;
+      input2_nb_patterns=MAX_NB_OUTPUT_PATTERNS-input1_nb_patterns;
+      cout<<"The number of patterns from the second file is truncated from "<<oldValue<<" to "<<input2_nb_patterns<<endl;
+    }
+
     ori_nb_stubs = input1_ori_nb_stubs+input2_ori_nb_stubs;
     sel_nb_stubs = input1_sel_nb_stubs+input2_sel_nb_stubs;
 

@@ -726,7 +726,7 @@ int main(int av, char** ac){
     ("testSectors", "Get the tracks sectors")
     ("MergeSectors", "Merge 2 root files having same events but different sectors (needs --inputFile --secondFile and --outputFile)")
     ("MergeBanks", "Merge 2 bank files having only 1 sector (needs --inputFile --secondFile and --outputFile)")
-    ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --inputFile and --outputFile)")
+    ("buildFitParams", "Computes the Fit parameters for the given bank using tracks from the given directory (needs --bankFile, --input_directory and --outputFile)")
     ("findPatterns", "Search for patterns in an event file (needs --ss_threshold --inputFile, --bankFile, --outputFile, --startEvent and --stopEvent)")
 #ifdef USE_CUDA
     ("useGPU", "Use the GPU card to accelerate the pattern recognition (needs cuda libraries and a configured GPU card)")
@@ -1102,19 +1102,9 @@ int main(int av, char** ac){
       }
     }
 
-    map<int,pair<float,float> > eta_limits;// eta values for which each layer does exist
-    eta_limits[6]=pair<float,float>(-1.69,1.69);
-    eta_limits[7]=pair<float,float>(-1.41,1.41);
-    eta_limits[8]=pair<float,float>(-1.19,1.19);
-    eta_limits[9]=pair<float,float>(-1.02,1.02);
-    eta_limits[10]=pair<float,float>(-0.87,0.87);
-    eta_limits[11]=pair<float,float>(1.12,2.19);
-    eta_limits[12]=pair<float,float>(1.19,2.19);
-    eta_limits[13]=pair<float,float>(1.28,2.19);
-    eta_limits[14]=pair<float,float>(1.35,2.19);
-    eta_limits[15]=pair<float,float>(1.43,2.19);
+    map<int,pair<float,float> > eta_limits = CMSPatternLayer::getLayerDefInEta();
 
-    PrincipalFitGenerator pfg(vm["inputFile"].as<string>().c_str(), &st);
+    PrincipalFitGenerator pfg(vm["input_directory"].as<string>().c_str(), &st);
     pfg.generate(eta_limits, 2, 100, 0, 0.87);
     
     cout<<"Saving SectorTree...";

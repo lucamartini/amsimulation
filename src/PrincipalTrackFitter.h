@@ -37,6 +37,11 @@ class PrincipalTrackFitter:public TrackFitter{
 
  public:
   PrincipalTrackFitter();
+  /**
+    \brief Constructor of the class
+    \param nb Number of layers in the sector
+    \param t Number of tracks needed to compute the parameters
+  **/
   PrincipalTrackFitter(int nb, int t);
   ~PrincipalTrackFitter();
 

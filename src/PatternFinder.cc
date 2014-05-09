@@ -1122,9 +1122,9 @@ void PatternFinder::find(int start, int& stop){
           cout<<"WARNING : Too may patterns in event "<<n_evt<<" : "<<pl.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
       }
 
-      set<short> stub_ids;
+      set<int> stub_ids;
 
-      set<short> indexOfStubsInTracks;
+      set<int> indexOfStubsInTracks;
       
       for(unsigned int k=0;k<max_tracks;k++){
 	track_pt[trackIndex] = tracks[k]->getCurve();
@@ -1133,7 +1133,7 @@ void PatternFinder::find(int start, int& stop){
 	track_eta[trackIndex]= tracks[k]->getEta0();
 	track_z0[trackIndex] = tracks[k]->getZ0();
 	
-	vector<short> stubsInTrack = tracks[k]->getStubs();
+	vector<int> stubsInTrack = tracks[k]->getStubs();
 	for(unsigned int l=0;l<stubsInTrack.size();l++){
 	  indexOfStubsInTracks.insert(stubsInTrack[l]);
 	}
@@ -1154,6 +1154,7 @@ void PatternFinder::find(int start, int& stop){
 	
 	//stubs of the patterns
 	vector<Hit*> active_hits = pl[j]->getHits();
+
 	int nbHits = active_hits.size();
 	if(nbHits>MAX_NB_HITS) // if we have too many hits, we keep only the MAX_NB_HITS first
 	  nbHits=MAX_NB_HITS;

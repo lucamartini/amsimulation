@@ -111,6 +111,12 @@ class Pattern{
   bool contains(Pattern* hdp);
 
   /**
+     \brief Get the number of fake superstrips used in the pattern
+     \return The number of PatternLayer being just a placeholder
+  **/
+  int getNbFakeSuperstrips();
+
+  /**
      \brief Allows to display a Pattern as a string
   **/
   friend ostream& operator<<(ostream& out, const Pattern& s);

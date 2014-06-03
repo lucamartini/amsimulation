@@ -157,6 +157,12 @@ class CMSPatternLayer : public PatternLayer{
   **/
   static int getNbModules(int layerID, int ladderID);  
 
+ /**
+     \brief Check if the PatternLayer is a fake one (used on layers not crossed by the track)
+     \return True if the PatternLayer is a placeholder
+  **/  
+  bool isFake();
+
   /**
      \brief Returns a map containing the valid ETA range for each layer
      \return For each layerID, gives the minimum and maximum ETA values

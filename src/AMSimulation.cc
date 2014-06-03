@@ -95,6 +95,8 @@ using namespace std;
    eta_min=-0.125
    # Maximal ETA of tracks used to generate a pattern
    eta_max=1.375
+   #Maximal number of fake superstrips per pattern (used for hybrid/endcap sectors)
+   maxFakeSStrips=0
    # Directory containing root files with single muon/antimuon events (local or RFIO)
    input_directory=rfio:/my/rfio/directory/
    # Output file name
@@ -138,12 +140,18 @@ using namespace std;
 
 If you compiled the program using the cuda libraries, you can add the --useGPU flag to use the GPU device to perform the pattern recognition.
 
-   \subsection merge Merging result files
-   To merge root files containing results from patterns recognition, you can use the hadd binary distributed with Root. This will work to merge results concerning the same sectors but different events.
-   
-   If you need to merge files containing the same events but different sectors you can use (NOT UP TO DATE!!):
+   \subsection merge Merging banks
+   If you have created 2 banks for the same sector but with different PT range (for example 2 to 10 GeV and 10 to 100 GeV) you can merge the 2 files into a single one by using the command :   
    \code
-   ./AMSimulation --MergeSectors --inputFile  <Root file for events A to X in sector 1> --secondFile <Root file for events A to X in sector 2> --outputFile <Resulting Root file for events A to X in sector 1 & 2>
+   ./AMSimulation --MergeBanks --inputFile <PBK file of the first bank> --secondFile <PBK file of the second bank> --outputFile  <output PBK file name>
+   \endcode
+
+   Note that if you are using DC bits, the resulting bank may be smaller than the addition of the 2 original banks.
+
+   \subsection alter Altering banks
+   If your bank is using fake superstrips, you can split the PBK file into several files according to the number of fake superstrips in the patterns. You can then use a different threshold for each bank. To split a PBK file :
+   \code
+   ./AMSimulation --alterBank --maxFS=<max number of fake superstrips in a pattern> --minFS=<min number of fake superstrips in a pattern> --bankFile=<input bank file> --outputFile=<output bank file>
    \endcode
 
    \subsection view Viewing the content of a pattern bank
@@ -736,6 +744,7 @@ int main(int av, char** ac){
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
+    ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --minFS and/or --maxFS)")
     ("inputFile", po::value<string>(), "The file to analyse")
     ("secondFile", po::value<string>(), "Second file to merge")
     ("bankFile", po::value<string>(), "The patterns bank file to use")
@@ -757,6 +766,8 @@ int main(int av, char** ac){
     ("sector_id", po::value<int>(), "The index of the sector to use in the sector file. In a CSV file the first sector has index 0.")
     ("active_layers", po::value<string>(), "The layers to use in the sector (8 at most). If a layer ID is prefixed with '+' it will never contain a fake superstrip, if it's prefixed with '-' it will always contain a fake superstrip.")
     ("bank_name", po::value<string>(), "The bank file name")    
+    ("minFS", po::value<int>(), "Used with --alterBank : only patterns with at least minFS fake stubs will be kept in the new bank")
+    ("maxFS", po::value<int>(), "Used with --alterBank : only patterns with at most maxFS fake stubs will be kept in the new bank")
     ;
      
   po::variables_map vm;
@@ -1190,6 +1201,76 @@ int main(int av, char** ac){
 	}
 	cout<<endl;
       }
+    }
+  }
+  else if(vm.count("alterBank")) {
+    SectorTree st;
+    SectorTree st2;
+    int minFS=-1;
+    int maxFS=-1;
+    if(vm.count("minFS"))
+      minFS = vm["minFS"].as<int>();
+    if(vm.count("maxFS"))
+      maxFS = vm["maxFS"].as<int>();
+
+    if(minFS<0 && maxFS<0){
+      cout<<"Missing parameter : you need to set minFS or maxFS!"<<endl;
+      return -1;
+    }
+
+    if(maxFS<0)
+      maxFS=1000;
+
+    cout<<"Loading pattern bank..."<<endl;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      boost::iostreams::filtering_stream<boost::iostreams::input> f;
+      f.push(boost::iostreams::gzip_decompressor());
+      //we try to read a compressed file
+      try { 
+	f.push(ifs);
+	boost::archive::text_iarchive ia(f);
+	ia >> st;
+      }
+      catch (boost::iostreams::gzip_error& e) {
+	if(e.error()==4){//file is not compressed->read it without decompression
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
+	  boost::archive::text_iarchive ia(new_ifs);
+	  ia >> st;
+	}
+      }
+    }
+
+    st2.setSuperStripSize(st.getSuperStripSize());
+
+    cout<<"Altering bank..."<<endl;
+    vector<Sector*> sectors = st.getAllSectors();
+    for(unsigned int i=0;i<sectors.size();i++){
+      Sector* mySector = sectors[i];
+      st2.addSector(*mySector);
+      Sector* newSector = st2.getAllSectors()[i];
+      vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
+      for(unsigned int j=0;j<patterns.size();j++){
+	GradedPattern* p = patterns[j];
+	int nbFS = p->getNbFakeSuperstrips();
+	if(nbFS<=maxFS && nbFS>=minFS){
+	  //add the pattern
+	  newSector->getPatternTree()->addPattern(p,NULL,p->getAveragePt());
+	}
+      }
+      cout<<"Sector "<<mySector->getOfficialID()<<" :\n\tinput bank : "<<mySector->getPatternTree()->getLDPatternNumber()<<" patterns\n\toutput bank : "<<newSector->getPatternTree()->getLDPatternNumber()<<" patterns."<<endl;
+    }
+    cout<<"Saving new bank in "<<vm["outputFile"].as<string>().c_str()<<"..."<<endl;
+    {
+      const SectorTree& ref = st2;
+      std::ofstream ofs(vm["outputFile"].as<string>().c_str());
+      // Compression part
+      boost::iostreams::filtering_stream<boost::iostreams::output> f;
+      f.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip_params(boost::iostreams::gzip::best_compression)));
+      f.push(ofs);
+      //
+      boost::archive::text_oarchive oa(f);
+      oa << ref;
     }
   }
   else if(vm.count("MergeSectors")) {

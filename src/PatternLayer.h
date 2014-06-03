@@ -133,6 +133,12 @@ class PatternLayer{
   **/
   int getDCBitsNumber();
 
+  /**
+     \brief Check if the PatternLayer is a fake one (used on layers not crossed by the track)
+     \return True if the PatternLayer is a placeholder
+  **/
+  virtual bool isFake()=0;
+
  private:
   /**
      Get the list of positions from the DC bits

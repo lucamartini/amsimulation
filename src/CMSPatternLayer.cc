@@ -11,12 +11,17 @@ CMSPatternLayer* CMSPatternLayer::clone(){
   return p;
 }
 
+
+bool CMSPatternLayer::isFake(){
+  return (getPhi()==15);
+}
+
 vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d){
   int nb_dc = getDCBitsNumber();
   int factor = (int)pow(2.0,nb_dc);
   vector<SuperStrip*> v;
 
-  if(getPhi()==15){ // this is a fake superstrip! We link it to the dump superstrip
+  if(isFake()){ // this is a fake superstrip! We link it to the dump superstrip
     vector<string> positions = getPositionsFromDC();
     for(unsigned int i=0;i<positions.size();i++){
       SuperStrip* patternStrip = d.getDump();
@@ -57,7 +62,7 @@ void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const ma
   int nb_dc = getDCBitsNumber();
   int factor = (int)pow(2.0,nb_dc);
 
-  if(getPhi()==15){ // this is a fake superstrip! -> No index
+  if(isFake()){ // this is a fake superstrip! -> No index
     return;
   }
   else{

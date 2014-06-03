@@ -201,3 +201,13 @@ ostream& operator<<(ostream& out, const Pattern& s){
   out<<endl;
   return out;
 }
+
+int Pattern::getNbFakeSuperstrips(){
+  int score = 0;
+  for(int k=0;k<getNbLayers();k++){
+    PatternLayer* mp = getLayerStrip(k);
+    if(mp->isFake())
+      score++;
+  }
+  return score;
+}

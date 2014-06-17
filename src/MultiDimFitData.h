@@ -70,6 +70,8 @@ class MultiDimFitData{
 
     int size = ((nb_layers-1)*3)+1;
     for(int i=0;i<size;i++){
+      if(m_final_coeffs[i]!=m_final_coeffs[i])
+	m_final_coeffs[i]=0;
       ar << m_final_coeffs[i];
     }
 

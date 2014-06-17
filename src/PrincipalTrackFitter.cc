@@ -168,7 +168,7 @@ bool PrincipalTrackFitter::hasPrincipalParams(){
 
 void PrincipalTrackFitter::forcePrincipalParamsComputing(){
   for(map<string, FitParams*>::iterator itr = params.begin(); itr != params.end(); ++itr){
-    if(itr->second->getNbPrincipalTracks()<2)
+    if(itr->second->getNbPrincipalTracks()<(threshold/10))
       params.erase(itr);
     else{
       if(!itr->second->hasPrincipalParams()){

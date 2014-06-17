@@ -179,13 +179,12 @@ void FitParams::computePrincipalParams(){
 }
 
 void FitParams::initializeMultiDimFit(TMultiDimFit* f){
-  Int_t mPowers1[]   = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-  //Int_t mPowers1[]   = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+  Int_t mPowers1[]   = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
   //Int_t mPowers1[]   = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
   f->SetMaxPowers(mPowers1);
-  f->SetMaxFunctions(100);
+  f->SetMaxFunctions(10);
   //f->SetMaxFunctions(10);
-  f->SetMaxStudy(100);
+  f->SetMaxStudy(30);
   f->SetMaxTerms(10);
   f->SetPowerLimit(0.3);
   //f->SetPowerLimit(0.01);

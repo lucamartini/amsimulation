@@ -92,8 +92,8 @@ class FitParams{
 	ar << transform[i][j];
       }
     }
+    ar << nb_multidimfit;
     if(nb_multidimfit>threshold){
-      ar << nb_multidimfit;
       ar << pt_fit_data;
       ar << phi0_fit_data;
       ar << d0_fit_data;

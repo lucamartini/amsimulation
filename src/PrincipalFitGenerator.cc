@@ -11,7 +11,7 @@ TChain* PrincipalFitGenerator::createTChain(){
 
   cout<<"Loading files from "<<inputDirectory<<" (this may take several minutes)..."<<endl;
 
-  TChain* TT = new TChain("L1TrackTrigger");
+  TChain* TT = new TChain("BankStubs");
 
   TSystemDirectory dir(inputDirectory.c_str(), inputDirectory.c_str());
   TList *files = dir.GetListOfFiles();
@@ -29,40 +29,30 @@ TChain* PrincipalFitGenerator::createTChain(){
     }
   }
 
-  p_m_stub_tp = &m_stub_tp; 
-  p_m_stub_layer = &m_stub_layer; 
-  p_m_stub_module = &m_stub_module;
-  p_m_stub_ladder = &m_stub_ladder;
-  p_m_stub_pxGEN = &m_stub_pxGEN;  
-  p_m_stub_pyGEN = &m_stub_pyGEN;  
+  p_m_stub_modid = &m_stub_modid; 
+  p_m_stub_ptGEN = &m_stub_ptGEN;  
+  p_m_stub_phiGEN = &m_stub_phiGEN;  
   p_m_stub_etaGEN = &m_stub_etaGEN;  
   p_m_stub_x = &m_stub_x;
   p_m_stub_y = &m_stub_y;
   p_m_stub_z = &m_stub_z;
-  p_m_clus_zmc = &m_clus_zmc;
-  p_m_stub_clust1 = &m_stub_clust1;
   p_m_stub_pdg = &m_stub_pdg;
   p_m_stub_x0 = &m_stub_x0;
   p_m_stub_y0 = &m_stub_y0;
   p_m_stub_z0 = &m_stub_z0;
 
   TT->SetBranchAddress("STUB_n",         &m_stub);
-  TT->SetBranchAddress("STUB_tp",        &p_m_stub_tp);
-  TT->SetBranchAddress("STUB_layer",     &p_m_stub_layer);
-  TT->SetBranchAddress("STUB_module",    &p_m_stub_module);
-  TT->SetBranchAddress("STUB_ladder",    &p_m_stub_ladder);
-  TT->SetBranchAddress("STUB_pxGEN",     &p_m_stub_pxGEN);
-  TT->SetBranchAddress("STUB_pyGEN",     &p_m_stub_pyGEN);
+  TT->SetBranchAddress("STUB_modid",     &p_m_stub_modid);
+  TT->SetBranchAddress("STUB_ptGEN",     &p_m_stub_ptGEN);
+  TT->SetBranchAddress("STUB_phiGEN",    &p_m_stub_phiGEN);
   TT->SetBranchAddress("STUB_etaGEN",    &p_m_stub_etaGEN);
   TT->SetBranchAddress("STUB_x",         &p_m_stub_x);
   TT->SetBranchAddress("STUB_y",         &p_m_stub_y);
   TT->SetBranchAddress("STUB_z",         &p_m_stub_z);
-  TT->SetBranchAddress("STUB_pdgID",     &p_m_stub_pdg);
-  TT->SetBranchAddress("STUB_clust1",    &p_m_stub_clust1);
-  TT->SetBranchAddress("CLUS_zmc",       &p_m_clus_zmc);
-  TT->SetBranchAddress("STUB_X0",    &p_m_stub_x0);
-  TT->SetBranchAddress("STUB_Y0",    &p_m_stub_y0);
-  TT->SetBranchAddress("STUB_Z0",    &p_m_stub_z0);
+  TT->SetBranchAddress("STUB_pdgGEN",     &p_m_stub_pdg);
+  TT->SetBranchAddress("STUB_xGEN",    &p_m_stub_x0);
+  TT->SetBranchAddress("STUB_yGEN",    &p_m_stub_y0);
+  TT->SetBranchAddress("STUB_zGEN",    &p_m_stub_z0);
 
   int nb_entries = TT->GetEntries();
   cout<<nb_entries<<" events found."<<endl;
@@ -108,7 +98,7 @@ void PrincipalFitGenerator::generatePrincipal(map<int,pair<float,float> > eta_li
     TT->GetEntry(evtIndex++);
 
     if(evtIndex%100000==0)
-      cout<<"Event "<<evtIndex<<endl;
+      cout<<"PCA : Event "<<evtIndex<<endl;
 
     if(!selectTrack(tracker_layers, layers, ladder_per_layer, module_per_layer, eta_limits, min_pt, max_pt, min_eta, max_eta))
       continue;
@@ -119,7 +109,12 @@ void PrincipalFitGenerator::generatePrincipal(map<int,pair<float,float> > eta_li
       continue;
     }
 
-    double sec_phi = (2*M_PI/nb_ladders)*(sector->getLadderCode(tracker_layers[0],CMSPatternLayer::getLadderCode(tracker_layers[0],m_stub_ladder[layers[0]])));
+    int modid = m_stub_modid[layers[0]];
+    int first_layer = modid/1000000;
+    modid = modid-first_layer*1000000;
+    int first_ladder = modid/10000;
+
+    double sec_phi = (2*M_PI/nb_ladders)*(sector->getLadderCode(tracker_layers[0],CMSPatternLayer::getLadderCode(tracker_layers[0],first_ladder)));
 
     PrincipalTrackFitter* fitter = (PrincipalTrackFitter*)sector->getFitter();
     if(fitter==NULL){
@@ -135,16 +130,20 @@ void PrincipalFitGenerator::generatePrincipal(map<int,pair<float,float> > eta_li
     for(unsigned int i=0;i<tracker_layers.size();i++){
       int j = layers[i];
       
+      int value = m_stub_modid[j];
+      int layer = value/1000000;
+      value = value-layer*1000000;
+      int ladder = value/10000;
+      value = value-ladder*10000;
+      int module = value/100;
+
       data_coord[i*3]=m_stub_x[j];
       data_coord[i*3+1]=m_stub_y[j];
-      if(m_stub_layer[j]>7)
-	data_coord[i*3+2]=m_stub_z[j];
-      else
-	data_coord[i*3+2]=m_clus_zmc[m_stub_clust1[j]];
+      data_coord[i*3+2]=m_stub_z[j];
 
-      data_tracker[i*3]=sector->getLayerIndex(m_stub_layer[j]);
-      data_tracker[i*3+1]=sector->getLadderCode(m_stub_layer[j],m_stub_ladder[j]);
-      data_tracker[i*3+2] = sector->getModuleCode(m_stub_layer[j], CMSPatternLayer::getLadderCode(m_stub_layer[j],m_stub_ladder[j]), CMSPatternLayer::getModuleCode(m_stub_layer[j],m_stub_module[j]));
+      data_tracker[i*3]=sector->getLayerIndex(layer);
+      data_tracker[i*3+1]=sector->getLadderCode(layer,ladder);
+      data_tracker[i*3+2] = sector->getModuleCode(layer, CMSPatternLayer::getLadderCode(layer,ladder), CMSPatternLayer::getModuleCode(layer,module));
     }
 
     fitter->addTrackForPrincipal(data_tracker, data_coord);
@@ -200,12 +199,12 @@ void PrincipalFitGenerator::generateMultiDim(map<int,pair<float,float> > eta_lim
   vector<int> module_per_layer(tracker_layers.size());
 
   int max_tracks_number = 10000000;
-
+  
   while(evtIndex<n_entries_TT){
     TT->GetEntry(evtIndex++);
 
     if(evtIndex%100000==0)
-      cout<<"Event "<<evtIndex<<endl;
+      cout<<"MultiDim : Event "<<evtIndex<<endl;
 
     if(!selectTrack(tracker_layers, layers, ladder_per_layer, module_per_layer, eta_limits, min_pt, max_pt, min_eta, max_eta))
       continue;
@@ -223,6 +222,10 @@ void PrincipalFitGenerator::generateMultiDim(map<int,pair<float,float> > eta_lim
       cout<<"No fitter associated to the sector!"<<endl;
       break;
     }
+    if(!fitter->hasPrincipalParams()){
+      cout<<"No principal parameters found!"<<endl;
+      break;
+    }
 
     double data_coord[3*tracker_layers.size()];
     int data_tracker[3*tracker_layers.size()];
@@ -230,41 +233,42 @@ void PrincipalFitGenerator::generateMultiDim(map<int,pair<float,float> > eta_lim
     for(unsigned int i=0;i<tracker_layers.size();i++){
       int j = layers[i];
       
+      int value = m_stub_modid[j];
+      int layer = value/1000000;
+      value = value-layer*1000000;
+      int ladder = value/10000;
+      value = value-ladder*10000;
+      int module = value/100;
+
       //data_coord[i*3]=m_stub_x[j]*cos(sec_phi)+m_stub_y[j]*sin(sec_phi);
       //data_coord[i*3+1]=-m_stub_x[j]*sin(sec_phi)+m_stub_y[j]*cos(sec_phi);
       data_coord[i*3]=m_stub_x[j];
       data_coord[i*3+1]=m_stub_y[j];
-      if(m_stub_layer[j]>7)
-	data_coord[i*3+2]=m_stub_z[j];
-      else
-	data_coord[i*3+2]=m_clus_zmc[m_stub_clust1[j]];
+      data_coord[i*3+2]=m_stub_z[j];
 
-      data_tracker[i*3]=sector->getLayerIndex(m_stub_layer[j]);
-      data_tracker[i*3+1]=sector->getLadderCode(m_stub_layer[j],CMSPatternLayer::getLadderCode(m_stub_layer[j],m_stub_ladder[j]));
-      data_tracker[i*3+2] = sector->getModuleCode(m_stub_layer[j], CMSPatternLayer::getLadderCode(m_stub_layer[j],m_stub_ladder[j]), CMSPatternLayer::getModuleCode(m_stub_layer[j],m_stub_module[j]));
+      data_tracker[i*3]=sector->getLayerIndex(layer);
+      data_tracker[i*3+1]=sector->getLadderCode(layer,CMSPatternLayer::getLadderCode(layer,ladder));
+      data_tracker[i*3+2] = sector->getModuleCode(layer, CMSPatternLayer::getLadderCode(layer,ladder), CMSPatternLayer::getModuleCode(layer,module));
     }
 
     int charge = m_stub_pdg[layers[0]]/abs(m_stub_pdg[layers[0]]);
-    double pt_GEN = sqrt(m_stub_pxGEN[layers[0]]*m_stub_pxGEN[layers[0]]+m_stub_pyGEN[layers[0]]*m_stub_pyGEN[layers[0]]);
-    double phi0 = atan2(m_stub_pyGEN[layers[0]],m_stub_pxGEN[layers[0]]);
-    double d0 = (m_stub_y0[layers[0]]-tan(phi0)*m_stub_x0[layers[0]])*cos(phi0);
-    //double d0 = 10.0;
+    double d0 = (m_stub_y0[layers[0]]-tan(m_stub_phiGEN[layers[0]])*m_stub_x0[layers[0]])*cos(m_stub_phiGEN[layers[0]]);
 
     double values[5];
-    values[0] = charge*pt_GEN;//PT
-    values[1] = phi0;
+    values[0] = charge*m_stub_ptGEN[layers[0]];//PT
+    values[1] = m_stub_phiGEN[layers[0]];
     values[2] = d0;
     values[3] = m_stub_etaGEN[layers[0]];
     values[4] = m_stub_z0[layers[0]];
 
     fitter->addTrackForMultiDimFit(data_tracker, data_coord, values);
+
     if(fitter->hasMultiDimFitParams())//The params are computed->we stop the process
       break;
 
     if(evtIndex>max_tracks_number){
       fitter->forceMultiDimFitParamsComputing();
     }
-
   }
 
   delete TT;
@@ -288,27 +292,30 @@ bool PrincipalFitGenerator::selectTrack(vector<int> &tracker_layers, int* layers
 
     for(int j=0;j<m_stub;j++){
 
-      //cout<<"layer "<<m_stub_layer[j]<<" ladder "<<m_stub_ladder[j]<<" module "<<m_stub_module[j]<<endl;
-
       if(m_stub_etaGEN[j]<min_eta){// eta of the generating particule is bellow the threshold -> we do not use it
       	return false;
       }
       if(m_stub_etaGEN[j]>max_eta){// eta of the generating particule is above the threshold -> we do not use it
       	return false;
       }
-      float pt_GEN = sqrt(m_stub_pxGEN[j]*m_stub_pxGEN[j]+m_stub_pyGEN[j]*m_stub_pyGEN[j]);
-      if(pt_GEN<min_pt){// The PT of the generating particule is below the minimum required -> we do not use it
+
+      if(m_stub_ptGEN[j]<min_pt){// The PT of the generating particule is below the minimum required -> we do not use it
 	return false;
       }
-      if(pt_GEN>max_pt){// The PT of the generating particule is above the maximum accepted -> we do not use it
+      if(m_stub_ptGEN[j]>max_pt){// The PT of the generating particule is above the maximum accepted -> we do not use it
 	return false;
       }
 
-      int layer = m_stub_layer[j];
-      
+      int value = m_stub_modid[j];
+      int modid_layer = value/1000000;
+      value = value-modid_layer*1000000;
+      int modid_ladder = value/10000;
+      value = value-modid_ladder*10000;
+      int modid_module = value/100;
+
       int layer_position=-1;
       for(unsigned int cpt=0;cpt<tracker_layers.size();cpt++){
-	if(layer==tracker_layers[cpt]){
+	if(modid_layer==tracker_layers[cpt]){
 	  layer_position=(int)cpt;
 	  break;
 	}
@@ -316,9 +323,9 @@ bool PrincipalFitGenerator::selectTrack(vector<int> &tracker_layers, int* layers
       
       if(layer_position!=-1){ // is this layer in the layer list?
 	layers[layer_position]=j;
-	ladder_per_layer[layer_position]=CMSPatternLayer::getLadderCode(layer,m_stub_ladder[j]);
+	ladder_per_layer[layer_position]=CMSPatternLayer::getLadderCode(modid_layer,modid_ladder);
 	short module = -1;
-	module = CMSPatternLayer::getModuleCode(layer, m_stub_module[j]);
+	module = CMSPatternLayer::getModuleCode(modid_layer, modid_module);
 	module_per_layer[layer_position]=module;
       }
       

@@ -19,18 +19,13 @@ class PrincipalFitGenerator{
 
   // Containers to load the TTree branches
   int m_stub;
-  vector<int>                   m_stub_tp;  // tp of the particule
-  vector<int>                   m_stub_layer;  // Layer du stub (5 a 10 pour les 6 layers qui nous interessent)
-  vector<int>                   m_stub_module; // Position en Z du module contenant le stub
-  vector<int>                   m_stub_ladder; // Position en PHI du module contenant le stub
-  vector<float>                 m_stub_pxGEN;  // Px de la particule initiale (en GeV/c)
-  vector<float>                 m_stub_pyGEN;  // Py de la particule initiale (en GeV/c)
+  vector<int>                   m_stub_modid;  // Layer/ladder/module du stub
+  vector<float>                 m_stub_ptGEN;  // Pt de la particule initiale (en GeV/c)
+  vector<float>                 m_stub_phiGEN;  // Phi0 de la particule initiale (en GeV/c)
   vector<float>                 m_stub_etaGEN;  // Eta de la particule initiale
   vector<float>                 m_stub_x;      // x coordinate of the hit
   vector<float>                 m_stub_y;      // y coordinate of the hit
   vector<float>                 m_stub_z;      // z coordinate of the hit
-  vector<float>                 m_clus_zmc;
-  vector<int>                   m_stub_clust1;
   vector<int>                   m_stub_pdg;
   vector<float>                 m_stub_x0;
   vector<float>                 m_stub_y0;
@@ -38,18 +33,13 @@ class PrincipalFitGenerator{
 
   
 
-  vector<int>                   *p_m_stub_tp;
-  vector<int>                   *p_m_stub_layer;
-  vector<int>                   *p_m_stub_module;
-  vector<int>                   *p_m_stub_ladder;
-  vector<float>                 *p_m_stub_pxGEN;
-  vector<float>                 *p_m_stub_pyGEN;
+  vector<int>                   *p_m_stub_modid;
+  vector<float>                 *p_m_stub_ptGEN;
+  vector<float>                 *p_m_stub_phiGEN;
   vector<float>                 *p_m_stub_etaGEN;
   vector<float>                 *p_m_stub_x;
   vector<float>                 *p_m_stub_y;
   vector<float>                 *p_m_stub_z;
-  vector<float>                 *p_m_clus_zmc;
-  vector<int>                   *p_m_stub_clust1;
   vector<int>                   *p_m_stub_pdg;
   vector<float>                 *p_m_stub_x0;
   vector<float>                 *p_m_stub_y0;

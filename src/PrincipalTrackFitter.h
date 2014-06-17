@@ -80,6 +80,10 @@ class PrincipalTrackFitter:public TrackFitter{
      \brief Force the computing of the MDF parameters, even if we have only few tracks in the sub-sectors
   **/
   void forceMultiDimFitParamsComputing();
+  /**
+     \brief Remove the subsectors here the eigen vector is made of NaN values
+  **/
+  void removeNanSubsectors();
 
 };
 #endif

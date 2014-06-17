@@ -76,7 +76,7 @@ MultiDimFitData::MultiDimFitData(const MultiDimFitData& ref){
 }
 
 MultiDimFitData::MultiDimFitData(TMultiDimFit* m, int nb){
-  cout<<"Construction multidimfitdata"<<endl;
+  //cout<<"Construction multidimfitdata"<<endl;
   gNVariables=m->GetNVariables();
   gNCoefficients=m->GetNCoefficients();
   gNMaxTerms = m->GetMaxTerms();

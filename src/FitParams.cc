@@ -5,6 +5,7 @@ FitParams::FitParams(){
   threshold = 1000; 
   principal = NULL;
   nb_principal=0;
+
   transform = new double*[3*nb_layers];
   for(int i=0;i<3*nb_layers;i++){
     transform[i]=new double[3*nb_layers];
@@ -76,11 +77,6 @@ FitParams::FitParams(const FitParams& ref){
 }
 
 void FitParams::init(){
-  for(int i=0;i<3*nb_layers;i++){
-    delete[] transform[i];
-  }
-  delete[] transform;
-
   transform = new double*[3*nb_layers];
   for(int i=0;i<3*nb_layers;i++){
     transform[i]=new double[3*nb_layers];
@@ -160,7 +156,7 @@ void FitParams::computePrincipalParams(){
   
   const TVectorD* m_eigen     = principal->GetEigenValues();
   //  if((*m_eigen)[0]!=(*m_eigen)[0])
-  //  cout<<"NaN value in eigen vector ("<<nb_principal<<" tracks used)!!"<<endl;
+  //    cout<<"NaN value in eigen vector ("<<nb_principal<<" tracks used)!!"<<endl;
   const TMatrixD* m_transform = principal->GetEigenVectors();
   const TVectorD* m_mean      = principal->GetMeanValues();
   const TVectorD* m_sig       = principal->GetSigmas();
@@ -174,6 +170,7 @@ void FitParams::computePrincipalParams(){
     }
   }
   
+  cout<<"Subsector PCA parameters : "<<endl;
   //principal->GetEigenVectors()->Print();
   principal->Print("mse");
   delete principal;
@@ -182,13 +179,16 @@ void FitParams::computePrincipalParams(){
 }
 
 void FitParams::initializeMultiDimFit(TMultiDimFit* f){
-  Int_t mPowers1[]   = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+  Int_t mPowers1[]   = { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+  //Int_t mPowers1[]   = { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
   //Int_t mPowers1[]   = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
   f->SetMaxPowers(mPowers1);
   f->SetMaxFunctions(100);
+  //f->SetMaxFunctions(10);
   f->SetMaxStudy(100);
   f->SetMaxTerms(10);
   f->SetPowerLimit(0.3);
+  //f->SetPowerLimit(0.01);
   f->SetMinAngle(1);
 }
 
@@ -356,4 +356,10 @@ int  FitParams::getNbPrincipalTracks(){
 
 int FitParams:: getNbMultiDimFitTracks(){
   return nb_multidimfit;
+}
+
+bool FitParams::eigenContainsNan(){
+  if(eigen.size()>0)
+    return (eigen[0]!=eigen[0]);
+  return false;
 }

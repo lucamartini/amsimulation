@@ -154,9 +154,7 @@ void PrincipalTrackFitter::addTrackForMultiDimFit(int* tracker, double* coord, d
   val[2] = val[2]/cos(phi0);
   val[3] = sinh(val[3])/cos(phi0);
 
-  //cout<<oss.str()<<endl;
   fp->addDataForMultiDimFit(coord, val);
-  
 }
 
 bool PrincipalTrackFitter::hasPrincipalParams(){
@@ -178,6 +176,7 @@ void PrincipalTrackFitter::forcePrincipalParamsComputing(){
       }
     }
   }
+  removeNanSubsectors();// if a subsector has NaN values in the eigen vector -> remove the subsector
 }
 
 bool PrincipalTrackFitter::hasMultiDimFitParams(){
@@ -193,6 +192,15 @@ void PrincipalTrackFitter::forceMultiDimFitParamsComputing(){
   for(map<string, FitParams*>::iterator itr = params.begin(); itr != params.end(); ++itr){
     if(!itr->second->hasMultiDimFitParams()){
       itr->second->forceMultiDimFitParamsComputing();
+    }
+  }
+}
+
+void PrincipalTrackFitter::removeNanSubsectors(){
+  for(map<string, FitParams*>::iterator itr = params.begin(); itr != params.end(); ++itr){
+    if(itr->second->eigenContainsNan()){
+      cout<<"************** REMOVING A SUBSECTOR WITH NaN VALUES!!!!! ******************"<<endl;
+      params.erase(itr->first);
     }
   }
 }

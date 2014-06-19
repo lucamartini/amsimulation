@@ -17,7 +17,7 @@ using namespace std;
 
 
 /**
-   \brief First version of a CMS pattern structure (16 bits are used)
+   \brief First version of a CMS pattern structure (15 bits are used)
    Also contains all the detector geometry :
      - ids of layers
      - number of ladders per layer
@@ -30,14 +30,14 @@ using namespace std;
 
 class CMSPatternLayer : public PatternLayer{
  private:
-  static const short MOD_START_BIT = 11;
-  static const short PHI_START_BIT = 7;
+  static const short MOD_START_BIT = 10;
+  static const short PHI_START_BIT = 6;
   static const short STRIP_START_BIT = 1;
   static const short SEG_START_BIT = 0;
 
   static const short MOD_MASK = 0x1F;
   static const short PHI_MASK = 0xF;
-  static const short STRIP_MASK = 0x3F;
+  static const short STRIP_MASK = 0x1F;
   static const short SEG_MASK = 0x1;
 
   friend class boost::serialization::access;

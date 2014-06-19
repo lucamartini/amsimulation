@@ -945,7 +945,7 @@ int main(int av, char** ac){
     pg.setMaxFakeSuperstrips(maxNbFake);
     TFile f(rootFileName.c_str(), "recreate");
     pg.setVariableResolution(dcBits);
-    pg.generate(&st, 40000, threshold, eta);
+    pg.generate(&st, 10000, threshold, eta);
 
 
     if(pg.getVariableResolutionState()>0){

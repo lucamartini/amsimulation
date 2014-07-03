@@ -315,17 +315,16 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	module = value/100;
 	value = value-module*100;
 	seg = value;
-	//cout<<" ladder : "<<ladder<<" module : "<<module<<" segment : "<<seg<<endl;
-	
+
+	seg = CMSPatternLayer::getSegmentCode(tracker_layers[j], CMSPatternLayer::getLadderCode(tracker_layers[j],ladder), seg);	
+	//convertion to sector relative positions
 	module = sector->getModuleCode(tracker_layers[j], CMSPatternLayer::getLadderCode(tracker_layers[j],ladder), CMSPatternLayer::getModuleCode(tracker_layers[j],module));
 	ladder=sector->getLadderCode(tracker_layers[j],CMSPatternLayer::getLadderCode(tracker_layers[j],ladder));
 	
-	//	cout<<"Layer "<<tracker_layers[j]<<" ladder "<<m_stub_ladder[stub_number]<<" module "<<m_stub_module[stub_number]<<" devient ladder "<<ladder<<" module "<<module<<endl;
 	strip = m_stub_strip[stub_number]/superStripSize;
 	if(variableRes){
 	  stripLD = strip/ld_fd_factor;
 	}
-	seg =  CMSPatternLayer::getSegmentCode(tracker_layers[j], CMSPatternLayer::getLadderCode(tracker_layers[j],ladder), seg);
       }
       /*
       cout<<"Event "<<*evtIndex<<endl;

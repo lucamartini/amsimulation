@@ -103,6 +103,10 @@ void PatternTree::linkCuda(patternBank* p, deviceDetector* d, const vector< vect
     //cout<<"pattern "<<counter<<endl;
     itr->second->linkCuda(p, d, counter, sec, modules, layers, cache);
     counter++;
+    if(counter%10000==0){
+      cout<<counter*100/patterns.size()<<"%\r";
+      cout.flush();
+    }
   } 
   delete[] cache;
 }

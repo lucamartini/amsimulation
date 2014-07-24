@@ -1259,7 +1259,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   const int MAX_NB_PATTERNS = 1500;
   const int MAX_NB_HITS = 100;
   const int MAX_NB_LADDERS_PER_LAYER = 16;
-  const int MAX_NB_LAYERS = 8;
+  const int MAX_NB_LAYERS = 9;
   
   int nb_layers;
   int nb_patterns=0;
@@ -1275,6 +1275,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   int superStrip_layer_5[MAX_NB_PATTERNS];
   int superStrip_layer_6[MAX_NB_PATTERNS];
   int superStrip_layer_7[MAX_NB_PATTERNS];
+  int superStrip_layer_8[MAX_NB_PATTERNS];
   int pattern_sector_id[MAX_NB_PATTERNS];
   
   //Array containing the strips arrays
@@ -1287,6 +1288,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   superStrips[5]=superStrip_layer_5;
   superStrips[6]=superStrip_layer_6;
   superStrips[7]=superStrip_layer_7;
+  superStrips[8]=superStrip_layer_8;
 
   int sector_id=0;
   int sector_layers=0;
@@ -1300,6 +1302,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   int sector_layer_5[MAX_NB_LADDERS_PER_LAYER];
   int sector_layer_6[MAX_NB_LADDERS_PER_LAYER];
   int sector_layer_7[MAX_NB_LADDERS_PER_LAYER];
+  int sector_layer_8[MAX_NB_LADDERS_PER_LAYER];
 
   int* sector_layers_detail[MAX_NB_LAYERS];
   sector_layers_detail[0]=sector_layer_0;
@@ -1310,6 +1313,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   sector_layers_detail[5]=sector_layer_5;
   sector_layers_detail[6]=sector_layer_6;
   sector_layers_detail[7]=sector_layer_7;
+  sector_layers_detail[8]=sector_layer_8;
 
   int nbHitPerPattern[MAX_NB_PATTERNS];
 
@@ -1350,6 +1354,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   SectorOut->Branch("sectorLadders_layer_5",  sector_layer_5, "sectorLadders_layer_5[16]/I");
   SectorOut->Branch("sectorLadders_layer_6",  sector_layer_6, "sectorLadders_layer_6[16]/I");
   SectorOut->Branch("sectorLadders_layer_7",  sector_layer_7, "sectorLadders_layer_7[16]/I");
+  SectorOut->Branch("sectorLadders_layer_8",  sector_layer_8, "sectorLadders_layer_8[16]/I");
 
   Out->Branch("nbLayers",            &nb_layers);
   Out->Branch("nbPatterns",          &nb_patterns);
@@ -1368,6 +1373,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   Out->Branch("superStrip5",         superStrip_layer_5, "superStrip5[nbPatterns]/I");
   Out->Branch("superStrip6",         superStrip_layer_6, "superStrip6[nbPatterns]/I");
   Out->Branch("superStrip7",         superStrip_layer_7, "superStrip7[nbPatterns]/I");
+  Out->Branch("superStrip8",         superStrip_layer_8, "superStrip8[nbPatterns]/I");
   Out->Branch("nbStubs",             nbHitPerPattern, "nbStubs[nbPatterns]/I");
   
   Out->Branch("track_pt",             track_pt, "track_pt[nbTracks]/F");

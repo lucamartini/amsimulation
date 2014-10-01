@@ -3,6 +3,8 @@
 PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of){
   superStripSize = sp;
   active_threshold = at;
+  max_nb_missing_hit = 0;
+  useMissingHits=false;
   sectors = st;
   eventsFilename = f;
   outputFileName = of;
@@ -36,6 +38,8 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
 PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
   superStripSize = sp;
   active_threshold = at;
+  max_nb_missing_hit=0;
+  useMissingHits=false;
   sectors = st;
   eventsFilename = f;
   outputFileName = of;
@@ -1690,7 +1694,12 @@ vector<Sector*> PatternFinder::find(vector<Hit*> hits){
     //cout<<*hits[i]<<endl;
     tracker.receiveHit(*hits[i]);
   }
-  return sectors->getActivePatternsPerSector(active_threshold);
+  if(useMissingHits){
+    return sectors->getActivePatternsPerSectorUsingMissingHit(max_nb_missing_hit, active_threshold);
+  }
+  else{
+    return sectors->getActivePatternsPerSector(active_threshold);
+  }
 }
 
 #ifdef USE_CUDA
@@ -1773,4 +1782,9 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
     num_evt++;
   }
   delete TT;
+}
+
+void PatternFinder::useMissingHitThreshold(int max_nb_missing_hit){
+  useMissingHits=true;
+  this->max_nb_missing_hit = max_nb_missing_hit;
 }

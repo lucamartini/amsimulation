@@ -4,6 +4,8 @@ Pattern::Pattern(int nb){
   nb_layer = nb;
   strips=NULL;
   nb_strips=NULL;
+  nbFakeSSKnown=false;
+  nbFakeSS=0;
   for(int i=0;i<nb_layer;i++){
     layer_strips.push_back(NULL);
   }
@@ -13,6 +15,8 @@ Pattern::Pattern(){
   nb_layer = 3;
   strips=NULL;
   nb_strips=NULL;
+  nbFakeSSKnown=false;
+  nbFakeSS=0;
   for(int i=0;i<nb_layer;i++){
     layer_strips.push_back(NULL);
   }
@@ -22,6 +26,8 @@ Pattern::Pattern(const Pattern& p){
   nb_layer = p.nb_layer;
   nb_strips = NULL;
   strips = NULL;
+  nbFakeSSKnown=false;
+  nbFakeSS=0;
 
   if(p.strips!=NULL){
     nb_strips=new char[nb_layer];
@@ -88,6 +94,28 @@ bool Pattern::isActive(int active_threshold){
   }
   if(score>=active_threshold)
     return true;
+  else
+    return false;
+}
+
+bool Pattern::isActiveUsingMissingHit(int nb_allowed_missing_hit, int active_threshold){
+  int score=0;
+  if(strips!=NULL){
+    for(int i=0;i<nb_layer;i++){
+      for(int j=0;j<(int)nb_strips[i];j++){
+	if(strips[i][j]->isHit()){
+	  score++;
+	  break;
+	}
+      }
+    }
+  }
+  int limit=nb_layer-getNbFakeSuperstrips()-nb_allowed_missing_hit;
+  if(limit<active_threshold)
+    limit=active_threshold;
+  if(score>=limit){
+    return true;
+  }
   else
     return false;
 }
@@ -203,11 +231,17 @@ ostream& operator<<(ostream& out, const Pattern& s){
 }
 
 int Pattern::getNbFakeSuperstrips(){
-  int score = 0;
-  for(int k=0;k<getNbLayers();k++){
-    PatternLayer* mp = getLayerStrip(k);
-    if(mp->isFake())
-      score++;
+  if(nbFakeSSKnown)
+    return nbFakeSS;
+  else{
+    int score = 0;
+    for(int k=0;k<getNbLayers();k++){
+      PatternLayer* mp = getLayerStrip(k);
+      if(mp->isFake())
+	score++;
+    }
+    nbFakeSSKnown=true;
+    nbFakeSS=score;
+    return score;
   }
-  return score;
 }

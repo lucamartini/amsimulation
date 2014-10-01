@@ -750,6 +750,7 @@ int main(int av, char** ac){
     ("bankFile", po::value<string>(), "The patterns bank file to use")
     ("outputFile", po::value<string>(), "The root output file")
     ("ss_threshold", po::value<int>(), "The minimum number of hit superstrips to activate a pattern")
+    ("ss_missingHits", po::value<int>(), "The maximum number of non activated layers to activate a pattern. --ss_threshold is used as a mandatory minimum value.")
     ("startEvent", po::value<int>(), "The first event index")
     ("stopEvent", po::value<int>(), "The last event index")
     ("decode", po::value<int>(), "Decode the given super strip")
@@ -1079,11 +1080,25 @@ int main(int av, char** ac){
     }
     else{
 #endif
-      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
+      int nbMissingHit=0;
+      int threshold=0;
+      if(vm.count("ss_missingHits")){
+	  nbMissingHit=vm["ss_missingHits"].as<int>();
+	  threshold=vm["ss_threshold"].as<int>();
+      }
+      else{
+	nbMissingHit=-1;
+	threshold=vm["ss_threshold"].as<int>();
+      }
+      PatternFinder pf(st.getSuperStripSize(), threshold, &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
       {
 	boost::progress_timer t;
 	int start = vm["startEvent"].as<int>();
 	int stop = vm["stopEvent"].as<int>();
+
+	if(vm.count("ss_missingHits")){
+	    pf.useMissingHitThreshold(nbMissingHit);
+	}
 	pf.find(start, stop);
 	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;
       }

@@ -84,6 +84,13 @@ GradedPattern* PatternTrunk::getActivePattern(int active_threshold){
   return NULL;
 }
 
+GradedPattern* PatternTrunk::getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold){
+  if(lowDefPattern->isActiveUsingMissingHit(max_nb_missing_hit, active_threshold)){
+    return new GradedPattern(*lowDefPattern);
+  }
+  return NULL;
+}
+
 void PatternTrunk::deleteFDPatterns(){
   for(map<string, GradedPattern*>::iterator itr = fullDefPatterns.begin(); itr != fullDefPatterns.end(); ++itr){
     delete itr->second;

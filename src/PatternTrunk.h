@@ -108,6 +108,13 @@ class PatternTrunk{
      \return A pointer on the copy
   **/
   GradedPattern* getActivePattern(int active_threshold);
+  /**
+     \brief Returns a copy of the active pattern
+     \param max_nb_missing_hit The maximum number of non active layers to activate the pattern 
+     \param active_threshold The minimum number of active super strips to activate the pattern
+     \return A pointer on the copy
+  **/
+  GradedPattern* getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold);
 
   /**
      \brief Check if the high resolution pattern is already in the bank when DC bits are activated

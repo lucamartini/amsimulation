@@ -4,7 +4,7 @@ SRC=src
 
 CUDA_ENABLED=false
 CUDA_ROOTDIR=/usr/local/cuda/
-CUDA_EXAMPLEDIR=~mirabito/cuda_examples/NVIDIA_CUDA-5.5_Samples/common/
+CUDA_EXAMPLEDIR=${CUDA_ROOTDIR}/samples/common/
 
 ifeq ($(UNAME), Darwin)
 	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}

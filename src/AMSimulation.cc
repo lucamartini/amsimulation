@@ -30,6 +30,9 @@ BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer)
 BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter) 
 #endif
 
+//Define the version of the CMSPatternLayer class
+BOOST_CLASS_VERSION(CMSPatternLayer, 1)
+
 using namespace std;
 
 /**
@@ -155,16 +158,19 @@ If you compiled the program using the cuda libraries, you can add the --useGPU f
    \endcode
 
    \subsection view Viewing the content of a pattern bank
-   You can display the patterns contained in a patterns bank file using the command :
+   You can display the patterns contained in a patterns bank file using the command:
    \code
    ./AMSimulation --printBank --bankFile <You patterns bank file>
    \endcode
+   The interpretation of the DC bits is a bit tricky. Inside the pattern, the superstrip position is stored using gray encoding. If you have 'strip 3 (11X)' you have to convert the decimal value 3 to gray code : '10' then append the DC bits to that value : '1011X' which corresponds to 2 values : '10110' and '10111'. Those two gray values correspond to the decimal values 27 and 26 which are the high resolution indices of the superstrips in the module.
+
+
    If you are more interested in the encoding of the patterns you can display the patterns with a decimal representation of each pattern layer :
    \code
    ./AMSimulation --printBankBinary --bankFile <You patterns bank file>
    \endcode
 
-   It should display one pattern per line.
+   It should display one pattern per line. The interpretation process is the following : if you have '11014 (00X)' you have to convert the decimal value 11014 to binary : '00101 0110 000011 0'. The first 5 bits are the Z position of the module (00101 is 5 in decimal), then you have the index of the ladder (0110 is 6), the last bit is the segment (0 is 0). 000011 gives you the superstrip position and is encoded using gray code. You have to append the DC bits : 00001100X which corresponds to 2 values : 000011000 and 000011001. The decimal values of these gray encoded binary values are 16 and 17 which are the indices of the high resolution superstrips inside the module.
 
 
    \author Guillaume Baulieu g.baulieu@ipnl.in2p3.fr

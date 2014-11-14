@@ -1577,13 +1577,16 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
     
     bool* active_stubs = new bool[cuda_nb_hits];
     cudaGetActiveStubs(active_stubs,d_stubs,&cuda_nb_hits);
-    /*
+    
     cout<<"Selected stubs : "<<endl;
+    int total_nb_stubs = 0;
     for(int i=0;i<cuda_nb_hits;i++){
-      if(active_stubs[i])
+      if(active_stubs[i]){
 	cout<<*(hits[i])<<endl;
+	total_nb_stubs++;
+      }
     }
-    */
+    cout<<"Total nb stubs : "<<total_nb_stubs<<endl;
 
     //Traitement des patterns actif : enregistrement, affichage...
     nb_layers = tracker.getNbLayers();

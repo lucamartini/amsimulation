@@ -18,11 +18,10 @@ bool CMSPatternLayer::isFake(){
 
 vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d){
   int nb_dc = getDCBitsNumber();
-  int factor = (int)pow(2.0,nb_dc);
   vector<SuperStrip*> v;
 
   if(isFake()){ // this is a fake superstrip! We link it to the dump superstrip
-    vector<string> positions = getPositionsFromDC();
+    vector<short> positions = getPositionsFromDC();
     for(unsigned int i=0;i<positions.size();i++){
       SuperStrip* patternStrip = d.getDump();
       v.push_back(patternStrip);
@@ -41,10 +40,11 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
 	if(patternModule!=NULL){
 	  Segment* patternSegment = patternModule->getSegment(getSegment());
 	  if(patternSegment!=NULL){
-	    int base_index = getStrip()*factor;
-	    vector<string> positions=getPositionsFromDC();
+	    int base_index = getStripCode()<<nb_dc;
+	    vector<short> positions=getPositionsFromDC();
 	    for(unsigned int i=0;i<positions.size();i++){
-	      SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(base_index+PatternLayer::GRAY_POSITIONS[positions[i]]);
+	      int index = base_index | positions[i];
+	      SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(grayToBinary(index));
 	      v.push_back(patternStrip);
 	    }
 	    return v;
@@ -60,7 +60,6 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
 #ifdef USE_CUDA
 void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, int layerID, unsigned int* v){
   int nb_dc = getDCBitsNumber();
-  int factor = (int)pow(2.0,nb_dc);
 
   if(isFake()){ // this is a fake superstrip! -> No index
     return;
@@ -72,10 +71,11 @@ void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const ma
       map<int, vector<int> >::const_iterator iterator = modules.find(ladderID); // get the vector of module IDs for this ladder
       int moduleID = iterator->second[getModule()];// get the module ID from its position
       int segment = getSegment();
-      int base_index = getStrip()*factor;
-      vector<string> positions=getPositionsFromDC();
+      int base_index = getStripCode()<<nb_dc;
+      vector<short> positions=getPositionsFromDC();
       for(unsigned int i=0;i<positions.size();i++){
-	int index = layer_index*SIZE_LAYER+ladderID*SIZE_LADDER+moduleID*SIZE_MODULE+segment*SIZE_SEGMENT+base_index+PatternLayer::GRAY_POSITIONS[positions[i]];
+	int strip_index = base_index | positions[i];
+	int index = layer_index*SIZE_LAYER+ladderID*SIZE_LADDER+moduleID*SIZE_MODULE+segment*SIZE_SEGMENT+grayToBinary(strip_index);
 	v[i]=index;
       }
       return;
@@ -85,7 +85,22 @@ void CMSPatternLayer::getSuperStripCuda(int l, const vector<int>& ladd, const ma
 }
 #endif
 
+short CMSPatternLayer::binaryToGray(short num)
+{
+  return (num >> 1) ^ num;
+}
+
+short CMSPatternLayer::grayToBinary(short gray)
+{
+  gray ^= (gray >> 8);
+  gray ^= (gray >> 4);
+  gray ^= (gray >> 2);
+  gray ^= (gray >> 1);
+  return(gray);
+}
+
 void CMSPatternLayer::setValues(short m, short phi, short strip, short seg){
+  strip=binaryToGray(strip);
   bits |= (m&MOD_MASK)<<MOD_START_BIT |
     (phi&PHI_MASK)<<PHI_START_BIT |
     (strip&STRIP_MASK)<<STRIP_START_BIT |
@@ -105,6 +120,13 @@ short CMSPatternLayer::getPhi(){
 }
 
 short CMSPatternLayer::getStrip(){
+  int val = bits.to_ulong();
+  short r = (val>>STRIP_START_BIT)&STRIP_MASK;
+  r=grayToBinary(r);
+  return r;
+}
+
+short CMSPatternLayer::getStripCode(){
   int val = bits.to_ulong();
   short r = (val>>STRIP_START_BIT)&STRIP_MASK;
   return r;

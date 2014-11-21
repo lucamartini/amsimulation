@@ -15,6 +15,7 @@
 #endif
 
 #include <boost/serialization/split_member.hpp>
+#include <boost/serialization/map.hpp>
 
 using namespace std;
 
@@ -226,4 +227,5 @@ class PatternLayer{
   BOOST_SERIALIZATION_SPLIT_MEMBER()
   
 };
+BOOST_CLASS_VERSION(PatternLayer, 1)
 #endif

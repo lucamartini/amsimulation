@@ -30,10 +30,6 @@ BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer)
 BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter) 
 #endif
 
-//Define the version of the CMSPatternLayer class
-BOOST_CLASS_VERSION(CMSPatternLayer, 1)
-BOOST_CLASS_VERSION(PatternLayer, 1)
-
 using namespace std;
 
 /**

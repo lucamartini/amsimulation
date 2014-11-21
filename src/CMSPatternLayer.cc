@@ -7,6 +7,8 @@ CMSPatternLayer::CMSPatternLayer():PatternLayer(){
 CMSPatternLayer* CMSPatternLayer::clone(){
   CMSPatternLayer* p = new CMSPatternLayer();
   p->bits=this->bits;
+  p->ptValue=this->ptValue;
+  p->useStubPT=this->useStubPT;
   memcpy(p->dc_bits,this->dc_bits, DC_BITS*sizeof(char));
   return p;
 }
@@ -100,6 +102,11 @@ short CMSPatternLayer::grayToBinary(short gray)
 }
 
 void CMSPatternLayer::setValues(short m, short phi, short strip, short seg){
+  if(m>MOD_MASK || phi>PHI_MASK || strip>STRIP_MASK || seg>SEG_MASK){
+    cout<<"Problem with the structure size !"<<endl;
+    cout<<"module "<<m<<" ladder "<<phi<<" strip "<<strip<<" seg "<<seg<<endl;
+    return;
+  }
   strip=binaryToGray(strip);
   bits |= (m&MOD_MASK)<<MOD_START_BIT |
     (phi&PHI_MASK)<<PHI_START_BIT |

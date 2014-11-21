@@ -80,14 +80,16 @@ PatternLayer* Pattern::operator[](int layer){
   return NULL;
 }
 
-bool Pattern::isActive(int active_threshold){
+bool Pattern::isActive(int active_threshold, bool useBend){
   int score=0;
   if(strips!=NULL){
     for(int i=0;i<nb_layer;i++){
       for(int j=0;j<(int)nb_strips[i];j++){
 	if(strips[i][j]->isHit()){
-	  score++;
-	  break;
+	  if(!useBend || layer_strips[i]->getPT()==-1 || strips[i][j]->isHit(layer_strips[i]->getPT())){//we don't care about the bend or we have the correct one
+	    score++;
+	    break;
+	  }
 	}
       }
     }
@@ -98,14 +100,16 @@ bool Pattern::isActive(int active_threshold){
     return false;
 }
 
-bool Pattern::isActiveUsingMissingHit(int nb_allowed_missing_hit, int active_threshold){
+bool Pattern::isActiveUsingMissingHit(int nb_allowed_missing_hit, int active_threshold, bool useBend){
   int score=0;
   if(strips!=NULL){
     for(int i=0;i<nb_layer;i++){
       for(int j=0;j<(int)nb_strips[i];j++){
 	if(strips[i][j]->isHit()){
-	  score++;
-	  break;
+	  if(!useBend || layer_strips[i]->getPT()==-1 || strips[i][j]->isHit(layer_strips[i]->getPT())){
+	    score++;
+	    break;
+	  }
 	}
       }
     }
@@ -247,5 +251,13 @@ int Pattern::getNbFakeSuperstrips(){
     nbFakeSSKnown=true;
     nbFakeSS=score;
     return score;
+  }
+}
+
+void Pattern::updatePT(Pattern* p){
+  if(p!=NULL && nb_layer==p->getNbLayers()){
+    for(int i=0;i<nb_layer;i++){
+      getLayerStrip(i)->updatePT(p->getLayerStrip(i)->getPT());
+    }
   }
 }

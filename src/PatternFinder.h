@@ -22,6 +22,7 @@ class PatternFinder{
   int active_threshold;
   int max_nb_missing_hit;
   bool useMissingHits;
+  bool useBend;
   SectorTree* sectors;
   string eventsFilename;
   string outputFileName;
@@ -115,5 +116,10 @@ class PatternFinder{
      \brief Use the maximum missing hit threshold instead of the active_threshold
    **/
   void useMissingHitThreshold(int max_nb_missing_hit);
+
+  /**
+     \brief Configure the PatternFinder to not use the bend information in the pattern matching
+   **/
+  void doNotUseBendInformation();
 };
 #endif

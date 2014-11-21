@@ -5,6 +5,7 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   active_threshold = at;
   max_nb_missing_hit = 0;
   useMissingHits=false;
+  useBend=true;
   sectors = st;
   eventsFilename = f;
   outputFileName = of;
@@ -40,6 +41,7 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   active_threshold = at;
   max_nb_missing_hit=0;
   useMissingHits=false;
+  useBend=true;
   sectors = st;
   eventsFilename = f;
   outputFileName = of;
@@ -849,6 +851,7 @@ void PatternFinder::find(int start, int& stop){
   short* hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   short* hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
+  int* hit_bend = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_idx = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   bool* hit_used_fit = new bool[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -909,6 +912,7 @@ void PatternFinder::find(int start, int& stop){
   Out->Branch("stub_segment",        hit_segment, "stub_segment[total_nb_stubs]/S");
   Out->Branch("stub_strip",          hit_strip, "stub_strip[total_nb_stubs]/S");
   Out->Branch("stub_tp",             hit_tp,    "stub_tp[total_nb_stubs]/I");
+  Out->Branch("stub_bend",           hit_bend,  "stub_bend[total_nb_stubs]/I");
   Out->Branch("stub_idx",            hit_idx,    "stub_idx[total_nb_stubs]/I");
   Out->Branch("stub_used_fit",       hit_used_fit,"stub_used_fit[total_nb_stubs]/O");
   Out->Branch("stub_ptGEN",          hit_ptGEN, "stub_ptGEN[total_nb_stubs]/F");
@@ -968,6 +972,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           m_stub_seg;    // Segment du module contenant le stub
   vector<float>         m_stub_strip;  // Strip du cluster interne du stub
   vector<int>           m_stub_tp;     // particule du stub
+  vector<float>         m_stub_bend;     // bend du stub
   vector<float>         m_stub_px_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_py_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_x0;     // utilise pour calculer la distance au point d'interaction
@@ -985,6 +990,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           *p_m_stub_seg =    &m_stub_seg;
   vector<float>         *p_m_stub_strip =  &m_stub_strip;
   vector<int>           *p_m_stub_tp =     &m_stub_tp;
+  vector<float>         *p_m_stub_bend =    &m_stub_bend;
   vector<float>         *p_m_stub_pxGEN = &m_stub_px_gen;  
   vector<float>         *p_m_stub_pyGEN = &m_stub_py_gen;  
   vector<float>         *p_m_stub_x0 =     &m_stub_x0;
@@ -1005,6 +1011,7 @@ void PatternFinder::find(int start, int& stop){
   TT->SetBranchAddress("STUB_seg",       &p_m_stub_seg);
   TT->SetBranchAddress("STUB_strip",     &p_m_stub_strip);
   TT->SetBranchAddress("STUB_tp",        &p_m_stub_tp);
+  TT->SetBranchAddress("STUB_deltas",    &p_m_stub_bend);
   TT->SetBranchAddress("STUB_X0",        &p_m_stub_x0);
   TT->SetBranchAddress("STUB_Y0",        &p_m_stub_y0);
   TT->SetBranchAddress("STUB_Z0",        &p_m_stub_z0);
@@ -1055,12 +1062,13 @@ void PatternFinder::find(int start, int& stop){
       float x0 = m_stub_x0[i];
       float y0 = m_stub_y0[i];
       float z0 = m_stub_z0[i];
+      float bend = m_stub_bend[i];
       
       //cout<<layer<<" "<<module<<" "<<ladder<<" "<<segment<<" "<<strip<<endl;
 
       float ip = sqrt(m_stub_x0[i]*m_stub_x0[i]+m_stub_y0[i]*m_stub_y0[i]);
 
-      Hit* h = new Hit(layer,ladder, module, segment, strip, i, tp, spt, ip, eta, phi0, x, y, z, x0, y0, z0);
+      Hit* h = new Hit(layer,ladder, module, segment, strip, i, tp, spt, ip, eta, phi0, x, y, z, x0, y0, z0, bend);
 
       if(sectors->getSector(*h)!=NULL)
 	hits.push_back(h);
@@ -1083,6 +1091,7 @@ void PatternFinder::find(int start, int& stop){
     memset(hit_layer,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(short));
     memset(hit_ladder,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(short));
     memset(hit_tp,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
+    memset(hit_bend,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
     memset(hit_idx,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(int));
     memset(hit_used_fit,false,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(bool));
     memset(hit_ptGEN,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
@@ -1185,6 +1194,7 @@ void PatternFinder::find(int start, int& stop){
 	  hit_segment[stubIndex]=active_hits[k]->getSegment();
 	  hit_strip[stubIndex]=active_hits[k]->getStripNumber();
 	  hit_tp[stubIndex]=active_hits[k]->getParticuleID();
+	  hit_bend[stubIndex]=active_hits[k]->getBend();
 	  hit_idx[stubIndex]=active_hits[k]->getID();
 	  if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
 	    hit_used_fit[stubIndex]=true;
@@ -1243,6 +1253,7 @@ void PatternFinder::find(int start, int& stop){
   delete[] hit_segment;
   delete[] hit_strip;
   delete[] hit_tp;
+  delete[] hit_bend;
   delete[]  hit_idx;
   delete[]  hit_used_fit;
   delete[]  hit_ptGEN;
@@ -1698,10 +1709,10 @@ vector<Sector*> PatternFinder::find(vector<Hit*> hits){
     tracker.receiveHit(*hits[i]);
   }
   if(useMissingHits){
-    return sectors->getActivePatternsPerSectorUsingMissingHit(max_nb_missing_hit, active_threshold);
+    return sectors->getActivePatternsPerSectorUsingMissingHit(max_nb_missing_hit, active_threshold, useBend);
   }
   else{
-    return sectors->getActivePatternsPerSector(active_threshold);
+    return sectors->getActivePatternsPerSector(active_threshold, useBend);
   }
 }
 
@@ -1790,4 +1801,8 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
 void PatternFinder::useMissingHitThreshold(int max_nb_missing_hit){
   useMissingHits=true;
   this->max_nb_missing_hit = max_nb_missing_hit;
+}
+
+void PatternFinder::doNotUseBendInformation(){
+  useBend=false;
 }

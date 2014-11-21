@@ -104,10 +104,10 @@ int SectorTree::getFDPatternNumber(){
   return nb;  
 }
 
-void SectorTree::computeAdaptativePatterns(short r){
+void SectorTree::computeAdaptativePatterns(short r, bool pt){
   for(unsigned int i=0;i<sector_list.size();i++){
     Sector* s=sector_list[i];
-    s->computeAdaptativePatterns(r);
+    s->computeAdaptativePatterns(r, pt);
   }
 }
 
@@ -125,11 +125,11 @@ void SectorTree::linkCuda(patternBank* p, deviceDetector* d){
 }
 #endif
 
-vector<Sector*> SectorTree::getActivePatternsPerSector(int active_threshold){
+vector<Sector*> SectorTree::getActivePatternsPerSector(int active_threshold, bool useBend){
   vector<Sector*> list;
   for(unsigned int i=0;i<sector_list.size();i++){
     Sector* copy = new Sector(*sector_list[i]);
-    vector<GradedPattern*> active_patterns = sector_list[i]->getActivePatterns(active_threshold);
+    vector<GradedPattern*> active_patterns = sector_list[i]->getActivePatterns(active_threshold, useBend);
     for(unsigned int j=0;j<active_patterns.size();j++){
       copy->getPatternTree()->addPattern(active_patterns[j], NULL);
       delete active_patterns[j];
@@ -139,11 +139,11 @@ vector<Sector*> SectorTree::getActivePatternsPerSector(int active_threshold){
   return list;
 }
 
-vector<Sector*> SectorTree::getActivePatternsPerSectorUsingMissingHit(int max_nb_missing_hit, int active_threshold){
+vector<Sector*> SectorTree::getActivePatternsPerSectorUsingMissingHit(int max_nb_missing_hit, int active_threshold, bool useBend){
   vector<Sector*> list;
   for(unsigned int i=0;i<sector_list.size();i++){
     Sector* copy = new Sector(*sector_list[i]);
-    vector<GradedPattern*> active_patterns = sector_list[i]->getActivePatternsUsingMissingHit(max_nb_missing_hit, active_threshold);
+    vector<GradedPattern*> active_patterns = sector_list[i]->getActivePatternsUsingMissingHit(max_nb_missing_hit, active_threshold, useBend);
     for(unsigned int j=0;j<active_patterns.size();j++){
       copy->getPatternTree()->addPattern(active_patterns[j], NULL);
       delete active_patterns[j];

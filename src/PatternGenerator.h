@@ -22,6 +22,7 @@ class PatternGenerator{
  private:
   int superStripSize;
   int variableRes; // number of DC bits used
+  bool useStubPT; // Do we compute the Stub PT DC bit?
   float ptMin;
   float ptMax;
   float etaMin;
@@ -37,11 +38,13 @@ class PatternGenerator{
   vector<float>                 m_stub_strip;  // Strip du cluster interne du stub
   vector<float>                 m_stub_ptGEN;  // PT de la particule initiale
   vector<float>                 m_stub_etaGEN;  // Eta de la particule initiale
+  vector<float>                 m_stub_bend;  // Bend du stub
 
   vector<int>                   *p_m_stub_modid;
   vector<float>                 *p_m_stub_strip;
   vector<float>                 *p_m_stub_ptGEN;
   vector<float>                 *p_m_stub_etaGEN;
+  vector<float>                 *p_m_stub_bend;
 
   TChain* createTChain(string directoryName, string tchainName);
   /**
@@ -111,6 +114,11 @@ class PatternGenerator{
      \return True if activated
   **/
   int getVariableResolutionState();
+  /**
+     \brief Set if we compute the stub PT DC bit in the patterns
+     \param b True if you want to use the Stub PT DC bit
+   **/
+  void setStubPTUsage(bool b);
   /**
      \brief Generates the patterns
      \param sectors This structure contains the interesting sectors, patterns will be added to this structure

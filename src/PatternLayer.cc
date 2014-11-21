@@ -6,6 +6,8 @@ map<string, vector<short> > PatternLayer::positions_cache;
 
 PatternLayer::PatternLayer(){
   bits=0;
+  ptValue=-1;
+  useStubPT = false;
   memset(dc_bits,3,DC_BITS*sizeof(char));
 }
 
@@ -21,6 +23,29 @@ void PatternLayer::setDC(int index, char val){
   if(index<0 || index>=DC_BITS)
     index=0;
   dc_bits[index]=val;
+}
+
+void PatternLayer::setPT(float pt){
+  if(pt<=-1.5)
+    ptValue=0;
+  else if(pt>=1.5)
+    ptValue=1;
+  else
+    ptValue=-1;
+  useStubPT = true;
+}
+
+void PatternLayer::updatePT(signed char pt){
+  if(pt!=ptValue)
+    ptValue=-1;
+}
+
+signed char PatternLayer::getPT(){
+  return ptValue;
+}
+
+bool PatternLayer::getPTUsage(){
+  return useStubPT;
 }
 
 string PatternLayer::getCode(){
@@ -44,10 +69,10 @@ void PatternLayer::setIntValue(int v){
 int PatternLayer::getDCBitsNumber(){
   for(int i=0;i<DC_BITS;i++){
     if(dc_bits[i]==3){
-      return i;
+      return i-useStubPT;
     }
   }
-  return 3;
+  return 3-useStubPT;
 }
 
 void PatternLayer::getPositionsFromDC(vector<char> dc, vector<short>& positions){
@@ -84,7 +109,7 @@ void PatternLayer::getPositionsFromDC(vector<char> dc, vector<short>& positions)
 vector<short> PatternLayer::getPositionsFromDC(){
 
   vector<char> v;
-  for(int i=0;i<DC_BITS;i++){
+  for(int i=0;i<getDCBitsNumber();i++){
     v.push_back(dc_bits[i]);
   }
 

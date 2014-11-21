@@ -76,21 +76,24 @@ class PatternTree{
   /**
      \brief Returns a vector of copies of the active patterns
      \param active_threshold The minimum number of hit super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A vector containing copies of active patterns
   **/
-  void getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns);
+  void getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns, bool useBend=true);
   /**
      \brief Returns a vector of copies of the active patterns
      \brief max_nb_missing_hit The maximum number of non active layers to activate the pattern
      \param active_threshold The minimum number of hit super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A vector containing copies of active patterns
   **/
-  void getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold, vector<GradedPattern*>& active_patterns);
+  void getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold, vector<GradedPattern*>& active_patterns, bool useBend=true);
   /**
      \brief Replace all LD patterns with adapatative patterns. All FD patterns are removed.
      \param r The number of DC bits used between FD and LD
+     \param pt True if we need to use a DC bit for the Stub PT
   **/
-  void computeAdaptativePatterns(short r);
+  void computeAdaptativePatterns(short r, bool pt);
   /**
      \brief Add all LD patterns coming from an other PatternTree
      \param p The PatternTree containing the patterns to add

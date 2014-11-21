@@ -72,8 +72,9 @@ class PatternTrunk{
   /**
      \brief Set the DC bits of the LD patterns. All FD patterns are removed.
      \param r The number of DC bits used between FD and LD
+     \param pt True if we need to use a DC bit for the Stub PT
   **/
-  void computeAdaptativePattern(short r);
+  void computeAdaptativePattern(short r, bool pt);
 
   /**
      \brief Link the low definition patterns to the detector structure
@@ -105,16 +106,18 @@ class PatternTrunk{
   /**
      \brief Returns a copy of the active pattern
      \param active_threshold The minimum number of active super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A pointer on the copy
   **/
-  GradedPattern* getActivePattern(int active_threshold);
+  GradedPattern* getActivePattern(int active_threshold, bool useBend=true);
   /**
      \brief Returns a copy of the active pattern
      \param max_nb_missing_hit The maximum number of non active layers to activate the pattern 
      \param active_threshold The minimum number of active super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A pointer on the copy
   **/
-  GradedPattern* getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold);
+  GradedPattern* getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold, bool useBend=true);
 
   /**
      \brief Check if the high resolution pattern is already in the bank when DC bits are activated

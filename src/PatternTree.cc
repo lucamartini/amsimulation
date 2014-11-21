@@ -150,15 +150,15 @@ int PatternTree::getLDPatternNumber(){
     return v_patterns.size();
 }
 
-void PatternTree::computeAdaptativePatterns(short r){
+void PatternTree::computeAdaptativePatterns(short r, bool pt){
   if(patterns.size()!=0){
     for(map<string, PatternTrunk*>::iterator itr = patterns.begin(); itr != patterns.end(); ++itr){
-      itr->second->computeAdaptativePattern(r);
+      itr->second->computeAdaptativePattern(r, pt);
     }
   }
   else{
     for(vector<PatternTrunk*>::iterator itr = v_patterns.begin(); itr != v_patterns.end(); ++itr){
-      (*itr)->computeAdaptativePattern(r);
+      (*itr)->computeAdaptativePattern(r, pt);
     }
   }
 }
@@ -206,34 +206,34 @@ void PatternTree::linkCuda(patternBank* p, deviceDetector* d, const vector< vect
 }
 #endif
 
-void PatternTree::getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns){
+void PatternTree::getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns, bool useBend){
   if(patterns.size()!=0){
     for(map<string, PatternTrunk*>::iterator itr = patterns.begin(); itr != patterns.end(); ++itr){
-      GradedPattern* p = itr->second->getActivePattern(active_threshold);
+      GradedPattern* p = itr->second->getActivePattern(active_threshold, useBend);
       if(p!=NULL)
 	active_patterns.push_back(p);
     }
   }
   else{
     for(vector<PatternTrunk*>::iterator itr = v_patterns.begin(); itr != v_patterns.end(); ++itr){
-      GradedPattern* p = (*itr)->getActivePattern(active_threshold);
+      GradedPattern* p = (*itr)->getActivePattern(active_threshold, useBend);
       if(p!=NULL)
 	active_patterns.push_back(p);
     }
   }
 }
 
-void PatternTree::getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold, vector<GradedPattern*>& active_patterns){
+void PatternTree::getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold, vector<GradedPattern*>& active_patterns, bool useBend){
   if(patterns.size()!=0){
     for(map<string, PatternTrunk*>::iterator itr = patterns.begin(); itr != patterns.end(); ++itr){
-      GradedPattern* p = itr->second->getActivePatternUsingMissingHit(max_nb_missing_hit, active_threshold);
+      GradedPattern* p = itr->second->getActivePatternUsingMissingHit(max_nb_missing_hit, active_threshold, useBend);
       if(p!=NULL)
 	active_patterns.push_back(p);
     }
   }
   else{
     for(vector<PatternTrunk*>::iterator itr = v_patterns.begin(); itr != v_patterns.end(); ++itr){
-      GradedPattern* p = (*itr)->getActivePatternUsingMissingHit(max_nb_missing_hit, active_threshold);
+      GradedPattern* p = (*itr)->getActivePatternUsingMissingHit(max_nb_missing_hit, active_threshold, useBend);
       if(p!=NULL)
 	active_patterns.push_back(p);
     }

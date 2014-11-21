@@ -32,6 +32,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter)
 
 //Define the version of the CMSPatternLayer class
 BOOST_CLASS_VERSION(CMSPatternLayer, 1)
+BOOST_CLASS_VERSION(PatternLayer, 1)
 
 using namespace std;
 
@@ -762,6 +763,7 @@ int main(int av, char** ac){
     ("decode", po::value<int>(), "Decode the given super strip")
     ("ss_size", po::value<int>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}")
     ("dc_bits", po::value<int>(), "Number of used DC bits [0-3]")
+    ("useStubPT", "Use a DC bit to store the Stubs PT in the patterns")
     ("pt_min", po::value<int>(), "Only tracks having a greater PT will be used to generate a pattern")
     ("pt_max", po::value<int>(), "Only tracks having a smaller PT will be used to generate a pattern")
     ("eta_min", po::value<float>(), "Only tracks having a greater ETA will be used to generate a pattern")
@@ -817,6 +819,7 @@ int main(int av, char** ac){
     SectorTree st;
     int stripSize=0;
     int dcBits=0;
+    bool useStubPT=false;
     string partDirName="";
     string bankFileName="";
     string rootFileName="";
@@ -836,7 +839,13 @@ int main(int av, char** ac){
     try{
       stripSize=vm["ss_size"].as<int>();
       cout<<"Superstrip size : "<<stripSize<<endl;
+      if(vm.count("useStubPT"))
+	useStubPT=true;
       dcBits=vm["dc_bits"].as<int>();
+      if(useStubPT && dcBits>2){//max value is 2 to keep room for the Stub PT DC bit
+	dcBits=2;
+	cout<<"Reducing the max number of DC bits to 2 to allow the usage of stub PT in the patterns!"<<endl;
+      }
       cout<<"DC bits number : "<<dcBits<<endl;
       min=vm["pt_min"].as<int>();
       cout<<"PT min : "<<min<<endl;
@@ -952,6 +961,7 @@ int main(int av, char** ac){
     pg.setMaxFakeSuperstrips(maxNbFake);
     TFile f(rootFileName.c_str(), "recreate");
     pg.setVariableResolution(dcBits);
+    pg.setStubPTUsage(useStubPT);
     pg.generate(&st, 100000, threshold, eta);
 
 
@@ -1104,6 +1114,9 @@ int main(int av, char** ac){
 
 	if(vm.count("ss_missingHits")){
 	    pf.useMissingHitThreshold(nbMissingHit);
+	}
+	if(vm.count("useStubPT")==0){
+	  pf.doNotUseBendInformation();
 	}
 	pf.find(start, stop);
 	cout<<"Time used to analyse "<<stop-start+1<<" events : "<<endl;

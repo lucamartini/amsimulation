@@ -101,8 +101,9 @@ class SectorTree{
   /**
      \brief Replace all LD patterns with adapatative patterns. All FD patterns are removed.
      \param r The number of DC bits used between FD and LD
+     \param pt True if we need to use a DC bit for the Stub PT
   **/
-  void computeAdaptativePatterns(short r);
+  void computeAdaptativePatterns(short r, bool pt);
   /**
      Link all the patterns contained in each sector to the super strips contained in the Detector object
      \param d The Detector object
@@ -119,17 +120,19 @@ class SectorTree{
   /**
      \brief Get the active patterns in each sector
      \param active_threshold The minimum number of hit super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A vector containing pointers on copies of the sectors, each sectors containing its active patterns
   **/
-  vector<Sector*> getActivePatternsPerSector(int active_threshold);
+  vector<Sector*> getActivePatternsPerSector(int active_threshold, bool useBend=true);
 
   /**
      \brief Get the active patterns in each sector
      \param max_nb_missing_hit The maximum number of non active layers to activate the pattern
      \param active_threshold The minimum number of hit super strips to activate the pattern
+     \param useBend True if you want to use the bend information to activate patterns
      \return A vector containing pointers on copies of the sectors, each sectors containing its active patterns
   **/
-  vector<Sector*> getActivePatternsPerSectorUsingMissingHit(int max_nb_missing_hit, int active_threshold);
+  vector<Sector*> getActivePatternsPerSectorUsingMissingHit(int max_nb_missing_hit, int active_threshold, bool useBend=true);
 
   /**
      \brief Retrieve the superstrip size used for the patterns inside the SectorTree

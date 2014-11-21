@@ -401,8 +401,8 @@ int Sector::getFDPatternNumber(){
   return patterns->getFDPatternNumber();
 }
 
-void Sector::computeAdaptativePatterns(short r){
-    patterns->computeAdaptativePatterns(r);
+void Sector::computeAdaptativePatterns(short r, bool pt){
+  patterns->computeAdaptativePatterns(r, pt);
 }
 
 void Sector::link(Detector& d){
@@ -466,15 +466,15 @@ void Sector::linkCuda(patternBank* p, deviceDetector* d){
 }
 #endif
 
-vector<GradedPattern*> Sector::getActivePatterns(int active_threshold){
+vector<GradedPattern*> Sector::getActivePatterns(int active_threshold, bool useBend){
   vector<GradedPattern*> active_patterns;
-  patterns->getActivePatterns(active_threshold, active_patterns);
+  patterns->getActivePatterns(active_threshold, active_patterns, useBend);
   return active_patterns;
 }
 
-vector<GradedPattern*> Sector::getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold){
+vector<GradedPattern*> Sector::getActivePatternsUsingMissingHit(int max_nb_missing_hit, int active_threshold, bool useBend){
   vector<GradedPattern*> active_patterns;
-  patterns->getActivePatternsUsingMissingHit(max_nb_missing_hit, active_threshold, active_patterns);
+  patterns->getActivePatternsUsingMissingHit(max_nb_missing_hit, active_threshold, active_patterns, useBend);
   return active_patterns;
 }
 

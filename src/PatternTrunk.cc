@@ -17,6 +17,7 @@ PatternTrunk::~PatternTrunk(){
 
 void PatternTrunk::addFDPattern(Pattern* p){
   lowDefPattern->increment();
+  lowDefPattern->updatePT(p);
   if(p!=NULL){
     string key=p->getKey();
     map<string, GradedPattern*>::iterator it = fullDefPatterns.find(key);
@@ -33,6 +34,7 @@ void PatternTrunk::addFDPattern(Pattern* p){
 
 void PatternTrunk::addFDPattern(Pattern* p, float pt){
   lowDefPattern->increment(pt);
+  lowDefPattern->updatePT(p);
   if(p!=NULL){
     string key=p->getKey();
     map<string, GradedPattern*>::iterator it = fullDefPatterns.find(key);
@@ -77,15 +79,15 @@ void PatternTrunk::linkCuda(patternBank* p, deviceDetector* d, int pattern_index
 }
 #endif
 
-GradedPattern* PatternTrunk::getActivePattern(int active_threshold){
-  if(lowDefPattern->isActive(active_threshold)){
+GradedPattern* PatternTrunk::getActivePattern(int active_threshold, bool useBend){
+  if(lowDefPattern->isActive(active_threshold, useBend)){
     return new GradedPattern(*lowDefPattern);
   }
   return NULL;
 }
 
-GradedPattern* PatternTrunk::getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold){
-  if(lowDefPattern->isActiveUsingMissingHit(max_nb_missing_hit, active_threshold)){
+GradedPattern* PatternTrunk::getActivePatternUsingMissingHit(int max_nb_missing_hit, int active_threshold, bool useBend){
+  if(lowDefPattern->isActiveUsingMissingHit(max_nb_missing_hit, active_threshold, useBend)){
     return new GradedPattern(*lowDefPattern);
   }
   return NULL;
@@ -98,7 +100,7 @@ void PatternTrunk::deleteFDPatterns(){
   fullDefPatterns.clear();
 }
 
-void PatternTrunk::computeAdaptativePattern(short r){
+void PatternTrunk::computeAdaptativePattern(short r, bool pt){
   int nb_layers = lowDefPattern->getNbLayers();
   for(int i=0;i<nb_layers;i++){
     
@@ -124,6 +126,14 @@ void PatternTrunk::computeAdaptativePattern(short r){
 
     for(unsigned int j=0;j<bits.size();j++){
       pl->setDC(j,bits[j]);
+    }
+
+    if(pt){
+      //We add a DC bit for the stub PT
+      if(pl->getPT()==-1)
+	pl->setDC(bits.size(),2);
+      else
+	pl->setDC(bits.size(),pl->getPT());
     }
   }
   deleteFDPatterns();

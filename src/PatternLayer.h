@@ -30,7 +30,7 @@ class PatternLayer{
   /**
      \brief Number of bits per patternLayer
   **/
-  static const int LAYER_BITS=16;
+  static const int LAYER_BITS=15;
   /**
      \brief Number of maximum DC bits
   **/
@@ -135,6 +135,26 @@ class PatternLayer{
   int getDCBitsNumber();
 
   /**
+     \brief Set the value of the stub PT for this layer
+     \param pt The stub PT value
+  **/
+  void setPT(float pt);
+  /**
+     \brief Update the value of the stub PT for this layer according to the value of an other pattern
+     \param pt The additional stub PT
+  **/
+  void updatePT(signed char pt);
+  /**
+     \brief Get the stub PT value for this layer
+     \return -1 if uncertain, 0 if negative, 1 if positive
+  **/
+  signed char getPT();
+  /**
+     \brief Check if the PatternLayer is using the stub PT's information
+     \return True if used, False otherwise
+  **/
+  bool getPTUsage();
+  /**
      \brief Check if the PatternLayer is a fake one (used on layers not crossed by the track)
      \return True if the PatternLayer is a placeholder
   **/
@@ -148,7 +168,7 @@ class PatternLayer{
 
  protected:
   /**
-     The value of the pattern layer (16 bits)
+     The value of the pattern layer (15 bits)
    **/
   bitset<LAYER_BITS> bits;
   /**  
@@ -159,6 +179,19 @@ class PatternLayer{
 	- 3 : UNUSED
   **/
   char dc_bits[DC_BITS];
+  
+  /**
+     Stub PT value :
+       - 0 if all tracks leading to this pattern have a clearly negative PT
+       - 1 if all tracks leading to this pattern have a clearly positive PT
+       - -1 if all tracks leading to this pattern do not have the same PT sign or uncertain values
+  **/
+  signed char ptValue;
+
+  /**
+     Flag on the usage of the stub PT information : if true, the last DC bits is taken by this information
+  **/
+  bool useStubPT;
 
   friend class boost::serialization::access;
   
@@ -169,6 +202,7 @@ class PatternLayer{
       for(int j=0;j<DC_BITS;j++){
 	ar << dc_bits[j];
       }
+      ar << useStubPT;
     }
   
   template<class Archive> void load(Archive & ar, const unsigned int version)
@@ -178,6 +212,14 @@ class PatternLayer{
       setIntValue(i); 
       for(int j=0;j<DC_BITS;j++){
 	ar >> dc_bits[j];
+      }
+      if(version>0){
+	ar >> useStubPT;
+	if(useStubPT){
+	  char val = dc_bits[getDCBitsNumber()];
+	  if(val!=2)
+	    ptValue=val;
+	}
       }
     }
   

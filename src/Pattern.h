@@ -79,16 +79,18 @@ class Pattern{
   /**
      \brief Check if the pattern is active
      \param active_threshold Minimum number of hit super strips
+     \param useBend True if you want to use the bend information to activate patterns
      \return True if the pattern is active, false otherwise.
   **/
-  bool isActive(int active_threshold);
+  bool isActive(int active_threshold, bool useBend=true);
   /**
      \brief Check if the pattern is active
      \param nb_allowed_missing_hit Maximum number of allowed non active layers (fake patternLayers do not count) 
      \param active_threshold Minimum number of hit super strips
+     \param useBend True if you want to use the bend information to activate patterns
      \return True if the number of active layer is at least nb_layer-nb_fake-nb_allowed_missing_hit
   **/
-  bool isActiveUsingMissingHit(int nb_allowed_missing_hit, int active_threshold);
+  bool isActiveUsingMissingHit(int nb_allowed_missing_hit, int active_threshold, bool useBend=true);
   /**
      \brief Created a unique key for this pattern
   **/
@@ -122,6 +124,12 @@ class Pattern{
      \return The number of PatternLayer being just a placeholder
   **/
   int getNbFakeSuperstrips();
+
+  /**
+     \brief Update the stub PT values of the PatternLayers according to the values of the given Pattern
+     \param p The new Pattern used to update the stub PT data
+   **/
+  void updatePT(Pattern* p);
 
   /**
      \brief Allows to display a Pattern as a string

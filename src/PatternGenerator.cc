@@ -3,6 +3,7 @@
 PatternGenerator::PatternGenerator(int sp){
   superStripSize = sp;
   variableRes = 0;
+  useStubPT = false;
   ptMin=2;
   ptMax=100;
   etaMin=0.0f;
@@ -61,6 +62,10 @@ int PatternGenerator::getVariableResolutionState(){
   return variableRes;
 }
 
+void PatternGenerator::setStubPTUsage(bool b){
+  useStubPT = b;
+}
+
 TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
 
   cout<<"Loading files from "<<directoryName<<" (this may take several minutes)..."<<endl;
@@ -100,18 +105,22 @@ TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
   p_m_stub_strip = &m_stub_strip;
   p_m_stub_ptGEN = &m_stub_ptGEN;  
   p_m_stub_etaGEN = &m_stub_etaGEN;  
+  p_m_stub_bend = &m_stub_bend;  
   
   TT->SetBranchAddress("STUB_n",         &m_stub);
   TT->SetBranchAddress("STUB_modid",     &p_m_stub_modid);
   TT->SetBranchAddress("STUB_strip",     &p_m_stub_strip);
   TT->SetBranchAddress("STUB_ptGEN",     &p_m_stub_ptGEN);
   TT->SetBranchAddress("STUB_etaGEN",    &p_m_stub_etaGEN);
+  TT->SetBranchAddress("STUB_bend",    &p_m_stub_bend);
+
   TT->SetBranchStatus("*",0);
   TT->SetBranchStatus("STUB_n",1);
   TT->SetBranchStatus("STUB_modid",1);
   TT->SetBranchStatus("STUB_strip",1); 
   TT->SetBranchStatus("STUB_ptGEN",1); 
   TT->SetBranchStatus("STUB_etaGEN",1);
+  TT->SetBranchStatus("STUB_bend",1);
 
   int nb_entries = TT->GetEntries();
   cout<<nb_entries<<" events found."<<endl;
@@ -298,6 +307,7 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
       short strip = -1;
       short stripLD = -1;
       short seg = -1;
+      float stub_pt = m_stub_bend[stub_number];
 
       if(stub_number==-2){//creation of a fake superstrip
 	module=0;
@@ -338,10 +348,14 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
       CMSPatternLayer pat;
       CMSPatternLayer lowDef_layer;
       pat.setValues(module, ladder, strip, seg);
+      if(useStubPT)
+	pat.setPT(stub_pt);
       p->setLayerStrip(j, &pat);
 
       if(variableRes){
-	lowDef_layer.setValues(module, ladder, stripLD, seg);
+	lowDef_layer.setValues(module, ladder, stripLD, seg); 
+	if(useStubPT)
+	  lowDef_layer.setPT(stub_pt);
 	lowDef_p->setLayerStrip(j, &lowDef_layer);
       }
 
@@ -442,9 +456,9 @@ void PatternGenerator::generate(SectorTree* sectors, int step, float threshold, 
   nbPatt->Write();
   delete nbPatt;
   
-  if(variableRes){
+  if(variableRes || useStubPT){
     cout<<"Creating variable resolution bank..."<<endl;
-    sectors->computeAdaptativePatterns(variableRes);
+    sectors->computeAdaptativePatterns(variableRes, useStubPT);
     if(iterationNbTracks==step){
       cout<<"Estimating coverage..."<<endl;
       int recognizedTracks=0;

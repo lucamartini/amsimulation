@@ -16,6 +16,8 @@ class SuperStrip{
 
  private :
   bool hit;//touched or not
+  bool hit_by_negative_bend;
+  bool hit_by_positive_bend;
   short size;//number of strips in the SuperStrip
   vector<Hit*> hits;//list of full resolution hits
 
@@ -39,6 +41,12 @@ class SuperStrip{
      \return True if a Hit occured
   **/
   bool isHit();
+  /**
+     \brief Check if the super strip has been hit by a stub with the given bend
+     \param bend The bend value to check (0=negative or 1=positive)
+     \return True if a Hit occured
+  **/
+  bool isHit(bool bend);
   /**
      \brief getHits
      \return A vector containing pointers on the Hit objects (the Hits are not copied)

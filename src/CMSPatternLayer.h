@@ -8,6 +8,7 @@
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/export.hpp>
+#include <boost/serialization/map.hpp>
 
 #ifdef USE_CUDA
 #include "gpu_struct.h"
@@ -191,4 +192,5 @@ class CMSPatternLayer : public PatternLayer{
   static map<int, pair<float,float> > getLayerDefInEta();
 
 };
+BOOST_CLASS_VERSION(CMSPatternLayer, 1)
 #endif

@@ -45,6 +45,9 @@ Pattern::Pattern(const Pattern& p){
       }
     }
   }
+
+  stat_infos = p.stat_infos;
+
 }
 
 Pattern::~Pattern(){
@@ -248,4 +251,16 @@ int Pattern::getNbFakeSuperstrips(){
     nbFakeSS=score;
     return score;
   }
+}
+
+const PatternInfo& Pattern::getStatisticalInformations() const{
+  return stat_infos;
+}
+
+void Pattern::mergeInfos(const PatternInfo& pi){
+  stat_infos.merge(pi);
+}
+
+void Pattern::updateInfos(float eta, float z0, float phi, float pt){
+  stat_infos.addTrack(eta, z0, phi, pt);
 }

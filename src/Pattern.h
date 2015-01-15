@@ -7,6 +7,7 @@
 #include "SuperStrip.h"
 #include "PatternLayer.h"
 #include "Detector.h"
+#include "PatternInfo.h"
 
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/vector.hpp>
@@ -123,6 +124,10 @@ class Pattern{
   **/
   int getNbFakeSuperstrips();
 
+  const PatternInfo& getStatisticalInformations() const;
+  void mergeInfos(const PatternInfo& pi);
+  void updateInfos(float eta, float z0, float phi, float pt);
+
   /**
      \brief Allows to display a Pattern as a string
   **/
@@ -135,17 +140,20 @@ class Pattern{
   bool nbFakeSSKnown;// used to store the number of fake SS
   char nbFakeSS; // used to store the number of fake SS (avoids re-computing)
   vector<PatternLayer*> layer_strips;
+  PatternInfo stat_infos;
 
   friend class boost::serialization::access;
   
   template<class Archive> void save(Archive & ar, const unsigned int version) const{
     ar << nb_layer;
     ar << layer_strips;
+    ar << stat_infos;
   }
   
   template<class Archive> void load(Archive & ar, const unsigned int version){
     ar >> nb_layer;
     ar >> layer_strips; 
+    ar >> stat_infos;
     strips=NULL;
     nb_strips=NULL;
   }

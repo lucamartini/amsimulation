@@ -37,11 +37,17 @@ class PatternGenerator{
   vector<float>                 m_stub_strip;  // Strip du cluster interne du stub
   vector<float>                 m_stub_ptGEN;  // PT de la particule initiale
   vector<float>                 m_stub_etaGEN;  // Eta de la particule initiale
+  vector<float>                 m_stub_x;      // x coordinate of the hit
+  vector<float>                 m_stub_y;      // y coordinate of the hit
+  vector<float>                 m_stub_z;      // z coordinate of the hit
 
   vector<int>                   *p_m_stub_modid;
   vector<float>                 *p_m_stub_strip;
   vector<float>                 *p_m_stub_ptGEN;
   vector<float>                 *p_m_stub_etaGEN;
+  vector<float>                 *p_m_stub_x;      // x coordinate of the hit
+  vector<float>                 *p_m_stub_y;      // y coordinate of the hit
+  vector<float>                 *p_m_stub_z;      // z coordinate of the hit
 
   TChain* createTChain(string directoryName, string tchainName);
   /**
@@ -49,6 +55,8 @@ class PatternGenerator{
    **/
   int generate(TChain* TT, int* evtIndex, int evtNumber, int* nbTrack, SectorTree* sectors, map<int,pair<float,float> > eta_limits, int* coverageEstimation=NULL);
   
+  float computeZ0(float* x, float* y, float* z);
+
  public:
  /**
      \brief Constructor

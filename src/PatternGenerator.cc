@@ -61,6 +61,19 @@ int PatternGenerator::getVariableResolutionState(){
   return variableRes;
 }
 
+float PatternGenerator::computeZ0(float* x, float* y, float* z){
+
+  float R1 = sqrt(x[0]*x[0]+y[0]*y[0]);
+  float R2 = sqrt(x[1]*x[1]+y[1]*y[1]);
+  float R3 = sqrt(x[2]*x[2]+y[2]*y[2]);
+
+  float v1 = z[2] - (R3*(z[1]-z[0])/(R2-R1));
+  float v2 = z[1] - (R2*(z[2]-z[0])/(R3-R1));
+  float v3 = z[0] - (R1*(z[2]-z[1])/(R3-R2));
+
+  return (v1+v2+v3)/3;
+}
+
 TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
 
   cout<<"Loading files from "<<directoryName<<" (this may take several minutes)..."<<endl;
@@ -100,18 +113,27 @@ TChain* PatternGenerator::createTChain(string directoryName, string tchainName){
   p_m_stub_strip = &m_stub_strip;
   p_m_stub_ptGEN = &m_stub_ptGEN;  
   p_m_stub_etaGEN = &m_stub_etaGEN;  
+  p_m_stub_x = &m_stub_x;
+  p_m_stub_y = &m_stub_y;
+  p_m_stub_z = &m_stub_z;
   
   TT->SetBranchAddress("STUB_n",         &m_stub);
   TT->SetBranchAddress("STUB_modid",     &p_m_stub_modid);
   TT->SetBranchAddress("STUB_strip",     &p_m_stub_strip);
   TT->SetBranchAddress("STUB_ptGEN",     &p_m_stub_ptGEN);
   TT->SetBranchAddress("STUB_etaGEN",    &p_m_stub_etaGEN);
+  TT->SetBranchAddress("STUB_x",         &p_m_stub_x);
+  TT->SetBranchAddress("STUB_y",         &p_m_stub_y);
+  TT->SetBranchAddress("STUB_z",         &p_m_stub_z);
   TT->SetBranchStatus("*",0);
   TT->SetBranchStatus("STUB_n",1);
   TT->SetBranchStatus("STUB_modid",1);
   TT->SetBranchStatus("STUB_strip",1); 
   TT->SetBranchStatus("STUB_ptGEN",1); 
   TT->SetBranchStatus("STUB_etaGEN",1);
+  TT->SetBranchStatus("STUB_x",1);
+  TT->SetBranchStatus("STUB_y",1);
+  TT->SetBranchStatus("STUB_z",1);
 
   int nb_entries = TT->GetEntries();
   cout<<nb_entries<<" events found."<<endl;
@@ -285,12 +307,19 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
     }
 
     float last_pt = 0;
+    float last_eta = 0;
+
     Pattern* p = new Pattern(tracker_layers.size());
     Pattern* lowDef_p=NULL;
     
     if(variableRes){ // we use variable resolution patterns so we create 2 patterns with different resolution
       lowDef_p = new Pattern(tracker_layers.size());
     }
+
+    float* stubs_x = new float[3];
+    float* stubs_y = new float[3];
+    float* stubs_z = new float[3];
+
     for(unsigned int j=0;j<tracker_layers.size();j++){
       int stub_number = layers[j];
       short module = -1;
@@ -325,6 +354,14 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	if(variableRes){
 	  stripLD = strip/ld_fd_factor;
 	}
+
+	if(tracker_layers[j]<=7){
+	  int order = tracker_layers[j]-5;
+	  stubs_x[order]=m_stub_x[stub_number];
+	  stubs_y[order]=m_stub_y[stub_number];
+	  stubs_z[order]=m_stub_z[stub_number];
+	}
+
       }
       /*
       cout<<"Event "<<*evtIndex<<endl;
@@ -333,8 +370,10 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
       cout<<endl;
       */
 
-      if(stub_number!=-2)//this is not a fake stub
+      if(stub_number!=-2){//this is not a fake stub
 	last_pt = m_stub_ptGEN[stub_number];
+	last_eta = m_stub_etaGEN[stub_number];
+      }
       CMSPatternLayer pat;
       CMSPatternLayer lowDef_layer;
       pat.setValues(module, ladder, strip, seg);
@@ -353,8 +392,11 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 
     //cout<<"creation pattern : "<<endl;
     //cout<<*lowDef_p<<endl;
+
+    float Z0 = computeZ0(stubs_x, stubs_y, stubs_z);
     
     if(coverageEstimation==NULL){
+      p->updateInfos(last_eta,Z0,0,last_pt);
       if(variableRes){
 	sector->getPatternTree()->addPattern(lowDef_p,p, last_pt);
       }
@@ -369,6 +411,10 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
       }
     }
     
+    delete stubs_x;
+    delete stubs_y;
+    delete stubs_z;
+
     delete p;
     if(lowDef_p!=NULL)
         delete lowDef_p;
@@ -472,5 +518,41 @@ void PatternGenerator::generate(SectorTree* sectors, int step, float threshold, 
     pt_histo->SetFillColor(41);
     pt_histo->Write();
     delete pt_histo;
+
+    TH1F* eta_histo = new TH1F("ETA sector "+k,"Average ETA of patterns", 100, -2.5, 2.5);
+    TH1F* etasd_histo = new TH1F("SD ETA sector "+k,"SD ETA of patterns", 100, 0, 1);
+    TH1F* z0_histo = new TH1F("Z0 sector "+k,"Average Z0 of patterns", 100, -20, 20);
+    TH1F* z0sd_histo = new TH1F("SD Z0 sector "+k,"SD Z0 of patterns", 100, 0, 30);
+    TH1F* pt_histo2 = new TH1F("PT sector "+k,"Average PT of patterns", 110, 0, 110);
+    TH1F* ptsd_histo = new TH1F("SD PT sector "+k,"SD PT of patterns", 100, 0, 100);
+    vector<GradedPattern*> patterns = v_sector[k]->getPatternTree()->getLDPatterns();
+    for(unsigned int i=0;i<patterns.size();i++){
+      const PatternInfo& pi = patterns[i]->getStatisticalInformations();
+      eta_histo->Fill(pi.getAverageEta());
+      etasd_histo->Fill(pi.getSDEta());
+      z0_histo->Fill(pi.getAverageZ0());
+      z0sd_histo->Fill(pi.getSDZ0());
+      pt_histo2->Fill(pi.getAveragePT());
+      ptsd_histo->Fill(pi.getSDPT());
+    }
+    eta_histo->SetFillColor(41);
+    eta_histo->Write();
+    delete eta_histo;
+    etasd_histo->SetFillColor(41);
+    etasd_histo->Write();
+    delete etasd_histo;
+    z0_histo->SetFillColor(41);
+    z0_histo->Write();
+    delete z0_histo;
+    z0sd_histo->SetFillColor(41);
+    z0sd_histo->Write();
+    delete z0sd_histo;
+    pt_histo2->SetFillColor(41);
+    pt_histo2->Write();
+    delete pt_histo2;
+    ptsd_histo->SetFillColor(41);
+    ptsd_histo->Write();
+    delete ptsd_histo;
+
   }
 }

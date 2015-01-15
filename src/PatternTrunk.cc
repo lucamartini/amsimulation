@@ -27,6 +27,7 @@ void PatternTrunk::addFDPattern(Pattern* p){
     }
     else{
       (it->second)->increment();
+      (it->second)->mergeInfos(p->getStatisticalInformations());
     }
   }
 }
@@ -43,6 +44,7 @@ void PatternTrunk::addFDPattern(Pattern* p, float pt){
     }
     else{
       (it->second)->increment(pt);
+      (it->second)->mergeInfos(p->getStatisticalInformations());
     }
   }
 }
@@ -120,6 +122,11 @@ void PatternTrunk::computeAdaptativePattern(short r){
 	    bits[j]=2;
 	}
       }
+
+      if(i==0){ // first pass
+	lowDefPattern->mergeInfos(itr->second->getStatisticalInformations());
+      }
+
     }
 
     for(unsigned int j=0;j<bits.size();j++){
@@ -131,6 +138,7 @@ void PatternTrunk::computeAdaptativePattern(short r){
 
 void PatternTrunk::updateDCBits(GradedPattern* p){
   if(lowDefPattern->getKey().compare(p->getKey())==0){//the pattern layers are similar -> we update the DC bits
+    lowDefPattern->mergeInfos(p->getStatisticalInformations());
     int nb_layers = lowDefPattern->getNbLayers();
     int nb_dc1 = lowDefPattern->getLayerStrip(0)->getDCBitsNumber();
     int nb_dc2 = p->getLayerStrip(0)->getDCBitsNumber();

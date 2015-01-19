@@ -261,6 +261,6 @@ void Pattern::mergeInfos(const PatternInfo& pi){
   stat_infos.merge(pi);
 }
 
-void Pattern::updateInfos(float eta, float z0, float phi, float pt){
-  stat_infos.addTrack(eta, z0, phi, pt);
+void Pattern::updateInfos(float eta, float z0, float pt){
+  stat_infos.addTrack(eta, z0, pt);
 }

@@ -16,89 +16,46 @@ using namespace std;
 class PatternInfo{
  private:
   int nb_tracks;
-  float averageEta;
-  float averageZ0;
-  float averagePhi;
-  float averagePT;
-  float sEta;
-  float sumEta;
-  float sumEtaSquare;
-  float sZ0;
-  float sumZ0;
-  float sumZ0Square;
-  float sPhi;
-  float sumPhi;
-  float sumPhiSquare;
-  float sPT;
-  float sumPT;
-  float sumPTSquare;
+  float minEta;
+  float maxEta;
+  float minZ0;
+  float maxZ0;
+  float minPT;
+  float maxPT;
   
  public:
   PatternInfo();
   PatternInfo(const PatternInfo& pi);
-  void addTrack(float eta, float z0, float phi, float pt);
+  void addTrack(float eta, float z0, float pt);
   void merge(const PatternInfo& pi);
-  float getAverageEta() const;
-  float getAverageZ0() const;
-  float getAveragePT() const;
-  float getAveragePhi() const;
-  float getSDEta() const;
-  float getSDZ0() const;
-  float getSDPT() const;
-  float getSDPhi() const;
+  float getMinEta() const;
+  float getMaxEta() const;
+  float getMinZ0() const;
+  float getMaxZ0() const;
+  float getMinPT() const;
+  float getMaxPT() const;
   int getNbTracks() const;
 
   friend class boost::serialization::access;
   
   template<class Archive> void save(Archive & ar, const unsigned int version) const{
     ar << nb_tracks;
-    ar << averageEta;
-    ar << averageZ0;
-    ar << averagePhi;
-    ar << averagePT;
-
-    if(sEta!=sEta ||
-       sZ0!=sZ0 ||
-       sPT!=sPT
-       ){
-      cout<<"probleme de NaN!"<<endl;
-      float val = 0;
-      ar << val;
-      ar << val;
-      ar << val;
-      ar << val;
-    }
-    else{ 
-      ar << sEta;
-      ar << sZ0;
-      ar << sPhi;
-      ar << sPT;
-    }
-
-    ar << sumEta;
-    ar << sumEtaSquare;
-    ar << sumZ0;
-    ar << sumZ0Square;
-    ar << sumPT;
-    ar << sumPTSquare;
+    ar << minEta;
+    ar << maxEta;
+    ar << minZ0;
+    ar << maxZ0;
+    ar << minPT;
+    ar << maxPT;
   }
   
   template<class Archive> void load(Archive & ar, const unsigned int version){
-    ar >> nb_tracks; 
-    ar >> averageEta;
-    ar >> averageZ0;
-    ar >> averagePhi;
-    ar >> averagePT;
-    ar >> sEta;
-    ar >> sZ0;
-    ar >> sPhi;
-    ar >> sPT;
-    ar >> sumEta;
-    ar >> sumEtaSquare;
-    ar >> sumZ0;
-    ar >> sumZ0Square;
-    ar >> sumPT;
-    ar >> sumPTSquare;
+    ar >> nb_tracks;
+    ar >> minEta;
+    ar >> maxEta;
+    ar >> minZ0;
+    ar >> maxZ0;
+    ar >> minPT;
+    ar >> maxPT;
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()

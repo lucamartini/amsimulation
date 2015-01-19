@@ -2,95 +2,58 @@
 
 PatternInfo::PatternInfo(){
   nb_tracks = 0;
-  averageEta = 0;
-  averageZ0 = 0;
-  averagePhi = 0;
-  averagePT = 0;
-  sEta = 0;
-  sumEta = 0;
-  sumEtaSquare = 0;
-  sZ0 = 0;
-  sumZ0 = 0;
-  sumZ0Square = 0;
-  sPhi = 0;
-  sumPhi = 0;
-  sumPhiSquare = 0;
-  sPT = 0;
-  sumPT = 0;
-  sumPTSquare = 0;
+  minEta = 3;
+  maxEta = -3;
+  minZ0 = 20;
+  maxZ0 = -20;
+  minPT = 200;
+  maxPT = -10;
 }
 
 PatternInfo::PatternInfo(const PatternInfo& pi){
   nb_tracks = pi.nb_tracks;
-  averageEta = pi.averageEta;
-  averageZ0 = pi.averageZ0;
-  averagePhi = pi.averagePhi;
-  averagePT = pi.averagePT;
-  sEta = pi.sEta;
-  sumEta = pi.sumEta;
-  sumEtaSquare = pi.sumEtaSquare;
-  sZ0 = pi.sZ0;
-  sumZ0 = pi.sumZ0;
-  sumZ0Square = pi.sumZ0Square;
-  sPhi = pi.sPhi;
-  sumPhi = pi.sumPhi;
-  sumPhiSquare = pi.sumPhiSquare;
-  sPT = pi.sPT;
-  sumPT = pi.sumPT;
-  sumPTSquare = pi.sumPTSquare;
+  minEta = pi.minEta;
+  maxEta = pi.maxEta;
+  minZ0 = pi.minZ0;
+  maxZ0 = pi.maxZ0;
+  minPT = pi.minPT;
+  maxPT = pi.maxPT;
 }
 
-void PatternInfo::addTrack(float eta, float z0, float phi, float pt){
-  averageEta = (averageEta*nb_tracks+eta)/(nb_tracks+1);
-  averageZ0 = (averageZ0*nb_tracks+z0)/(nb_tracks+1);
-  averagePhi = (averagePhi*nb_tracks+phi)/(nb_tracks+1);
-  averagePT = (averagePT*nb_tracks+pt)/(nb_tracks+1);
-  sumEta+=eta;
-  sumEtaSquare+=(eta*eta);
-  sEta = sqrt(((nb_tracks+1)*sumEtaSquare-(sumEta*sumEta))/(nb_tracks*(nb_tracks+1)));
-  sumZ0+=z0;
-  sumZ0Square+=(z0*z0);
-  sZ0 = sqrt(((nb_tracks+1)*sumZ0Square-(sumZ0*sumZ0))/(nb_tracks*(nb_tracks+1)));
-  sumPhi+=phi;
-  sumPhiSquare+=(phi*phi);
-  sPhi = sqrt(((nb_tracks+1)*sumPhiSquare-(sumPhi*sumPhi))/(nb_tracks*(nb_tracks+1)));
-  sumPT+=pt;
-  sumPTSquare+=(pt*pt);
-  sPT = sqrt(((nb_tracks+1)*sumPTSquare-(sumPT*sumPT))/(nb_tracks*(nb_tracks+1)));
+void PatternInfo::addTrack(float eta, float z0, float pt){
+  if(eta>maxEta)
+    maxEta=eta;
+  if(eta<minEta)
+    minEta=eta;
+
+  if(z0>maxZ0)
+    maxZ0=z0;
+  if(z0<minZ0)
+    minZ0=z0;
+
+  if(pt>maxPT)
+    maxPT=pt;
+  if(pt<minPT)
+    minPT=pt;
+
   nb_tracks++;
 }
 
 void PatternInfo::merge(const PatternInfo& pi){
-  averageEta = (averageEta*nb_tracks+pi.getAverageEta()*pi.getNbTracks())/(nb_tracks+pi.getNbTracks());
-  averageZ0 = (averageZ0*nb_tracks+pi.getAverageZ0()*pi.getNbTracks())/(nb_tracks+pi.getNbTracks());
-  averagePhi = (averagePhi*nb_tracks+pi.getAveragePhi()*pi.getNbTracks())/(nb_tracks+pi.getNbTracks());
-  averagePT = (averagePT*nb_tracks+pi.getAveragePT()*pi.getNbTracks())/(nb_tracks+pi.getNbTracks());
+  if(pi.minEta<minEta)
+    minEta=pi.minEta;
+  if(pi.maxEta>maxEta)
+    maxEta=pi.maxEta;
 
-  int nb = nb_tracks+pi.getNbTracks();
+  if(pi.minZ0<minZ0)
+    minZ0=pi.minZ0;
+  if(pi.maxZ0>maxZ0)
+    maxZ0=pi.maxZ0;
 
-  sumEta+=pi.sumEta;
-  sumEtaSquare+=pi.sumEtaSquare;
-  sEta = sqrt((nb*sumEtaSquare-(sumEta*sumEta))/(nb*(nb-1)));
-  if(sEta!=sEta)
-    sEta=0;
-
-  sumZ0+=pi.sumZ0;
-  sumZ0Square+=pi.sumZ0Square;
-  sZ0 = sqrt((nb*sumZ0Square-(sumZ0*sumZ0))/(nb*(nb-1)));
-  if(sZ0!=sZ0)
-    sZ0=0;
-
-  sumPhi+=pi.sumPhi;
-  sumPhiSquare+=pi.sumPhiSquare;
-  sPhi = sqrt((nb*sumPhiSquare-(sumPhi*sumPhi))/(nb*(nb-1)));
-  if(sPhi!=sPhi)
-    sPhi=0;
-
-  sumPT+=pi.sumPT;
-  sumPTSquare+=pi.sumPTSquare;
-  sPT = sqrt((nb*sumPTSquare-(sumPT*sumPT))/(nb*(nb-1)));
-  if(sPT!=sPT)
-    sPT=0;
+  if(pi.minPT<minPT)
+    minPT=pi.minPT;
+  if(pi.maxPT>maxPT)
+    maxPT=pi.maxPT;
 
   nb_tracks+=pi.getNbTracks();
   /*
@@ -114,36 +77,28 @@ void PatternInfo::merge(const PatternInfo& pi){
   */
 }
 
-float PatternInfo::getAverageEta() const{
-  return averageEta;
+float PatternInfo::getMinEta() const{
+  return minEta;
 }
 
-float PatternInfo::getAverageZ0() const{
-  return averageZ0;
+float PatternInfo::getMaxEta() const{
+  return maxEta;
 }
 
-float PatternInfo::getAveragePT() const{
-  return averagePT;
+float PatternInfo::getMinZ0() const{
+  return minZ0;
 }
 
-float PatternInfo::getAveragePhi() const{
-  return averagePhi;
+float PatternInfo::getMaxZ0() const{
+  return maxZ0;
 }
 
-float PatternInfo::getSDEta() const{
-  return sEta;
+float PatternInfo::getMinPT() const{
+  return minPT;
 }
 
-float PatternInfo::getSDZ0() const{
-  return sZ0;
-}
-
-float PatternInfo::getSDPT() const{
-  return sPT;
-}
-
-float PatternInfo::getSDPhi() const{
-  return sPhi;
+float PatternInfo::getMaxPT() const{
+  return maxPT;
 }
 
 int PatternInfo::getNbTracks() const{

@@ -126,7 +126,7 @@ class Pattern{
 
   const PatternInfo& getStatisticalInformations() const;
   void mergeInfos(const PatternInfo& pi);
-  void updateInfos(float eta, float z0, float phi, float pt);
+  void updateInfos(float eta, float z0, float pt);
 
   /**
      \brief Allows to display a Pattern as a string

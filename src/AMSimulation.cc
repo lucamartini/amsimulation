@@ -341,40 +341,40 @@ void createAnalysis(SectorTree &st){
     pt_histo->Write();
     delete pt_histo;
 
-    TH1F* eta_histo = new TH1F("ETA sector "+k,"Average ETA of patterns", 100, -2.5, 2.5);
-    TH1F* etasd_histo = new TH1F("SD ETA sector "+k,"SD ETA of patterns", 100, 0, 1);
-    TH1F* z0_histo = new TH1F("Z0 sector "+k,"Average Z0 of patterns", 100, -20, 20);
-    TH1F* z0sd_histo = new TH1F("SD Z0 sector "+k,"SD Z0 of patterns", 100, 0, 30);
-    TH1F* pt_histo2 = new TH1F("PT sector "+k,"Average PT of patterns", 110, 0, 110);
-    TH1F* ptsd_histo = new TH1F("SD PT sector "+k,"SD PT of patterns", 100, 0, 100);
+    int pattID;
+    int out_nbTracks;
+    float out_minZ0, out_maxZ0;
+    float out_minEta, out_maxEta;
+    float out_minPT, out_maxPT;
+    TTree *OUT    = new TTree("PatternInfo", "Description of patterns");
+    OUT->Branch("pattern_id",    &pattID);
+    OUT->Branch("nbTracks",      &out_nbTracks);
+    OUT->Branch("minZ0",         &out_minZ0);
+    OUT->Branch("maxZ0",         &out_maxZ0);
+    OUT->Branch("minEta",        &out_minEta);
+    OUT->Branch("maxEta",        &out_maxEta);
+    OUT->Branch("minPT",         &out_minPT);
+    OUT->Branch("maxPT",         &out_maxPT); 
+  
     vector<GradedPattern*> patterns = list[k]->getPatternTree()->getLDPatterns();
     for(unsigned int i=0;i<patterns.size();i++){
       const PatternInfo& pi = patterns[i]->getStatisticalInformations();
-      eta_histo->Fill(pi.getAverageEta());
-      etasd_histo->Fill(pi.getSDEta());
-      z0_histo->Fill(pi.getAverageZ0());
-      z0sd_histo->Fill(pi.getSDZ0());
-      pt_histo2->Fill(pi.getAveragePT());
-      ptsd_histo->Fill(pi.getSDPT());
+      pattID=i;
+
+      out_nbTracks = pi.getNbTracks();
+
+      out_minZ0 = pi.getMinZ0();
+      out_maxZ0 = pi.getMaxZ0();
+
+      out_minEta = pi.getMinEta();
+      out_maxEta = pi.getMaxEta();
+
+      out_minPT = pi.getMinPT();
+      out_maxPT = pi.getMaxPT();
+
+      OUT->Fill();
     }
-    eta_histo->SetFillColor(41);
-    eta_histo->Write();
-    delete eta_histo;
-    etasd_histo->SetFillColor(41);
-    etasd_histo->Write();
-    delete etasd_histo;
-    z0_histo->SetFillColor(41);
-    z0_histo->Write();
-    delete z0_histo;
-    z0sd_histo->SetFillColor(41);
-    z0sd_histo->Write();
-    delete z0sd_histo;
-    pt_histo2->SetFillColor(41);
-    pt_histo2->Write();
-    delete pt_histo2;
-    ptsd_histo->SetFillColor(41);
-    ptsd_histo->Write();
-    delete ptsd_histo;
+    OUT->Write();
   }
 
   /*

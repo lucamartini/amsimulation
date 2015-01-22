@@ -96,7 +96,11 @@ class CMSPatternLayer : public PatternLayer{
      \return A string describing the PatternLayer
   **/
   string toStringBinary();
-
+  /**
+     \brief Returns a string representation of the PatternLayer, using the encoding needed for a AM05 chip
+     \return A string describing the PatternLayer
+  **/
+  string toAM05Format();
   /**
      \brief Returns the module's Z position
      \return The module's Z position

@@ -169,6 +169,12 @@ If you compiled the program using the cuda libraries, you can add the --useGPU f
 
    It should display one pattern per line. The interpretation process is the following : if you have '11014 (00X)' you have to convert the decimal value 11014 to binary : '00101 0110 000011 0'. The first 5 bits are the Z position of the module (00101 is 5 in decimal), then you have the index of the ladder (0110 is 6), the last bit is the segment (0 is 0). 000011 gives you the superstrip position and is encoded using gray code. You have to append the DC bits : 00001100X which corresponds to 2 values : 000011000 and 000011001. The decimal values of these gray encoded binary values are 16 and 17 which are the indices of the high resolution superstrips inside the module.
 
+   You can also display the patterns using a format compatible with AM05 chips : for every pattern you will get one 18 bits value per line corresponding to the value you have to upload in the AM05 chip. DC bits encoding is taken care of. 
+   \code
+   ./AMSimulation --printBankAM05 --bankFile <Your patterns bank file>
+   \endcode
+
+   You can use the --nbActiveLayers option to select the patterns having a specific number of active layers (useful if you want to group patterns by threshold value). In trigger towers using 9 layers, the patterns will be split in 2 groups of 8 layers patterns.
 
    \author Guillaume Baulieu g.baulieu@ipnl.in2p3.fr
  **/

@@ -744,7 +744,7 @@ int main(int av, char** ac){
 #endif
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
-    ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile)")
+    ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
@@ -773,6 +773,7 @@ int main(int av, char** ac){
     ("bank_name", po::value<string>(), "The bank file name")    
     ("minFS", po::value<int>(), "Used with --alterBank : only patterns with at least minFS fake stubs will be kept in the new bank")
     ("maxFS", po::value<int>(), "Used with --alterBank : only patterns with at most maxFS fake stubs will be kept in the new bank")
+    ("nbActiveLayers", po::value<int>(), "Used with --printBankAM05 : only patterns with this exact number of active layers will be printed")
     ;
      
   po::variables_map vm;
@@ -1249,48 +1250,94 @@ int main(int av, char** ac){
       vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
       vector<int> layers = mySector->getLayersID();
       int superstripSize = st.getSuperStripSize();
+      int expected_active_layers = -1;
+      bool hybrid_sector = layers.size()>8;//we have more layers than input buses
+      bool first_pass=true;
 
-      cout<<"Bank of patterns formatted for AM05 chip. Patterns are displayed with 1 line per layer (from innermost to outermost layer) and separated with an empty line."<<endl;
-      cout<<"The 8 input buses are used for the following layers (CMS IDs) : ";
+      int biggestID = -1;//last layer of the sector
+      int biggestBarrelID = -1;//last barrel layer of the sector
+      int biggestBarrelIndex = -1;//index of last barrel layer of the sector
       for(unsigned int j=0;j<layers.size();j++){
-	cout<<layers[j]<<" ";
-      }
-      for(unsigned int j=layers.size();j<8;j++){
-	cout<<"Unused ";
-      }
-      cout<<endl;
-      cout<<"Each line contains the decimal representation of the 18 bits value to store in the AM chip followed by the number of DC bits configured on that layer."<<endl;
-      cout<<"The format of the 16 bits superstrips to send to the AM chip is (all positions are relative to the trigger tower): "<<endl;
-      if(patterns[0]->getLayerStrip(0)->getDCBitsNumber()<3)
-	cout<<"\t5 bits for the position of the module on the ladder"<<endl;
-      else{
-	cout<<"\t1 bit set at 0"<<endl;
-	cout<<"\t4 bits for the position of the module on the ladder"<<endl;
-      }
-      cout<<"\t4 bits for the position of the ladder on the layer"<<endl;
-      cout<<"\t1 bit for the position of the segment on the module"<<endl;
-      cout<<"\t6 bits for the position of the superstrip on the segment (stub's strip index divided by "<<superstripSize<<") ENCODED IN GRAY CODE"<<endl;
-      cout<<endl;
-
-      if(sector_id!=-1)
-	cout<<"********* PATTERNS FOR SECTOR "<<sector_id<<" **********"<<endl;
-      else
-	cout<<"********** PATTERNS **********"<<endl;
-      cout<<endl;
-
-      for(unsigned int j=0;j<patterns.size();j++){
-	Pattern* p = patterns[j];
-	for(int k=0;k<p->getNbLayers();k++){
-	  PatternLayer* mp = p->getLayerStrip(k);
-	  cout<<((CMSPatternLayer*)mp)->toAM05Format()<<endl;
+	biggestID=layers[j];
+	if(layers[j]<11){
+	  biggestBarrelID=layers[j];
+	  biggestBarrelIndex=j;
 	}
-	//unused layers set to 15 (2 DC with "cannot be activated" value)
-	for(int k=p->getNbLayers();k<8;k++){
-	  cout<<"15 2"<<endl;
+      }
+
+      if(vm.count("nbActiveLayers"))
+	expected_active_layers = vm["nbActiveLayers"].as<int>(); // we only want patterns with this number of active layers (ie layers without fake superstrips)
+
+      cout<<"** Bank of patterns formatted for AM05 chip. Patterns are displayed with 1 line per layer (from innermost to outermost layer) and separated with an empty line."<<endl;
+      cout<<"** Each line contains the decimal representation of the 18 bits value to store in the AM chip followed by the number of DC bits configured on that layer."<<endl;
+      cout<<"** The format of the 16 bits superstrips to send to the AM chip is (all positions are relative to the trigger tower): "<<endl;
+      if(patterns[0]->getLayerStrip(0)->getDCBitsNumber()<3)
+	cout<<"** \t5 bits for the position of the module on the ladder"<<endl;
+      else{
+	cout<<"** \t1 bit set at 0"<<endl;
+	cout<<"** \t4 bits for the position of the module on the ladder"<<endl;
+      }
+      cout<<"** \t4 bits for the position of the ladder on the layer"<<endl;
+      cout<<"** \t1 bit for the position of the segment on the module"<<endl;
+      cout<<"** \t6 bits for the position of the superstrip on the segment (stub's strip index divided by "<<superstripSize<<") ENCODED IN GRAY CODE"<<endl;
+      cout<<"**"<<endl;
+      while(true){
+	cout<<"** The 8 input buses are used for the following layers (CMS IDs) : ";
+	for(unsigned int j=0;j<layers.size();j++){
+	  if(hybrid_sector && first_pass && layers[j]==biggestID)
+	    continue;
+	  if(hybrid_sector && !first_pass && layers[j]==biggestBarrelID)
+	    continue;
+	  cout<<layers[j]<<" ";
+	}
+	for(unsigned int j=layers.size();j<8;j++){
+	  cout<<"Unused ";
 	}
 	cout<<endl;
+	cout<<"**"<<endl;
+
+	if(sector_id!=-1)
+	  cout<<"********* PATTERNS FOR SECTOR "<<sector_id<<" **********"<<endl;
+	else
+	  cout<<"********** PATTERNS **********"<<endl;
+	cout<<endl;
+
+	for(unsigned int j=0;j<patterns.size();j++){
+	  Pattern* p = patterns[j];
+
+	  int nb_active_layers = p->getNbLayers()-p->getNbFakeSuperstrips();
+	  if(expected_active_layers!=-1 && expected_active_layers!=nb_active_layers) // the pattern does not have the expected number of active layers
+	    continue;
+
+	  if(hybrid_sector && first_pass && !p->getLayerStrip(8)->isFake())
+	    continue;
+
+	  if(hybrid_sector && !first_pass && p->getLayerStrip(8)->isFake())
+	    continue;
+
+	  for(int k=0;k<p->getNbLayers();k++){
+
+	    if(hybrid_sector && first_pass && k==8)
+	      continue;
+	    if(hybrid_sector && !first_pass && k==biggestBarrelIndex)
+	      continue;
+
+	    PatternLayer* mp = p->getLayerStrip(k);
+	    cout<<((CMSPatternLayer*)mp)->toAM05Format()<<endl;
+	  }
+	  //unused layers set to 15 (2 DC with "cannot be activated" value)
+	  for(int k=p->getNbLayers();k<8;k++){
+	    cout<<"15 2"<<endl;
+	  }
+	  cout<<endl;
+	}
+	cout<<"********** END OF PATTERNS **********"<<endl;
+	if(!hybrid_sector)
+	  break;
+	else if(!first_pass)
+	  break;
+	first_pass=false;
       }
-      cout<<"********** END OF PATTERNS **********"<<endl;
     }
   }
   else if(vm.count("alterBank")) {

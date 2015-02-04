@@ -229,6 +229,12 @@ string CMSPatternLayer::toAM05Format(){
     else
       dcbit1_val=2;//10
 
+    // in case this is a fake superstrip, it must not be activable : we use the 11 value of the DC bits
+    if(isFake()){
+      dcbit0_val=3;//11
+      dcbit1_val=3;//11
+    }
+
     //5 bits for Z + 4 bits for ladder + 1 bit for seg + 4 bits for sstrip + 2 bits for sstrips DC bit 0 + 2 bits for sstrips DC bit 1 = 18 bits
     am_format |= (z&AM05_MOD_MASK)<<AM05_MOD_START_BIT |
       (ladder&AM05_PHI_MASK)<<AM05_PHI_START_BIT |
@@ -262,6 +268,12 @@ string CMSPatternLayer::toAM05Format(){
       break;
     }
     
+    // in case this is a fake superstrip, it must not be activable : we use the 11 value of the DC bits
+    if(isFake()){
+      dcbit0_val=3;//11
+      dcbit1_val=3;//11
+    }
+
     //5 bits for Z + 4 bits for ladder + 1 bit for seg + 4 bits for sstrip + 2 bits for sstrips DC bit 0 + 2 bits for sstrips DC bit 1 = 18 bits
     am_format |= (z&AM05_MOD_MASK)<<AM05_MOD_START_BIT |
       (ladder&AM05_PHI_MASK)<<AM05_PHI_START_BIT |
@@ -293,7 +305,13 @@ string CMSPatternLayer::toAM05Format(){
     case 1 : dcbit1_val=2;//10
       break;
     }
-    
+
+    // in case this is a fake superstrip, it must not be activable : we use the 11 value of the DC bits
+    if(isFake()){
+      dcbit0_val=3;//11
+      dcbit1_val=3;//11
+    }    
+
     //5 bits for Z + 4 bits for ladder + 1 bit for seg + 4 bits for sstrip + 2 bits for sstrips DC bit 0 + 2 bits for sstrips DC bit 1 = 18 bits
     am_format |= (z&AM05_MOD_MASK)<<AM05_MOD_START_BIT |
       (ladder&AM05_PHI_MASK)<<AM05_PHI_START_BIT |
@@ -356,6 +374,13 @@ string CMSPatternLayer::toAM05Format(){
     if(z>15){
       cout<<"The module value is too high ("<<z<<">15) : pattern can not be stored in an AM05 chip"<<endl;
       exit(-1);
+    }
+
+    // in case this is a fake superstrip, it must not be activable : we use the 11 value of the DC bits
+    if(isFake()){
+      dcbit0_val=3;//11
+      dcbit1_val=3;//11
+      dcbit2_val=3;//11
     }
 
     //4 bits for Z + 4 bits for ladder + 1 bit for seg + 3 bits for sstrip + 2 bits for sstrips DC bit 0 + 2 bits for sstrips DC bit 1 + 2 bits for sstrips DC bit 2 = 18 bits

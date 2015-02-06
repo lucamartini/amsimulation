@@ -22,9 +22,15 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
 
   if(isFake()){ // this is a fake superstrip! We link it to the dump superstrip
     vector<short> positions = getPositionsFromDC();
-    for(unsigned int i=0;i<positions.size();i++){
+    if(positions.size()==0){
       SuperStrip* patternStrip = d.getDump();
       v.push_back(patternStrip);
+    }
+    else{
+      for(unsigned int i=0;i<positions.size();i++){
+	SuperStrip* patternStrip = d.getDump();
+	v.push_back(patternStrip);
+      }
     }
     return v;
   }
@@ -41,10 +47,16 @@ vector<SuperStrip*> CMSPatternLayer::getSuperStrip(int l, const vector<int>& lad
 	  Segment* patternSegment = patternModule->getSegment(getSegment());
 	  if(patternSegment!=NULL){
 	    int base_index = getStripCode()<<nb_dc;
-	    vector<short> positions=getPositionsFromDC();
-	    for(unsigned int i=0;i<positions.size();i++){
-	      int index = base_index | positions[i];
-	      SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(grayToBinary(index));
+	    if(nb_dc>0){
+	      vector<short> positions=getPositionsFromDC();
+	      for(unsigned int i=0;i<positions.size();i++){
+		int index = base_index | positions[i];
+		SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(grayToBinary(index));
+		v.push_back(patternStrip);
+	      }
+	    }
+	    else{
+	      SuperStrip* patternStrip = patternSegment->getSuperStripFromIndex(grayToBinary(base_index));
 	      v.push_back(patternStrip);
 	    }
 	    return v;

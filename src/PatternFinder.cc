@@ -1131,11 +1131,13 @@ void PatternFinder::find(int start, int& stop){
       unsigned int max_patterns = pl.size();
       unsigned int max_tracks = tracks.size();
       if((int)max_patterns>MAX_NB_PATTERNS){
-          max_patterns=MAX_NB_PATTERNS;
-	  nb_patterns=MAX_NB_PATTERNS;
-	  if(max_tracks>max_patterns)
-	    max_tracks=max_patterns;
-          cout<<"WARNING : Too may patterns in event "<<n_evt<<" : "<<pl.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
+	max_patterns=MAX_NB_PATTERNS;
+	nb_patterns=MAX_NB_PATTERNS;
+	cout<<"WARNING : Too may patterns in event "<<n_evt<<" : "<<pl.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
+      }
+      if((int)max_tracks>MAX_NB_PATTERNS){
+	max_tracks=MAX_NB_PATTERNS;
+	cout<<"WARNING : Too may tracks in event "<<n_evt<<" : "<<tracks.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
       }
 
       set<int> stub_ids;

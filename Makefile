@@ -26,13 +26,13 @@ endif
 endif
 
 ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
+	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
 else
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
+	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
 endif
 
 AMSimulation:$(OBJECTS)
-	g++ -o AMSimulation $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
+	g++ -o AMSimulation $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad
 
 clean:	
 	rm -rf *.o;rm -f ${SRC}/*~;rm -f ${SRC}/*#
@@ -117,6 +117,12 @@ ComputerHough.o:${SRC}/ComputerHough.h ${SRC}/ComputerHough.cc $(SRC)/libhoughSt
 
 libhoughCPU.o:${SRC}/libhoughCPU.h ${SRC}/libhoughCPU.c
 	g++ -c ${FLAG} ${INC} ${SRC}/libhoughCPU.c
+
+Retina.o:${SRC}/Retina.h ${SRC}/Retina.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/Retina.cc
+
+RetinaTrackFitter.o:${SRC}/RetinaTrackFitter.h ${SRC}/RetinaTrackFitter.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/RetinaTrackFitter.cc
 
 FileEventProxy.o:${SRC}/FileEventProxy.h ${SRC}/FileEventProxy.cc
 	g++ -c ${FLAG} ${INC} ${SRC}/FileEventProxy.cc

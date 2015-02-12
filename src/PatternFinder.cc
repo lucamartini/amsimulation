@@ -1759,6 +1759,7 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
 
     cout<<"Event "<<n_evt<<endl;
 
+    vector<Hit*> hits;
     for(int i=0;i<m_stub;i++){
       int layer = m_stub_layer[i];
       int module = -1;
@@ -1773,20 +1774,33 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
       }
       int strip = m_stub_strip[i];
       
-      Hit h(layer,ladder, module, segment, strip, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-      Sector* firstSector = sectors->getAllSectors()[0];
-      if(sectors->getSector(h)==firstSector){//we manage only one sector
-	module = firstSector->getModuleCode(layer, ladder, module);
-	ladder=firstSector->getLadderCode(layer, ladder);
-	strip = strip/superStripSize;
-	CMSPatternLayer pat;
-	pat.setValues(module, ladder, strip, segment);
-	cout<<layer<<" "<<pat.toStringBinary()<<endl;
-      }
+      Hit* h = new Hit(layer,ladder, module, segment, strip, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      cout<<*h<<endl;
+      hits.push_back(h);
     }
+    displaySuperstrips(hits);
+    for(unsigned int i=0;i<hits.size();i++){
+      delete(hits[i]);
+    }
+    hits.clear();
     num_evt++;
   }
   delete TT;
+}
+
+void PatternFinder::displaySuperstrips(const vector<Hit*> &hits){
+  Sector* firstSector = sectors->getAllSectors()[0];
+  for(unsigned int i=0;i<hits.size();i++){
+    Hit* myHit = hits[i];
+    if(sectors->getSector(*myHit)==firstSector){//we manage only one sector
+      int module = firstSector->getModuleCode(myHit->getLayer(), myHit->getLadder(), myHit->getModule());
+      int ladder=firstSector->getLadderCode(myHit->getLayer(), myHit->getLadder());
+      int strip = myHit->getStripNumber()/superStripSize;
+      CMSPatternLayer pat;
+      pat.setValues(module, ladder, strip, myHit->getSegment());
+      cout<<(int)myHit->getLayer()<<" "<<pat.toStringSuperstripBinary()<<" (layer "<<(int)myHit->getLayer()<<" ladder "<<(int)myHit->getLadder()<<" module "<<(int)myHit->getModule()<<" segment "<<(int)myHit->getSegment()<<" strip "<<(int)myHit->getStripNumber()<<")"<<endl;
+    }
+  }
 }
 
 void PatternFinder::useMissingHitThreshold(int max_nb_missing_hit){

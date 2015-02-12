@@ -97,6 +97,11 @@ class CMSPatternLayer : public PatternLayer{
   **/
   string toStringBinary();
   /**
+     \brief Returns a string representation of the PatternLayer, using binary values and in the correct AM05 order (strip position at the end).
+     \return A string describing the PatternLayer
+  **/
+  string toStringSuperstripBinary();
+  /**
      \brief Returns a string representation of the PatternLayer, using the encoding needed for a AM05 chip
      \return A string describing the PatternLayer
   **/

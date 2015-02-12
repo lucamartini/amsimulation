@@ -166,6 +166,30 @@ string CMSPatternLayer::toString(){
   return oss.str();
 }
 
+string CMSPatternLayer::toStringSuperstripBinary(){
+  short seg = getSegment();
+  short sstrip = getStripCode();
+  int initialValue = getIntValue();
+  int moduleLadder = (initialValue>>PHI_START_BIT);//remove the superstrip and segment informations
+  int newValue = 0;
+  newValue |= (moduleLadder&0x1FF)<<PHI_START_BIT |
+    (seg&SEG_MASK)<<(PHI_START_BIT-1) |
+    (sstrip&STRIP_MASK)<<SEG_START_BIT;
+  ostringstream oss;
+  oss<<newValue;
+  if(dc_bits[0]!=3){
+    oss<<" (";
+    for(int i=0;i<DC_BITS;i++){
+      if(dc_bits[i]==2)
+	oss<<"X";
+      else if(dc_bits[i]!=3)
+	oss<<(int)dc_bits[i];
+    }
+    oss<<")";
+  }
+  return oss.str();
+}
+
 string CMSPatternLayer::toStringBinary(){
   ostringstream oss;
   oss<<getIntValue();

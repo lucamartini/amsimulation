@@ -26,13 +26,21 @@ endif
 endif
 
 ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
+	OBJECTS=SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o \
+	PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o \
+	Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o \
+	PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o \
+	Retina.o RetinaTrackFitter.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
 else
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
+	OBJECTS=SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o \
+	PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o \
+	Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o \
+	PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o \
+	Retina.o RetinaTrackFitter.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
 endif
 
-AMSimulation:$(OBJECTS)
-	g++ -o AMSimulation $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad
+AMSimulation:$(OBJECTS) AMSimulation.o
+	g++ -o AMSimulation $(OBJECTS) AMSimulation.o ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad
 
 clean:	
 	rm -rf *.o;rm -f ${SRC}/*~;rm -f ${SRC}/*#
@@ -135,6 +143,10 @@ AMSimulation.o:${SRC}/AMSimulation.cc
 
 gpu.o:${SRC}/gpu.h ${SRC}/gpu_struct.h ${SRC}/gpu.cu 
 	${CUDA_ROOTDIR}/bin/nvcc -ccbin g++ ${INC} -m64 -arch compute_30 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"  -o gpu.o -c src/gpu.cu
+
+tests:${SRC}/UnitTest.cc ${SRC}/UnitTest.h $(OBJECTS)
+	g++ -c ${FLAG} ${INC} ${SRC}/UnitTest.cc
+	g++ -o UnitTest UnitTest.o  $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad -lboost_unit_test_framework
 
 doc:doxygen.cfg
 	doxygen doxygen.cfg

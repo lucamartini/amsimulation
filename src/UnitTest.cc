@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE( pattern_finding_test ){
   }
   ///////////////////////////////////////////////////////////////
 
-  PatternFinder pf(st.getSuperStripSize(), 5, &st,  "test_data/PU4T_620SLHC7_light.root",  "test_data/output.root");
+  PatternFinder pf(5, &st,  "test_data/PU4T_620SLHC7_light.root",  "test_data/output.root");
   {
     pf.useMissingHitThreshold(1);
     int stop = 10;

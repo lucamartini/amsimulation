@@ -764,7 +764,7 @@ int main(int av, char** ac){
     ("startEvent", po::value<int>(), "The first event index")
     ("stopEvent", po::value<int>(), "The last event index")
     ("decode", po::value<int>(), "Decode the given super strip")
-    ("ss_size", po::value<int>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}")
+    ("ss_size", po::value<string>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}. Either one value for all detector or one value per layer")
     ("dc_bits", po::value<int>(), "Number of used DC bits [0-3]")
     ("pt_min", po::value<int>(), "Only tracks having a greater PT will be used to generate a pattern")
     ("pt_max", po::value<int>(), "Only tracks having a smaller PT will be used to generate a pattern")
@@ -820,7 +820,7 @@ int main(int av, char** ac){
     
     vector<int> layers;
     SectorTree st;
-    int stripSize=0;
+    string stripSizes="";
     int dcBits=0;
     string partDirName="";
     string bankFileName="";
@@ -839,8 +839,8 @@ int main(int av, char** ac){
     map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
     
     try{
-      stripSize=vm["ss_size"].as<int>();
-      cout<<"Superstrip size : "<<stripSize<<endl;
+      stripSizes=vm["ss_size"].as<string>();
+      cout<<"Superstrip sizes : "<<stripSizes<<endl;
       dcBits=vm["dc_bits"].as<int>();
       cout<<"DC bits number : "<<dcBits<<endl;
       min=vm["pt_min"].as<int>();
@@ -921,6 +921,24 @@ int main(int av, char** ac){
 	eta[desactivated_layers[i]].second=10;
       }
 
+      vector<int> layer_superstrip_size;
+      std::istringstream strips( stripSizes );
+      while( strips >> n ) {
+	layer_superstrip_size.push_back(n);
+      }
+      if(layer_superstrip_size.size()==1){
+	st.setSuperStripSize(layer_superstrip_size[0]);
+      }
+      else if(layer_superstrip_size.size()==active_layers.size()){//one size per layer
+	for(unsigned int ln=0;ln<active_layers.size();ln++){
+	  st.setSuperStripSize(layer_superstrip_size[ln],active_layers[ln]);
+	}
+      }
+      else{
+	st.setSuperStripSize(-1);
+      }
+      
+
       size_t end_index = bankFileName.find(".pbk");
       if(end_index==string::npos)
 	end_index=bankFileName.length()-4;
@@ -946,7 +964,7 @@ int main(int av, char** ac){
       return -1;
     }
     
-    PatternGenerator pg(stripSize);//Super strip size
+    PatternGenerator pg;
     pg.setLayers(active_layers);
     pg.setInactiveLayers(desactivated_layers);
     pg.setParticuleDirName(partDirName);
@@ -1017,7 +1035,7 @@ int main(int av, char** ac){
 	}
       }
     }
-    PatternFinder pf(st.getSuperStripSize(), 0, &st,  vm["inputFile"].as<string>().c_str(),  "none");
+    PatternFinder pf(0, &st,  vm["inputFile"].as<string>().c_str(),  "none");
     {
       int start = vm["startEvent"].as<int>();
       int stop = vm["stopEvent"].as<int>();
@@ -1073,7 +1091,7 @@ int main(int av, char** ac){
 
       st.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
 
-      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
+      PatternFinder pf(vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
 		       &d_pb, &d_detector, &d_param); 
       {
 	boost::progress_timer t;
@@ -1101,7 +1119,7 @@ int main(int av, char** ac){
 	nbMissingHit=-1;
 	threshold=vm["ss_threshold"].as<int>();
       }
-      PatternFinder pf(st.getSuperStripSize(), threshold, &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
+      PatternFinder pf(threshold, &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
       {
 	boost::progress_timer t;
 	int start = vm["startEvent"].as<int>();
@@ -1255,7 +1273,6 @@ int main(int av, char** ac){
       int sector_id = mySector->getOfficialID();
       vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
       vector<int> layers = mySector->getLayersID();
-      int superstripSize = st.getSuperStripSize();
       int expected_active_layers = -1;
       bool hybrid_sector = layers.size()>8;//we have more layers than input buses
       bool first_pass=true;
@@ -1285,16 +1302,16 @@ int main(int av, char** ac){
       }
       cout<<"** \t4 bits for the position of the ladder on the layer"<<endl;
       cout<<"** \t1 bit for the position of the segment on the module"<<endl;
-      cout<<"** \t6 bits for the position of the superstrip on the segment (stub's strip index divided by "<<superstripSize<<") ENCODED IN GRAY CODE"<<endl;
+      cout<<"** \t6 bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE"<<endl;
       cout<<"**"<<endl;
       while(true){
-	cout<<"** The 8 input buses are used for the following layers (CMS IDs) : ";
+	cout<<"** The 8 input buses are used for the following layers (CMS IDs - superstrips size between parenthesis) : ";
 	for(unsigned int j=0;j<layers.size();j++){
 	  if(hybrid_sector && first_pass && layers[j]==biggestID)
 	    continue;
 	  if(hybrid_sector && !first_pass && layers[j]==biggestBarrelID)
 	    continue;
-	  cout<<layers[j]<<" ";
+	  cout<<layers[j]<<" ("<<st.getSuperStripSize(layers[j])<<") - ";
 	}
 	for(unsigned int j=layers.size();j<8;j++){
 	  cout<<"Unused ";
@@ -1384,7 +1401,10 @@ int main(int av, char** ac){
       }
     }
 
-    st2.setSuperStripSize(st.getSuperStripSize());
+    vector<int> size_on_layers = st.getSuperStripSizeLayers();
+    for(unsigned int i=0;i<size_on_layers.size();i++){
+      st2.setSuperStripSize(st.getSuperStripSize(size_on_layers[i]), size_on_layers[i]);
+    }
 
     cout<<"Altering bank..."<<endl;
     vector<Sector*> sectors = st.getAllSectors();
@@ -1476,9 +1496,19 @@ int main(int av, char** ac){
       cout<<"You can only merge banks containing 1 sector ("<<nbSectors2<<" found)"<<endl;
       return -1;
     }
-    if(st1.getSuperStripSize()!=st2.getSuperStripSize()){
-      cout<<"You can only merge banks using the same superstrip size ("<<st1.getSuperStripSize()<<" and "<<st2.getSuperStripSize()<<" found)"<<endl;
-      return -1;
+    vector<int> layers_1 = st1.getSuperStripSizeLayers();
+    vector<int> layers_2 = st2.getSuperStripSizeLayers();
+    for(unsigned int i=0;i<layers_1.size();i++){
+      if(st1.getSuperStripSize(layers_1[i])!=st2.getSuperStripSize(layers_1[i])){
+	cout<<"You can only merge banks using the same superstrip size (on layer "<<layers_1[i]<<" : "<<st1.getSuperStripSize(layers_1[i])<<" and "<<st2.getSuperStripSize(layers_1[i])<<" found)"<<endl;
+	return -1;
+      }
+    }
+    for(unsigned int i=0;i<layers_2.size();i++){
+      if(st1.getSuperStripSize(layers_2[i])!=st2.getSuperStripSize(layers_2[i])){
+	cout<<"You can only merge banks using the same superstrip size (on layer "<<layers_2[i]<<" : "<<st1.getSuperStripSize(layers_2[i])<<" and "<<st2.getSuperStripSize(layers_2[i])<<" found)"<<endl;
+	return -1;
+      }
     }
     if(list1[0]->getNbLayers()!=list2[0]->getNbLayers()){
       cout<<"You can only merge banks using the same number of layers ("<<list1[0]->getNbLayers()<<" and "<<list2[0]->getNbLayers()<<" found)"<<endl;

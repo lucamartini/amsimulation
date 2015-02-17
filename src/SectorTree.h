@@ -41,7 +41,7 @@ class SectorTree{
      \brief used to know the superstrip size used for the patterns contained in this sectorTree.
      This value is not used inside the class.
   **/
-  int superStripSize;
+  map<int,int> superStripSize;
 
   void updateSectorMap();
 
@@ -54,7 +54,14 @@ class SectorTree{
   
   template<class Archive> void load(Archive & ar, const unsigned int version){
     ar >> sector_list;
-    ar >> superStripSize;
+    if(version<1){
+      int val;
+      ar >> val;
+      setSuperStripSize(val);
+    }
+    else{
+      ar >> superStripSize;
+    }
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
@@ -134,15 +141,24 @@ class SectorTree{
 
   /**
      \brief Retrieve the superstrip size used for the patterns inside the SectorTree
+     \param layer_id The ID of the layer for which you want the superstrip size (0 for default).
+									\If the ID is not know, returns the default value.
      \return -1 if not specified, the superStrip size otherwise.
   **/
-  int getSuperStripSize();
+  int getSuperStripSize(int layer_id=0);
 
   /**
      \brief Set the size of the superStrip used in the patterns stored in the SectorTree
      \param s The superStrip size (should be greater than 0)
+     \param layer_id The ID of the layer for which you want to set the superstrip size (0 for default)
   **/
-  void setSuperStripSize(int s);
+  void setSuperStripSize(int s, int layer_id=0);
+
+  /**
+     \brief Returns the list of layer IDs for which a superstrip size is defined
+     \return A vector containing the list of layer IDs
+   **/
+  vector<int> getSuperStripSizeLayers();
 
   /**
      \brief Get the number of sectors in the SectorTree
@@ -150,4 +166,5 @@ class SectorTree{
   int getNbSectors();
 
 };
+BOOST_CLASS_VERSION(SectorTree, 1)
 #endif

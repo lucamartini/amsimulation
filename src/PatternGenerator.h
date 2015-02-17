@@ -20,7 +20,6 @@ using namespace std;
 **/
 class PatternGenerator{
  private:
-  int superStripSize;
   int variableRes; // number of DC bits used
   float ptMin;
   float ptMax;
@@ -52,15 +51,9 @@ class PatternGenerator{
  public:
  /**
      \brief Constructor
-     \param sp Size of a super strip
   **/
-  PatternGenerator(int sp);
+  PatternGenerator();
 
-  /**
-     \brief Change the super strip size
-     \param sp Size of a super strip
-  **/
-  void setSuperStripSize(int sp);
   /**
      \brief Change the minimum PT accepted to create a pattern (default is 2)
      \param minp The minimum PT in GeV/c

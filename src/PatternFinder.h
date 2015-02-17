@@ -18,7 +18,6 @@ using namespace std;
 **/
 class PatternFinder{
  private:
-  int superStripSize;
   int active_threshold;
   int max_nb_missing_hit;
   bool useMissingHits;
@@ -38,18 +37,16 @@ class PatternFinder{
  public:
  /**
      \brief Constructor
-     \param sp Size of a super strip
      \param at The minimum number of hit super strip to activate a pattern
      \param st The SectorTree containing the sectors with their associated patterns
      \param f The name of the file to analyse
      \param of The name of the output file
   **/
-  PatternFinder(int sp, int at, SectorTree* st, string f, string of);
+  PatternFinder(int at, SectorTree* st, string f, string of);
 
 #ifdef USE_CUDA
  /**
      \brief Constructor
-     \param sp Size of a super strip
      \param at The minimum number of hit super strip to activate a pattern
      \param st The SectorTree containing the sectors with their associated patterns
      \param f The name of the file to analyse
@@ -58,7 +55,7 @@ class PatternFinder{
      \param d The device detector
      \param d_p Structure containing device addresses where parameters are stored
   **/
-  PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp);
+  PatternFinder(int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp);
 
   /**
      \brief Get active patterns from list of hits (public for CMSSW).

@@ -1,7 +1,6 @@
 #include "PatternFinder.h"
 
-PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of){
-  superStripSize = sp;
+PatternFinder::PatternFinder(int at, SectorTree* st, string f, string of){
   active_threshold = at;
   max_nb_missing_hit = 0;
   useMissingHits=false;
@@ -15,13 +14,13 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   map< int, vector<int> > detector_config = Sector::readConfig("detector.cfg");
 
   //We add the layers corresponding to the sectors structure
-  vector<Sector*> sectors = st->getAllSectors();
-  if(sectors.size()>0){
-    for(int i=0;i<sectors[0]->getNbLayers();i++){
-      int layerID = sectors[0]->getLayerID(i);
+  vector<Sector*> sector_list = sectors->getAllSectors();
+  if(sector_list.size()>0){
+    for(int i=0;i<sector_list[0]->getNbLayers();i++){
+      int layerID = sector_list[0]->getLayerID(i);
       if(detector_config.size()>0){
 	if(detector_config.find(layerID)!=detector_config.end())
-	  tracker.addLayer(detector_config[layerID][0],detector_config[layerID][1],detector_config[layerID][2],detector_config[layerID][3], superStripSize);
+	  tracker.addLayer(detector_config[layerID][0],detector_config[layerID][1],detector_config[layerID][2],detector_config[layerID][3], sectors->getSuperStripSize(layerID));
 	else
 	  cout<<"WARNING : Layer "<<layerID<<" is used in the sector definition of the bank but is missing in the configuration of the virtual detector"<<endl;
       }
@@ -30,13 +29,12 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
 
   //Link the patterns with the tracker representation
   cout<<"linking..."<<endl;
-  st->link(tracker);
+  sectors->link(tracker);
   cout<<"done."<<endl;
 }
 
 #ifdef USE_CUDA
-PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
-  superStripSize = sp;
+PatternFinder::PatternFinder(int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
   active_threshold = at;
   max_nb_missing_hit=0;
   useMissingHits=false;
@@ -500,13 +498,13 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   /*********************************************/
 
   /******************** MERGING SECTOR DATA************************/
-  vector<int> sectors;
+  vector<int> sector_list;
   //copy all the content of the first file
   int nb_entries1 = SEC1->GetEntries();
   for(int i=0;i<nb_entries1;i++){
     SEC1->GetEntry(i);
     sector_id = input1_sector_id;
-    sectors.push_back(sector_id);
+    sector_list.push_back(sector_id);
     sector_layers=input1_sector_layers;
     memcpy(sector_layer_list, input1_sector_layer_list, sector_layers*sizeof(int));
     memcpy(nb_ladders_layer, input1_nb_ladders_layer, sector_layers*sizeof(int));
@@ -520,9 +518,9 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   int nb_entries2 = SEC2->GetEntries();
   for(int i=0;i<nb_entries2;i++){
     SEC2->GetEntry(i);
-    if(std::find(sectors.begin(),sectors.end(), input2_sector_id)==sectors.end()){ // We do not know this sector
+    if(std::find(sector_list.begin(),sector_list.end(), input2_sector_id)==sector_list.end()){ // We do not know this sector
       sector_id = input2_sector_id;
-      sectors.push_back(sector_id);
+      sector_list.push_back(sector_id);
       sector_layers=input2_sector_layers;
       memcpy(sector_layer_list, input2_sector_layer_list, sector_layers*sizeof(int));
       memcpy(nb_ladders_layer, input2_nb_ladders_layer, sector_layers*sizeof(int));
@@ -1566,7 +1564,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 	cuda_hits[cuda_idx+1]=ladder;
 	cuda_hits[cuda_idx+2]=module;
 	cuda_hits[cuda_idx+3]=segment;
-	cuda_hits[cuda_idx+4]=(char)(strip/superStripSize);
+	cuda_hits[cuda_idx+4]=(char)(strip/sectors->getSuperStripSize(layer));
 	cuda_nb_hits++;
 
       }
@@ -1795,7 +1793,7 @@ void PatternFinder::displaySuperstrips(const vector<Hit*> &hits){
     if(sectors->getSector(*myHit)==firstSector){//we manage only one sector
       int module = firstSector->getModuleCode(myHit->getLayer(), myHit->getLadder(), myHit->getModule());
       int ladder=firstSector->getLadderCode(myHit->getLayer(), myHit->getLadder());
-      int strip = myHit->getStripNumber()/superStripSize;
+      int strip = myHit->getStripNumber()/sectors->getSuperStripSize(myHit->getLayer());
       CMSPatternLayer pat;
       pat.setValues(module, ladder, strip, myHit->getSegment());
       cout<<(int)myHit->getLayer()<<" "<<pat.toStringSuperstripBinary()<<" (layer "<<(int)myHit->getLayer()<<" ladder "<<(int)myHit->getLadder()<<" module "<<(int)myHit->getModule()<<" segment "<<(int)myHit->getSegment()<<" strip "<<(int)myHit->getStripNumber()<<")"<<endl;

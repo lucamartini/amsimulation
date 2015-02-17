@@ -1,16 +1,11 @@
 #include "PatternGenerator.h"
 
-PatternGenerator::PatternGenerator(int sp){
-  superStripSize = sp;
+PatternGenerator::PatternGenerator(){
   variableRes = 0;
   ptMin=2;
   ptMax=100;
   etaMin=0.0f;
   etaMax=1.0f;
-}
-
-void PatternGenerator::setSuperStripSize(int sp){
-  superStripSize = sp;
 }
 
 void PatternGenerator::setMinPT(float minp){
@@ -126,9 +121,6 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
     return -1;
   }
   vector<Pattern*> patterns;
-
-  if(coverageEstimation==NULL)
-    sectors->setSuperStripSize(superStripSize);
 
   //--> Signification (et dimension) des variables
 
@@ -321,7 +313,7 @@ int PatternGenerator::generate(TChain* TT, int* evtIndex, int evtNumber, int* nb
 	module = sector->getModuleCode(tracker_layers[j], CMSPatternLayer::getLadderCode(tracker_layers[j],ladder), CMSPatternLayer::getModuleCode(tracker_layers[j],module));
 	ladder=sector->getLadderCode(tracker_layers[j],CMSPatternLayer::getLadderCode(tracker_layers[j],ladder));
 	
-	strip = m_stub_strip[stub_number]/superStripSize;
+	strip = m_stub_strip[stub_number]/sectors->getSuperStripSize(tracker_layers[j]);
 	if(variableRes){
 	  stripLD = strip/ld_fd_factor;
 	}

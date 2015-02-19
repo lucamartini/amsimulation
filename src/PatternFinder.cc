@@ -1141,71 +1141,73 @@ void PatternFinder::find(int start, int& stop){
       set<int> stub_ids;
 
       set<int> indexOfStubsInTracks;
-      
-      for(unsigned int k=0;k<max_tracks;k++){
-	track_pt[trackIndex] = tracks[k]->getCurve();
-	track_phi[trackIndex]= tracks[k]->getPhi0();
-	track_d0[trackIndex] = tracks[k]->getD0();
-	track_eta[trackIndex]= tracks[k]->getEta0();
-	track_z0[trackIndex] = tracks[k]->getZ0();
-	
-	vector<int> stubsInTrack = tracks[k]->getStubs();
-	for(unsigned int l=0;l<stubsInTrack.size();l++){
-	  indexOfStubsInTracks.insert(stubsInTrack[l]);
+
+      for(unsigned int k=0;k<tracks.size();k++){
+	if(k<max_tracks){
+	  track_pt[trackIndex] = tracks[k]->getCurve();
+	  track_phi[trackIndex]= tracks[k]->getPhi0();
+	  track_d0[trackIndex] = tracks[k]->getD0();
+	  track_eta[trackIndex]= tracks[k]->getEta0();
+	  track_z0[trackIndex] = tracks[k]->getZ0();
+	  
+	  vector<int> stubsInTrack = tracks[k]->getStubs();
+	  for(unsigned int l=0;l<stubsInTrack.size();l++){
+	    indexOfStubsInTracks.insert(stubsInTrack[l]);
+	  }
+	  trackIndex++;
 	}
-	
 	delete tracks[k];
-	trackIndex++;
       }
       
-      for(unsigned int j=0;j<max_patterns;j++){
-	//loop on layers
-	for(int k=0;k<nb_layers;k++){
-	  int sstripValue = pl[j]->getLayerStrip(k)->getIntValue();
-	  superStrips[k][patternIndex]=sstripValue;
-	}
-	//sector of the pattern
-	pattern_sector_id[patternIndex]=sec_id;
-	
-	
-	//stubs of the patterns
-	vector<Hit*> active_hits = pl[j]->getHits();
-
-	int nbHits = active_hits.size();
-	if(nbHits>MAX_NB_HITS) // if we have too many hits, we keep only the MAX_NB_HITS first
-	  nbHits=MAX_NB_HITS;
-	nbHitPerPattern[patternIndex]=nbHits;
-	totalNbHits+=nbHits;
-	for(int k=0;k<nbHits;k++){
-	  //cout<<*active_hits[k]<<endl;
-	  
-	  hit_layer[stubIndex]=active_hits[k]->getLayer();
-	  hit_ladder[stubIndex]=active_hits[k]->getLadder();
-	  hit_zPos[stubIndex]=active_hits[k]->getModule();
-	  hit_segment[stubIndex]=active_hits[k]->getSegment();
-	  hit_strip[stubIndex]=active_hits[k]->getStripNumber();
-	  hit_tp[stubIndex]=active_hits[k]->getParticuleID();
-	  hit_idx[stubIndex]=active_hits[k]->getID();
-	  if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
-	    hit_used_fit[stubIndex]=true;
+      for(unsigned int j=0;j<pl.size();j++){
+	if(j<max_patterns){
+	  //loop on layers
+	  for(int k=0;k<nb_layers;k++){
+	    int sstripValue = pl[j]->getLayerStrip(k)->getIntValue();
+	    superStrips[k][patternIndex]=sstripValue;
 	  }
-	  hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
-	  hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
-	  hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();
-	  hit_ip[stubIndex]=active_hits[k]->getParticuleIP();
-	  hit_x[stubIndex]=active_hits[k]->getX();
-	  hit_y[stubIndex]=active_hits[k]->getY();
-	  hit_z[stubIndex]=active_hits[k]->getZ();
-	  hit_x0[stubIndex]=active_hits[k]->getX0();
-	  hit_y0[stubIndex]=active_hits[k]->getY0();
-	  hit_z0[stubIndex]=active_hits[k]->getZ0();
-
-	  stub_ids.insert(active_hits[k]->getID());
+	  //sector of the pattern
+	  pattern_sector_id[patternIndex]=sec_id;
+	  	  
+	  //stubs of the patterns
+	  vector<Hit*> active_hits = pl[j]->getHits();
 	  
-	  stubIndex++;
+	  int nbHits = active_hits.size();
+	  if(nbHits>MAX_NB_HITS) // if we have too many hits, we keep only the MAX_NB_HITS first
+	    nbHits=MAX_NB_HITS;
+	  nbHitPerPattern[patternIndex]=nbHits;
+	  totalNbHits+=nbHits;
+	  for(int k=0;k<nbHits;k++){
+	    //cout<<*active_hits[k]<<endl;
+	    
+	    hit_layer[stubIndex]=active_hits[k]->getLayer();
+	    hit_ladder[stubIndex]=active_hits[k]->getLadder();
+	    hit_zPos[stubIndex]=active_hits[k]->getModule();
+	    hit_segment[stubIndex]=active_hits[k]->getSegment();
+	    hit_strip[stubIndex]=active_hits[k]->getStripNumber();
+	    hit_tp[stubIndex]=active_hits[k]->getParticuleID();
+	    hit_idx[stubIndex]=active_hits[k]->getID();
+	    if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
+	      hit_used_fit[stubIndex]=true;
+	    }
+	    hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
+	    hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
+	    hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();
+	    hit_ip[stubIndex]=active_hits[k]->getParticuleIP();
+	    hit_x[stubIndex]=active_hits[k]->getX();
+	    hit_y[stubIndex]=active_hits[k]->getY();
+	    hit_z[stubIndex]=active_hits[k]->getZ();
+	    hit_x0[stubIndex]=active_hits[k]->getX0();
+	    hit_y0[stubIndex]=active_hits[k]->getY0();
+	    hit_z0[stubIndex]=active_hits[k]->getZ0();
+	    
+	    stub_ids.insert(active_hits[k]->getID());
+	    
+	    stubIndex++;
+	  }
+	  
+	  patternIndex++;
 	}
-	
-	patternIndex++;
 	delete pl[j];
       }
 

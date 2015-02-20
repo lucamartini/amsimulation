@@ -2,7 +2,7 @@ UNAME := $(shell uname)
 
 SRC=src
 
-CUDA_ENABLED=false
+CUDA_ENABLED=true
 CUDA_ROOTDIR=/usr/local/cuda/
 CUDA_EXAMPLEDIR=${CUDA_ROOTDIR}/samples/common/
 
@@ -26,9 +26,9 @@ endif
 endif
 
 ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
+	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o SeedClusteringFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
 else
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
+	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o Retina.o RetinaTrackFitter.o HoughFitter.o SeedClusteringFitter.o ComputerHough.o libhoughCPU.o
 endif
 
 AMSimulation:$(OBJECTS)
@@ -111,6 +111,9 @@ KarimakiTrackFitter.o:${SRC}/KarimakiTrackFitter.h ${SRC}/KarimakiTrackFitter.cc
 
 HoughFitter.o:${SRC}/HoughFitter.h ${SRC}/HoughFitter.cc
 	g++ -c ${FLAG} ${INC} ${SRC}/HoughFitter.cc
+
+SeedClusteringFitter.o:${SRC}/SeedClusteringFitter.h ${SRC}/SeedClusteringFitter.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/SeedClusteringFitter.cc
 
 ComputerHough.o:${SRC}/ComputerHough.h ${SRC}/ComputerHough.cc $(SRC)/libhoughStruct.h $(SRC)/HoughStruct.h libhoughCPU.o
 	g++ -c ${FLAG} ${INC} ${SRC}/ComputerHough.cc

@@ -1052,7 +1052,7 @@ int main(int av, char** ac){
     for(unsigned int i=0;i<sectors.size();i++){
       if(sectors[i]->getFitter()==NULL){
 	//TrackFitter* fitter = new KarimakiTrackFitter(sectors[i]->getNbLayers());
-	TrackFitter* fitter = new HoughFitter(sectors[i]->getNbLayers());
+	TrackFitter* fitter = new SeedClusteringFitter(sectors[i]->getNbLayers());
 	sectors[i]->setFitter(fitter);
 	sectors[i]->updateFitterPhiRotation();
       }

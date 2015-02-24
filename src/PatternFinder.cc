@@ -168,6 +168,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *input1_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC1->SetBranchAddress("sectorID",            &input1_sector_id);//ID du secteur
   SEC1->SetBranchAddress("nbLayers",            &input1_sector_layers);// nombre de layers dans le secteur
@@ -219,6 +220,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT1->SetBranchAddress("stub_X0",             input1_hit_X0);
   PATT1->SetBranchAddress("stub_Y0",             input1_hit_Y0);
   PATT1->SetBranchAddress("stub_Z0",             input1_hit_Z0);
+  PATT1->SetBranchAddress("stub_bend",             input1_hit_bend);
 
   /*********************************************/
 
@@ -304,6 +306,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *input2_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC2->SetBranchAddress("sectorID",            &input2_sector_id);//ID du secteur
   SEC2->SetBranchAddress("nbLayers",            &input2_sector_layers);// nombre de layers dans le secteur
@@ -355,6 +358,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("stub_X0",             input2_hit_X0);
   PATT2->SetBranchAddress("stub_Y0",             input2_hit_Y0);
   PATT2->SetBranchAddress("stub_Z0",             input2_hit_Z0);
+  PATT2->SetBranchAddress("stub_bend",             input2_hit_bend);
 
   /*********************OUTPUT FILE *************************************/
   TTree *PATTOUT    = new TTree("Patterns", "Active patterns");
@@ -439,6 +443,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *hit_X0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_Y0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_Z0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_bend = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   
   SECOUT->Branch("sectorID",            &sector_id);
   SECOUT->Branch("nbLayers",            &sector_layers);
@@ -493,6 +498,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATTOUT->Branch("stub_X0",             hit_X0, "stub_X0[total_nb_stubs]/F");
   PATTOUT->Branch("stub_Y0",             hit_Y0, "stub_Y0[total_nb_stubs]/F");
   PATTOUT->Branch("stub_Z0",             hit_Z0, "stub_Z0[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_bend",             hit_bend, "stub_bend[total_nb_stubs]/F");
   
 
   /*********************************************/
@@ -650,6 +656,9 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(hit_Z0,input1_hit_Z0,input1_totalNbHits*sizeof(float));
     memcpy(hit_Z0+input1_totalNbHits,input2_hit_Z0,input2_totalNbHits*sizeof(float));
 
+    memcpy(hit_bend,input1_hit_bend,input1_totalNbHits*sizeof(float));
+    memcpy(hit_bend+input1_totalNbHits,input2_hit_bend,input2_totalNbHits*sizeof(float));
+
     PATTOUT->Fill();
   }
 
@@ -690,6 +699,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input1_hit_X0;
   delete [] input1_hit_Y0;
   delete [] input1_hit_Z0;
+  delete [] input1_hit_bend;
   
   delete [] input2_superStrip_layer_0;
   delete [] input2_superStrip_layer_1;
@@ -724,6 +734,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input2_hit_X0;
   delete [] input2_hit_Y0;
   delete [] input2_hit_Z0;
+  delete [] input2_hit_bend;
 
   delete [] superStrip_layer_0;
   delete [] superStrip_layer_1;
@@ -757,6 +768,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] hit_X0;
   delete [] hit_Y0;
   delete [] hit_Z0;
+  delete [] hit_bend;
  
   delete PATT1;
   delete PATT2;
@@ -859,6 +871,7 @@ void PatternFinder::find(int start, int& stop){
   float* hit_x0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float* hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SectorOut->Branch("sectorID",            &sector_id);
   SectorOut->Branch("nbLayers",            &sector_layers);
@@ -919,6 +932,7 @@ void PatternFinder::find(int start, int& stop){
   Out->Branch("stub_X0",             hit_x0, "stub_X0[total_nb_stubs]/F");
   Out->Branch("stub_Y0",             hit_y0, "stub_Y0[total_nb_stubs]/F");
   Out->Branch("stub_Z0",             hit_z0, "stub_Z0[total_nb_stubs]/F");
+  Out->Branch("stub_bend",           hit_bend, "stub_bend[total_nb_stubs]/F");
   
 
   /*********************************************/
@@ -968,6 +982,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           m_stub_tp;     // particule du stub
   vector<float>         m_stub_px_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_py_gen; // pt initial de la particule ayant genere le stub
+  vector<float>         m_stub_deltas; // bend of the stub
   vector<float>         m_stub_x0;     // utilise pour calculer la distance au point d'interaction
   vector<float>         m_stub_y0;     // utilise pour calculer la distance au point d'interaction
   vector<float>         m_stub_z0;
@@ -985,6 +1000,7 @@ void PatternFinder::find(int start, int& stop){
   vector<int>           *p_m_stub_tp =     &m_stub_tp;
   vector<float>         *p_m_stub_pxGEN = &m_stub_px_gen;  
   vector<float>         *p_m_stub_pyGEN = &m_stub_py_gen;  
+  vector<float>         *p_m_stub_deltas = &m_stub_deltas;  
   vector<float>         *p_m_stub_x0 =     &m_stub_x0;
   vector<float>         *p_m_stub_y0 =     &m_stub_y0;
   vector<float>         *p_m_stub_z0 =     &m_stub_z0;
@@ -1010,6 +1026,7 @@ void PatternFinder::find(int start, int& stop){
   TT->SetBranchAddress("STUB_etaGEN",    &p_m_stub_etaGEN);
   TT->SetBranchAddress("STUB_pxGEN",     &p_m_stub_pxGEN);
   TT->SetBranchAddress("STUB_pyGEN",     &p_m_stub_pyGEN);
+  TT->SetBranchAddress("STUB_deltas",    &p_m_stub_deltas);
   TT->SetBranchAddress("STUB_x",         &p_m_stub_x);
   TT->SetBranchAddress("STUB_y",         &p_m_stub_y);
   TT->SetBranchAddress("STUB_z",         &p_m_stub_z);
@@ -1053,12 +1070,13 @@ void PatternFinder::find(int start, int& stop){
       float x0 = m_stub_x0[i];
       float y0 = m_stub_y0[i];
       float z0 = m_stub_z0[i];
+      float bend = m_stub_deltas[i];
       
       //cout<<layer<<" "<<module<<" "<<ladder<<" "<<segment<<" "<<strip<<endl;
 
       float ip = sqrt(m_stub_x0[i]*m_stub_x0[i]+m_stub_y0[i]*m_stub_y0[i]);
 
-      Hit* h = new Hit(layer,ladder, module, segment, strip, i, tp, spt, ip, eta, phi0, x, y, z, x0, y0, z0);
+      Hit* h = new Hit(layer,ladder, module, segment, strip, i, tp, spt, ip, eta, phi0, x, y, z, x0, y0, z0, bend);
 
       if(sectors->getSector(*h)!=NULL)
 	hits.push_back(h);
@@ -1093,6 +1111,7 @@ void PatternFinder::find(int start, int& stop){
     memset(hit_x0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_y0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_z0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
+    memset(hit_bend,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
 
     int patternIndex=0;
     int trackIndex=0;
@@ -1200,6 +1219,7 @@ void PatternFinder::find(int start, int& stop){
 	    hit_x0[stubIndex]=active_hits[k]->getX0();
 	    hit_y0[stubIndex]=active_hits[k]->getY0();
 	    hit_z0[stubIndex]=active_hits[k]->getZ0();
+	    hit_bend[stubIndex]=active_hits[k]->getBend();
 	    
 	    stub_ids.insert(active_hits[k]->getID());
 	    
@@ -1257,6 +1277,7 @@ void PatternFinder::find(int start, int& stop){
   delete[]  hit_x0;
   delete[]  hit_y0;
   delete[] hit_z0;
+  delete[] hit_bend;
 }
 
 #ifdef USE_CUDA
@@ -1353,6 +1374,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   float* hit_x0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float* hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SectorOut->Branch("sectorID",            &sector_id);
   SectorOut->Branch("nbLayers",            &sector_layers);
@@ -1412,6 +1434,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   Out->Branch("stub_X0",             hit_x0, "stub_X0[total_nb_stubs]/F");
   Out->Branch("stub_Y0",             hit_y0, "stub_Y0[total_nb_stubs]/F");
   Out->Branch("stub_Z0",             hit_z0, "stub_Z0[total_nb_stubs]/F");
+  Out->Branch("stub_bend",           hit_bend, "stub_bend[total_nb_stubs]/F");
 
   /*********************************************/
 
@@ -1613,6 +1636,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
     memset(hit_x0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_y0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_z0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
+    memset(hit_bend,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
 
     int stubIndex = 0;
     totalNbHits = 0;
@@ -1638,6 +1662,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 	hit_x0[stubIndex]=hits[i]->getX0();
 	hit_y0[stubIndex]=hits[i]->getY0();
 	hit_z0[stubIndex]=hits[i]->getZ0();
+	hit_bend[stubIndex]=hits[i]->getBend();
 	
 	stubIndex++;
       }
@@ -1690,6 +1715,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   delete[]  hit_x0;
   delete[]  hit_y0;
   delete[] hit_z0;
+  delete[] hit_bend;
 }
 #endif
 

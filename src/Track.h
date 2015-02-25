@@ -32,8 +32,8 @@ class Track{
      \param p The PHI0 of the track
      \param p_a The Eta0 of the track
      \param p_b The Z0 of the track
-     \param w_xy The weight of the XY-retina maximum
-     \param w_rz The weight of the RZ-retina maximum
+     \param Wxy The weight of the XY-retina maximum
+     \param Wrz The weight of the RZ-retina maximum
   **/
   Track(double c, double d, double p, double p_a, double p_b, double Wxy=-1., double Wrz=-1.);
   /**

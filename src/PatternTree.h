@@ -81,7 +81,7 @@ class PatternTree{
   void getActivePatterns(int active_threshold, vector<GradedPattern*>& active_patterns);
   /**
      \brief Returns a vector of copies of the active patterns
-     \brief max_nb_missing_hit The maximum number of non active layers to activate the pattern
+     \param max_nb_missing_hit The maximum number of non active layers to activate the pattern
      \param active_threshold The minimum number of hit super strips to activate the pattern
      \return A vector containing copies of active patterns
   **/

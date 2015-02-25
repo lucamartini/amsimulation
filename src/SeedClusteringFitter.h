@@ -2,6 +2,7 @@
 #define _SEEDCLUSTERINGFITTER_H_
 
 #include "TrackFitter.h"
+#include <math.h>
 
 #include <iomanip>
 #include <set>
@@ -34,6 +35,20 @@ class SeedClusteringFitter:public TrackFitter{
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+  std::vector <float> m_vSlope;
+  std::vector <float> m_vIntercept;
+
+  bool ** m_ppBinMask;
+  int ** m_ppSlopeSeedMask;
+
+  unsigned int m_nLayer;
+
+  float * m_pMeanLayerRadius;
+
+  float m_sector_phi_start_value;
+  float m_accumulation_threshold;
+  float m_bin_mask_phi_res;
+
  public:
 
   /**
@@ -50,6 +65,7 @@ class SeedClusteringFitter:public TrackFitter{
   void initialize();
   void mergePatterns();
   void mergeTracks();
+  void LinearLeastSquareRegress (std::vector<std::pair <float, float> > *, std::pair <float, float> *);
   void fit();
   void fit(vector<Hit*> hits);
   TrackFitter* clone();

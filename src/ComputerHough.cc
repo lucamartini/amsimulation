@@ -10,7 +10,7 @@ ComputerHough::ComputerHough(HoughCut* cuts) :theCuts_(cuts)
   theZ_=NULL;
   theLayer_=NULL;
 
-  createHoughCPU(&ph_,768,3072,768);
+  createHoughCPU(&ph_,1024,3072,768);
   for (int i=0;i<96;i++)
     createHoughCPU(&phcand_[i]);
   for (int i=0;i<64;i++)

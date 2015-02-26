@@ -169,6 +169,12 @@ If you compiled the program using the cuda libraries, you can add the --useGPU f
 
    It should display one pattern per line. The interpretation process is the following : if you have '11014 (00X)' you have to convert the decimal value 11014 to binary : '00101 0110 000011 0'. The first 5 bits are the Z position of the module (00101 is 5 in decimal), then you have the index of the ladder (0110 is 6), the last bit is the segment (0 is 0). 000011 gives you the superstrip position and is encoded using gray code. You have to append the DC bits : 00001100X which corresponds to 2 values : 000011000 and 000011001. The decimal values of these gray encoded binary values are 16 and 17 which are the indices of the high resolution superstrips inside the module.
 
+   You can also display the patterns using a format compatible with AM05 chips : for every pattern you will get one 18 bits value per line corresponding to the value you have to upload in the AM05 chip. DC bits encoding is taken care of. 
+   \code
+   ./AMSimulation --printBankAM05 --bankFile <Your patterns bank file>
+   \endcode
+
+   You can use the --nbActiveLayers option to select the patterns having a specific number of active layers (useful if you want to group patterns by threshold value). In trigger towers using 9 layers, the patterns will be split in 2 groups of 8 layers patterns.
 
    \author Guillaume Baulieu g.baulieu@ipnl.in2p3.fr
  **/
@@ -779,6 +785,7 @@ int main(int av, char** ac){
 #endif
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
+    ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
@@ -792,7 +799,7 @@ int main(int av, char** ac){
     ("startEvent", po::value<int>(), "The first event index")
     ("stopEvent", po::value<int>(), "The last event index")
     ("decode", po::value<int>(), "Decode the given super strip")
-    ("ss_size", po::value<int>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}")
+    ("ss_size", po::value<string>(), "Number of strips in a super strip {16,32,64,128,256,512,1024}. Either one value for all detector or one value per layer")
     ("dc_bits", po::value<int>(), "Number of used DC bits [0-3]")
     ("pt_min", po::value<int>(), "Only tracks having a greater PT will be used to generate a pattern")
     ("pt_max", po::value<int>(), "Only tracks having a smaller PT will be used to generate a pattern")
@@ -807,6 +814,7 @@ int main(int av, char** ac){
     ("bank_name", po::value<string>(), "The bank file name")    
     ("minFS", po::value<int>(), "Used with --alterBank : only patterns with at least minFS fake stubs will be kept in the new bank")
     ("maxFS", po::value<int>(), "Used with --alterBank : only patterns with at most maxFS fake stubs will be kept in the new bank")
+    ("nbActiveLayers", po::value<int>(), "Used with --printBankAM05 : only patterns with this exact number of active layers will be printed")
     ;
      
   po::variables_map vm;
@@ -847,7 +855,7 @@ int main(int av, char** ac){
     
     vector<int> layers;
     SectorTree st;
-    int stripSize=0;
+    string stripSizes="";
     int dcBits=0;
     string partDirName="";
     string bankFileName="";
@@ -866,8 +874,8 @@ int main(int av, char** ac){
     map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
     
     try{
-      stripSize=vm["ss_size"].as<int>();
-      cout<<"Superstrip size : "<<stripSize<<endl;
+      stripSizes=vm["ss_size"].as<string>();
+      cout<<"Superstrip sizes : "<<stripSizes<<endl;
       dcBits=vm["dc_bits"].as<int>();
       cout<<"DC bits number : "<<dcBits<<endl;
       min=vm["pt_min"].as<int>();
@@ -948,6 +956,24 @@ int main(int av, char** ac){
 	eta[desactivated_layers[i]].second=10;
       }
 
+      vector<int> layer_superstrip_size;
+      std::istringstream strips( stripSizes );
+      while( strips >> n ) {
+	layer_superstrip_size.push_back(n);
+      }
+      if(layer_superstrip_size.size()==1){
+	st.setSuperStripSize(layer_superstrip_size[0]);
+      }
+      else if(layer_superstrip_size.size()==active_layers.size()){//one size per layer
+	for(unsigned int ln=0;ln<active_layers.size();ln++){
+	  st.setSuperStripSize(layer_superstrip_size[ln],active_layers[ln]);
+	}
+      }
+      else{
+	st.setSuperStripSize(-1);
+      }
+      
+
       size_t end_index = bankFileName.find(".pbk");
       if(end_index==string::npos)
 	end_index=bankFileName.length()-4;
@@ -973,7 +999,7 @@ int main(int av, char** ac){
       return -1;
     }
     
-    PatternGenerator pg(stripSize);//Super strip size
+    PatternGenerator pg;
     pg.setLayers(active_layers);
     pg.setInactiveLayers(desactivated_layers);
     pg.setParticuleDirName(partDirName);
@@ -1044,7 +1070,7 @@ int main(int av, char** ac){
 	}
       }
     }
-    PatternFinder pf(st.getSuperStripSize(), 0, &st,  vm["inputFile"].as<string>().c_str(),  "none");
+    PatternFinder pf(0, &st,  vm["inputFile"].as<string>().c_str(),  "none");
     {
       int start = vm["startEvent"].as<int>();
       int stop = vm["stopEvent"].as<int>();
@@ -1100,7 +1126,7 @@ int main(int av, char** ac){
 
       st.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
 
-      PatternFinder pf(st.getSuperStripSize(), vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
+      PatternFinder pf(vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
 		       &d_pb, &d_detector, &d_param); 
       {
 	boost::progress_timer t;
@@ -1128,7 +1154,7 @@ int main(int av, char** ac){
 	nbMissingHit=-1;
 	threshold=vm["ss_threshold"].as<int>();
       }
-      PatternFinder pf(st.getSuperStripSize(), threshold, &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
+      PatternFinder pf(threshold, &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str());
       {
 	boost::progress_timer t;
 	int start = vm["startEvent"].as<int>();
@@ -1255,6 +1281,122 @@ int main(int av, char** ac){
 	cout<<endl;
       }
     }
+  } 
+  else if(vm.count("printBankAM05")) {
+    SectorTree st;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      boost::iostreams::filtering_stream<boost::iostreams::input> f;
+      f.push(boost::iostreams::gzip_decompressor());
+      //we try to read a compressed file
+      try { 
+	f.push(ifs);
+	boost::archive::text_iarchive ia(f);
+	ia >> st;
+      }
+      catch (boost::iostreams::gzip_error& e) {
+	if(e.error()==4){//file is not compressed->read it without decompression
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
+	  boost::archive::text_iarchive ia(new_ifs);
+	  ia >> st;
+	}
+      }
+    }
+    vector<Sector*> sectors = st.getAllSectors();
+    for(unsigned int i=0;i<sectors.size();i++){
+      Sector* mySector = sectors[i];
+      int sector_id = mySector->getOfficialID();
+      vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
+      vector<int> layers = mySector->getLayersID();
+      int expected_active_layers = -1;
+      bool hybrid_sector = layers.size()>8;//we have more layers than input buses
+      bool first_pass=true;
+
+      int biggestID = -1;//last layer of the sector
+      int biggestBarrelID = -1;//last barrel layer of the sector
+      int biggestBarrelIndex = -1;//index of last barrel layer of the sector
+      for(unsigned int j=0;j<layers.size();j++){
+	biggestID=layers[j];
+	if(layers[j]<11){
+	  biggestBarrelID=layers[j];
+	  biggestBarrelIndex=j;
+	}
+      }
+
+      if(vm.count("nbActiveLayers"))
+	expected_active_layers = vm["nbActiveLayers"].as<int>(); // we only want patterns with this number of active layers (ie layers without fake superstrips)
+
+      cout<<"** Bank of patterns formatted for AM05 chip. Patterns are displayed with 1 line per layer (from innermost to outermost layer) and separated with an empty line."<<endl;
+      cout<<"** Each line contains the decimal representation of the 18 bits value to store in the AM chip followed by the number of DC bits configured on that layer."<<endl;
+      cout<<"** The format of the 16 bits superstrips to send to the AM chip is (all positions are relative to the trigger tower): "<<endl;
+      if(patterns[0]->getLayerStrip(0)->getDCBitsNumber()<3)
+	cout<<"** \t5 bits for the position of the module on the ladder"<<endl;
+      else{
+	cout<<"** \t1 bit set at 0"<<endl;
+	cout<<"** \t4 bits for the position of the module on the ladder"<<endl;
+      }
+      cout<<"** \t4 bits for the position of the ladder on the layer"<<endl;
+      cout<<"** \t1 bit for the position of the segment on the module"<<endl;
+      cout<<"** \t6 bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE"<<endl;
+      cout<<"**"<<endl;
+      while(true){
+	cout<<"** The 8 input buses are used for the following layers (CMS IDs - superstrips size between parenthesis) : ";
+	for(unsigned int j=0;j<layers.size();j++){
+	  if(hybrid_sector && first_pass && layers[j]==biggestID)
+	    continue;
+	  if(hybrid_sector && !first_pass && layers[j]==biggestBarrelID)
+	    continue;
+	  cout<<layers[j]<<" ("<<st.getSuperStripSize(layers[j])<<") - ";
+	}
+	for(unsigned int j=layers.size();j<8;j++){
+	  cout<<"Unused ";
+	}
+	cout<<endl;
+	cout<<"**"<<endl;
+
+	if(sector_id!=-1)
+	  cout<<"********* PATTERNS FOR SECTOR "<<sector_id<<" **********"<<endl;
+	else
+	  cout<<"********** PATTERNS **********"<<endl;
+	cout<<endl;
+
+	for(unsigned int j=0;j<patterns.size();j++){
+	  Pattern* p = patterns[j];
+
+	  int nb_active_layers = p->getNbLayers()-p->getNbFakeSuperstrips();
+	  if(expected_active_layers!=-1 && expected_active_layers!=nb_active_layers) // the pattern does not have the expected number of active layers
+	    continue;
+
+	  if(hybrid_sector && first_pass && !p->getLayerStrip(8)->isFake())
+	    continue;
+
+	  if(hybrid_sector && !first_pass && p->getLayerStrip(8)->isFake())
+	    continue;
+
+	  for(int k=0;k<p->getNbLayers();k++){
+
+	    if(hybrid_sector && first_pass && k==8)
+	      continue;
+	    if(hybrid_sector && !first_pass && k==biggestBarrelIndex)
+	      continue;
+
+	    PatternLayer* mp = p->getLayerStrip(k);
+	    cout<<((CMSPatternLayer*)mp)->toAM05Format()<<endl;
+	  }
+	  //unused layers set to 15 (2 DC with "cannot be activated" value)
+	  for(int k=p->getNbLayers();k<8;k++){
+	    cout<<"15 2"<<endl;
+	  }
+	  cout<<endl;
+	}
+	cout<<"********** END OF PATTERNS **********"<<endl;
+	if(!hybrid_sector)
+	  break;
+	else if(!first_pass)
+	  break;
+	first_pass=false;
+      }
+    }
   }
   else if(vm.count("alterBank")) {
     SectorTree st;
@@ -1294,7 +1436,10 @@ int main(int av, char** ac){
       }
     }
 
-    st2.setSuperStripSize(st.getSuperStripSize());
+    vector<int> size_on_layers = st.getSuperStripSizeLayers();
+    for(unsigned int i=0;i<size_on_layers.size();i++){
+      st2.setSuperStripSize(st.getSuperStripSize(size_on_layers[i]), size_on_layers[i]);
+    }
 
     cout<<"Altering bank..."<<endl;
     vector<Sector*> sectors = st.getAllSectors();
@@ -1386,9 +1531,19 @@ int main(int av, char** ac){
       cout<<"You can only merge banks containing 1 sector ("<<nbSectors2<<" found)"<<endl;
       return -1;
     }
-    if(st1.getSuperStripSize()!=st2.getSuperStripSize()){
-      cout<<"You can only merge banks using the same superstrip size ("<<st1.getSuperStripSize()<<" and "<<st2.getSuperStripSize()<<" found)"<<endl;
-      return -1;
+    vector<int> layers_1 = st1.getSuperStripSizeLayers();
+    vector<int> layers_2 = st2.getSuperStripSizeLayers();
+    for(unsigned int i=0;i<layers_1.size();i++){
+      if(st1.getSuperStripSize(layers_1[i])!=st2.getSuperStripSize(layers_1[i])){
+	cout<<"You can only merge banks using the same superstrip size (on layer "<<layers_1[i]<<" : "<<st1.getSuperStripSize(layers_1[i])<<" and "<<st2.getSuperStripSize(layers_1[i])<<" found)"<<endl;
+	return -1;
+      }
+    }
+    for(unsigned int i=0;i<layers_2.size();i++){
+      if(st1.getSuperStripSize(layers_2[i])!=st2.getSuperStripSize(layers_2[i])){
+	cout<<"You can only merge banks using the same superstrip size (on layer "<<layers_2[i]<<" : "<<st1.getSuperStripSize(layers_2[i])<<" and "<<st2.getSuperStripSize(layers_2[i])<<" found)"<<endl;
+	return -1;
+      }
     }
     if(list1[0]->getNbLayers()!=list2[0]->getNbLayers()){
       cout<<"You can only merge banks using the same number of layers ("<<list1[0]->getNbLayers()<<" and "<<list2[0]->getNbLayers()<<" found)"<<endl;

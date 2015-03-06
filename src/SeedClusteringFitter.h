@@ -10,6 +10,15 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/export.hpp>
 
+#define N_SLOPES 81			//Number of tested slopes for each intercept of the mask
+#define MAX_SLOPE 0.0019		//Max slope (rad/cm) (corresponding to the minimum wanted particle pt) = (3.8 * 0.3)/(2 * minPt * 100)
+#define MIN_SLOPE -0.0019		//Min slope (rad/cm) (corresponding to the minimum wanted particle pt) = -(3.8 * 0.3)/(2 * minPt * 100)
+#define BINMASK_PHI_RES 128.0   	//BinaryMask ordinate resolution in px/rad
+#define BINMASK_PHI_MAX M_PI/2		//BinaryMask maximum phi value (at least equal to the phi range of a sector)
+#define ACCUMULATION_THRESHOLD 0.004	//Maximum tolerated error between the seed and the hit coordinates for the acumulation	
+#define BM_BEND_DC_THRESHOLD 1.5	//Beyond this limit, we consider the bend of the external layers hits gives the correct sign for the slope (used to reduce the number of seeds generated)
+#define TC_BEND_DC_THRESHOLD 1.2	//Beyond this limit, we consider the bend of the external layers hits gives the correct sign for the slope (used to reduce the number stubs in a track candidate)
+
 /**
    \brief Implementation of a Seed Clustering  fitter
 **/
@@ -38,16 +47,12 @@ class SeedClusteringFitter:public TrackFitter{
   std::vector <float> m_vSlope;
   std::vector <float> m_vIntercept;
 
-  bool ** m_ppBinMask;
+  bool *** m_pppBinMask;
   int ** m_ppSlopeSeedMask;
 
   unsigned int m_nLayer;
 
   float * m_pMeanLayerRadius;
-
-  float m_sector_phi_start_value;
-  float m_accumulation_threshold;
-  float m_bin_mask_phi_res;
 
  public:
 

@@ -17,7 +17,7 @@
 #define BINMASK_PHI_MAX M_PI/2		//BinaryMask maximum phi value (at least equal to the phi range of a sector)
 #define ACCUMULATION_THRESHOLD 0.004	//Maximum tolerated error between the seed and the hit coordinates for the acumulation	
 #define BM_BEND_DC_THRESHOLD 1.5	//Beyond this limit, we consider the bend of the external layers hits gives the correct sign for the slope (used to reduce the number of seeds generated)
-#define TC_BEND_DC_THRESHOLD 1.2	//Beyond this limit, we consider the bend of the external layers hits gives the correct sign for the slope (used to reduce the number stubs in a track candidate)
+#define TC_BEND_DC_THRESHOLD 1.5	//Beyond this limit, we consider the bend of the external layers hits gives the correct sign for the slope (used to reduce the number stubs in a track candidate)
 
 /**
    \brief Implementation of a Seed Clustering  fitter

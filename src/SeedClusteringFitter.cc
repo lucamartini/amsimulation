@@ -368,7 +368,9 @@ void SeedClusteringFitter::fit(vector<Hit*> hits){
       }
 
       //RZ slope is used to define track_eta
-      eta = atan(resultABwithRZ.first);
+      float theta = atan(resultABwithRZ.first) + (M_PI/2); //angle with the beam axis
+      eta = log( tan( theta / 2 ) );
+
 
       //RZ intercept is used to define track_z0
       z0 =  resultABwithRZ.second;

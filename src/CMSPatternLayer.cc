@@ -467,9 +467,9 @@ int CMSPatternLayer::getNbStripsInSegment(){
 
 int CMSPatternLayer::getSegmentCode(int layerID, int ladderID, int segmentID){
   if(layerID>7 && layerID<11)
-    return segmentID;
+    return segmentID/2;
   if(layerID>=5 && layerID<=7)
-    return segmentID/16;
+    return segmentID/32;
   if(ladderID<=8)
     return segmentID/16;
   return segmentID;

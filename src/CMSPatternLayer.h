@@ -32,14 +32,14 @@ using namespace std;
 
 class CMSPatternLayer : public PatternLayer{
  private:
-  static const short MOD_START_BIT = 11;
-  static const short PHI_START_BIT = 7;
+  static const short MOD_START_BIT = 12;
+  static const short PHI_START_BIT = 8;
   static const short STRIP_START_BIT = 1;
   static const short SEG_START_BIT = 0;
 
-  static const short MOD_MASK = 0x1F;
+  static const short MOD_MASK = 0xF;
   static const short PHI_MASK = 0xF;
-  static const short STRIP_MASK = 0x3F;
+  static const short STRIP_MASK = 0x7F;
   static const short SEG_MASK = 0x1;
 
   short binaryToGray(short num);

@@ -30,14 +30,12 @@ class SeedClusteringFitter:public TrackFitter{
   
   template<class Archive> void save(Archive & ar, const unsigned int version) const
     {
-      cout<<"sauvegarde du SeedClusteringFitter"<<endl;
       ar << boost::serialization::base_object<TrackFitter>(*this);
       ar << sec_phi;
     }
   
   template<class Archive> void load(Archive & ar, const unsigned int version)
     {
-      cout<<"chargement de SeedClusteringFitter"<<endl;
       ar >> boost::serialization::base_object<TrackFitter>(*this);
       ar >> sec_phi;
     }
@@ -49,10 +47,10 @@ class SeedClusteringFitter:public TrackFitter{
 
   bool *** m_pppBinMask;
   int ** m_ppSlopeSeedMask;
-
   unsigned int m_nLayer;
-
   float * m_pMeanLayerRadius;
+
+  void LinearLeastSquareRegress (std::vector<std::pair <float, float> > *, std::pair <float, float> *);
 
  public:
 
@@ -70,7 +68,6 @@ class SeedClusteringFitter:public TrackFitter{
   void initialize();
   void mergePatterns();
   void mergeTracks();
-  void LinearLeastSquareRegress (std::vector<std::pair <float, float> > *, std::pair <float, float> *);
   void fit();
   void fit(vector<Hit*> hits);
   TrackFitter* clone();

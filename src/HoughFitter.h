@@ -28,14 +28,12 @@ class HoughFitter:public TrackFitter{
   
   template<class Archive> void save(Archive & ar, const unsigned int version) const
     {
-      cout<<"sauvegarde du HoughFitter"<<endl;
       ar << boost::serialization::base_object<TrackFitter>(*this);
       ar << sec_phi;
     }
   
   template<class Archive> void load(Archive & ar, const unsigned int version)
     {
-      cout<<"chargement de HoughFitter"<<endl;
       ar >> boost::serialization::base_object<TrackFitter>(*this);
       ar >> sec_phi;
       cuts = new HoughCut();

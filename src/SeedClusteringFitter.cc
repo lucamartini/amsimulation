@@ -71,22 +71,22 @@ SeedClusteringFitter::~SeedClusteringFitter(){
   //BinMasj
   for (unsigned int i = 0; i < m_vIntercept.size(); i++){
     for (unsigned int j =0; j < m_nLayer; j++){
-      delete m_pppBinMask[i][j];
+      delete [] m_pppBinMask[i][j];
     }
-    delete m_pppBinMask[i];
+    delete [] m_pppBinMask[i];
   }
-  delete m_pppBinMask;
+  delete [] m_pppBinMask;
 
   m_pppBinMask = NULL;
 
   for (unsigned int i = 0; i < m_vSlope.size(); i++)
-    delete m_ppSlopeSeedMask[i];
+    delete [] m_ppSlopeSeedMask[i];
 
-  delete m_ppSlopeSeedMask;
+  delete [] m_ppSlopeSeedMask;
 
   m_ppSlopeSeedMask = NULL;
 
-  delete m_pMeanLayerRadius;
+  delete [] m_pMeanLayerRadius;
   
   m_pMeanLayerRadius = NULL;
 

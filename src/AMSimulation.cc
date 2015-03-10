@@ -789,7 +789,7 @@ int main(int av, char** ac){
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
-    ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --minFS and/or --maxFS)")
+    ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --truncate or --minFS and/or --maxFS)")
     ("inputFile", po::value<string>(), "The file to analyse")
     ("secondFile", po::value<string>(), "Second file to merge")
     ("bankFile", po::value<string>(), "The patterns bank file to use")
@@ -814,6 +814,7 @@ int main(int av, char** ac){
     ("bank_name", po::value<string>(), "The bank file name")    
     ("minFS", po::value<int>(), "Used with --alterBank : only patterns with at least minFS fake stubs will be kept in the new bank")
     ("maxFS", po::value<int>(), "Used with --alterBank : only patterns with at most maxFS fake stubs will be kept in the new bank")
+    ("truncate", po::value<int>(), "Used with --alterBank : gives the number of patterns to keep in the new bank, starting with the most used ones.")
     ("nbActiveLayers", po::value<int>(), "Used with --printBankAM05 : only patterns with this exact number of active layers will be printed")
     ;
      
@@ -1401,15 +1402,19 @@ int main(int av, char** ac){
   else if(vm.count("alterBank")) {
     SectorTree st;
     SectorTree st2;
+    SectorTree* save=NULL;
     int minFS=-1;
     int maxFS=-1;
+    int newNbPatterns = -1;
     if(vm.count("minFS"))
       minFS = vm["minFS"].as<int>();
     if(vm.count("maxFS"))
       maxFS = vm["maxFS"].as<int>();
+    if(vm.count("truncate"))
+      newNbPatterns = vm["truncate"].as<int>();
 
-    if(minFS<0 && maxFS<0){
-      cout<<"Missing parameter : you need to set minFS or maxFS!"<<endl;
+    if(minFS<0 && maxFS<0 && newNbPatterns<0){
+      cout<<"Missing parameter : you need to set minFS, maxFS or truncate!"<<endl;
       return -1;
     }
 
@@ -1436,31 +1441,40 @@ int main(int av, char** ac){
       }
     }
 
-    vector<int> size_on_layers = st.getSuperStripSizeLayers();
-    for(unsigned int i=0;i<size_on_layers.size();i++){
-      st2.setSuperStripSize(st.getSuperStripSize(size_on_layers[i]), size_on_layers[i]);
+    if(newNbPatterns>0){
+      cout<<"loaded "<<st.getAllSectors()[0]->getLDPatternNumber()<<" patterns for sector "<<st.getAllSectors()[0]->getOfficialID()<<endl;
+      st.getAllSectors()[0]->getPatternTree()->truncate(newNbPatterns);
+      save=&st;
+    }
+    else{
+      vector<int> size_on_layers = st.getSuperStripSizeLayers();
+      for(unsigned int i=0;i<size_on_layers.size();i++){
+	st2.setSuperStripSize(st.getSuperStripSize(size_on_layers[i]), size_on_layers[i]);
+      }
+      
+      cout<<"Altering bank..."<<endl;
+      vector<Sector*> sectors = st.getAllSectors();
+      for(unsigned int i=0;i<sectors.size();i++){
+	Sector* mySector = sectors[i];
+	st2.addSector(*mySector);
+	Sector* newSector = st2.getAllSectors()[i];
+	vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
+	for(unsigned int j=0;j<patterns.size();j++){
+	  GradedPattern* p = patterns[j];
+	  int nbFS = p->getNbFakeSuperstrips();
+	  if(nbFS<=maxFS && nbFS>=minFS){
+	    //add the pattern
+	    newSector->getPatternTree()->addPattern(p,NULL,p->getAveragePt());
+	  }
+	}
+	cout<<"Sector "<<mySector->getOfficialID()<<" :\n\tinput bank : "<<mySector->getPatternTree()->getLDPatternNumber()<<" patterns\n\toutput bank : "<<newSector->getPatternTree()->getLDPatternNumber()<<" patterns."<<endl;
+      }
+      save=&st2;
     }
 
-    cout<<"Altering bank..."<<endl;
-    vector<Sector*> sectors = st.getAllSectors();
-    for(unsigned int i=0;i<sectors.size();i++){
-      Sector* mySector = sectors[i];
-      st2.addSector(*mySector);
-      Sector* newSector = st2.getAllSectors()[i];
-      vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
-      for(unsigned int j=0;j<patterns.size();j++){
-	GradedPattern* p = patterns[j];
-	int nbFS = p->getNbFakeSuperstrips();
-	if(nbFS<=maxFS && nbFS>=minFS){
-	  //add the pattern
-	  newSector->getPatternTree()->addPattern(p,NULL,p->getAveragePt());
-	}
-      }
-      cout<<"Sector "<<mySector->getOfficialID()<<" :\n\tinput bank : "<<mySector->getPatternTree()->getLDPatternNumber()<<" patterns\n\toutput bank : "<<newSector->getPatternTree()->getLDPatternNumber()<<" patterns."<<endl;
-    }
     cout<<"Saving new bank in "<<vm["outputFile"].as<string>().c_str()<<"..."<<endl;
     {
-      const SectorTree& ref = st2;
+      const SectorTree& ref = *save;
       std::ofstream ofs(vm["outputFile"].as<string>().c_str());
       // Compression part
       boost::iostreams::filtering_stream<boost::iostreams::output> f;
@@ -1599,7 +1613,7 @@ int main(int av, char** ac){
       SectorTree sTest;
       cout<<"Loading pattern bank..."<<endl;
       {
-	string file = "/home/infor/baulieu/private/cms/CMSSW_6_1_2_SLHC3/src/amsimulation/612_SLHC6_MUBANK_lowmidhig_sec0_ss64_cov40.pbk";
+	string file = "/home/infor/baulieu/private/cms/slc6/CMSSW_6_2_0_SLHC15/src/amsimulation_dev/test3_Fountain_NoSeg_2DC_lowmidhig.pbk";
 	std::ifstream ifs(file.c_str());
 	boost::iostreams::filtering_stream<boost::iostreams::input> f;
 	f.push(boost::iostreams::gzip_decompressor());
@@ -1620,6 +1634,20 @@ int main(int av, char** ac){
       cout<<"Sector :"<<endl;
       cout<<*(sTest.getAllSectors()[0])<<endl;
       cout<<"loaded "<<sTest.getAllSectors()[0]->getLDPatternNumber()<<" patterns for sector "<<sTest.getAllSectors()[0]->getOfficialID()<<endl;
+      sTest.getAllSectors()[0]->getPatternTree()->truncate(1000000);
+
+      cout<<"Saving new bank in testOut.pbk..."<<endl;
+      {
+	const SectorTree& ref = sTest;
+	std::ofstream ofs("./testOut.pbk");
+	// Compression part
+	boost::iostreams::filtering_stream<boost::iostreams::output> f;
+	f.push(boost::iostreams::gzip_compressor(boost::iostreams::gzip_params(boost::iostreams::gzip::best_compression)));
+	f.push(ofs);
+	//
+	boost::archive::text_oarchive oa(f);
+	oa << ref;
+      }
     }
 #endif
   }

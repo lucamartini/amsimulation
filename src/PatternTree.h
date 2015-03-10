@@ -112,6 +112,12 @@ class PatternTree{
    **/
   void switchToVector();
 
+  /**
+     \brief Delete the least used patterns to match the given pattern number
+     \param nbPatterns The number of patterns to keep
+  **/
+  void truncate(int nbPatterns);
+
  private:
   map<string, PatternTrunk*> patterns;
   vector<PatternTrunk*> v_patterns;
@@ -126,7 +132,6 @@ class PatternTree{
   **/
   void switchToMap();
 
-
   friend class boost::serialization::access;
  
   template<class Archive> void save(Archive & ar, const unsigned int version) const{
@@ -139,4 +144,5 @@ class PatternTree{
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
+bool comparePatterns(PatternTrunk* p1, PatternTrunk* p2);
 #endif

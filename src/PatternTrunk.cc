@@ -63,6 +63,10 @@ float PatternTrunk::getLDPatternPT(){
   return lowDefPattern->getAveragePt();
 }
 
+int PatternTrunk::getLDPatternGrade() const{
+  return lowDefPattern->getGrade();
+}
+
 int PatternTrunk::getFDPatternNumber(){
   return fullDefPatterns.size();
 }

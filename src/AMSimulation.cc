@@ -752,7 +752,7 @@ int main(int av, char** ac){
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
     ("testCode", "Dev tests")
-    ("analyseBank", "Creates histograms from a pattern bank file")
+    ("analyseBank", "Creates histograms from a pattern bank file (needs --bankFile and --outputFile)")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
     ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --truncate or --minFS and/or --maxFS)")
     ("inputFile", po::value<string>(), "The file to analyse")

@@ -289,7 +289,10 @@ bool PatternTree::checkPattern(Pattern* lp, Pattern* hp){
 }
 
 bool comparePatterns(PatternTrunk* p1, PatternTrunk* p2){
-  return p1->getLDPatternGrade()>p2->getLDPatternGrade();
+  if(p1->getLDPatternGrade()==p2->getLDPatternGrade())
+    return p1->getLDPatternPT()>p2->getLDPatternPT();
+  else
+    return p1->getLDPatternGrade()>p2->getLDPatternGrade();
 }
 
 void PatternTree::truncate(int nbPatterns){

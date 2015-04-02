@@ -103,3 +103,16 @@ vector<short> PatternLayer::getPositionsFromDC(){
   positions_cache[ref]=n_vec;
   return n_vec;
 }
+
+int PatternLayer::getSizeFromMask(short mask){
+  int val=0;
+
+  if(mask<1 || (mask%2)!=1)
+    return val;
+
+  while(mask!=0){
+    mask=mask>>1;
+    val++;
+  }
+  return val;
+}

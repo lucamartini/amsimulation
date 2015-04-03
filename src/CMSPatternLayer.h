@@ -74,6 +74,9 @@ class CMSPatternLayer : public PatternLayer{
   static short STRIP_MASK;
   static short SEG_MASK;
 
+  static short OUTER_LAYER_SEG_DIVIDE;//Simplification factor on outer barrel layers segments (1:we use segment, 2:all values to 0)
+  static short INNER_LAYER_SEG_DIVIDE;//Simplification factor on inner barrel layers segments (1:we use segment, 2:all values to 0)
+
   CMSPatternLayer();
   CMSPatternLayer* clone();
   vector<SuperStrip*> getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d);

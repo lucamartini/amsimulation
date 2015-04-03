@@ -8,6 +8,8 @@ short CMSPatternLayer::MOD_MASK = 0xF;
 short CMSPatternLayer::PHI_MASK = 0xF;
 short CMSPatternLayer::STRIP_MASK = 0x7F;
 short CMSPatternLayer::SEG_MASK = 0x1;
+short CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE = 1;
+short CMSPatternLayer::INNER_LAYER_SEG_DIVIDE = 2;
 
 CMSPatternLayer::CMSPatternLayer():PatternLayer(){
 
@@ -476,9 +478,9 @@ int CMSPatternLayer::getNbStripsInSegment(){
 
 int CMSPatternLayer::getSegmentCode(int layerID, int ladderID, int segmentID){
   if(layerID>7 && layerID<11)
-    return segmentID;
+    return segmentID/(OUTER_LAYER_SEG_DIVIDE);
   if(layerID>=5 && layerID<=7)
-    return segmentID/32;
+    return segmentID/(16*INNER_LAYER_SEG_DIVIDE);
   if(ladderID<=8)
     return segmentID/16;
   return segmentID;

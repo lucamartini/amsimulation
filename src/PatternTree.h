@@ -144,6 +144,8 @@ class PatternTree{
     ar << CMSPatternLayer::PHI_MASK;
     ar << CMSPatternLayer::STRIP_MASK;
     ar << CMSPatternLayer::SEG_MASK;
+    ar << CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE;
+    ar << CMSPatternLayer::INNER_LAYER_SEG_DIVIDE;
 
     ar << patterns;
   }
@@ -159,6 +161,8 @@ class PatternTree{
       ar >> CMSPatternLayer::PHI_MASK;
       ar >> CMSPatternLayer::STRIP_MASK;
       ar >> CMSPatternLayer::SEG_MASK;
+      ar >> CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE;
+      ar >> CMSPatternLayer::INNER_LAYER_SEG_DIVIDE;
     }
     else{//we use the old values for retro compatibility
       CMSPatternLayer::MOD_START_BIT = 11;
@@ -169,6 +173,8 @@ class PatternTree{
       CMSPatternLayer::PHI_MASK = 0xF;
       CMSPatternLayer::STRIP_MASK = 0x3F;
       CMSPatternLayer::SEG_MASK = 0x1;
+      CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE = 1;
+      CMSPatternLayer::INNER_LAYER_SEG_DIVIDE = 1;
     }
     ar >> patterns;
   }

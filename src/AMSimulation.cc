@@ -1316,8 +1316,16 @@ int main(int av, char** ac){
 	  cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::MOD_MASK)<<" bits for the position of the module on the ladder"<<endl;
 	}
 	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::PHI_MASK)<<" bits for the position of the ladder on the layer"<<endl;
-	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::SEG_MASK)<<" bit for the position of the segment on the module"<<endl;
-	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::STRIP_MASK)<<" bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE"<<endl;
+	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::SEG_MASK)<<" bit for the position of the segment on the module";
+	if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2 && CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2) 
+	  cout<<" (forced to 0 on barrel layers)"<<endl;
+	else if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2){
+	  cout<<" (forced to 0 on the 3 innermost barrel layers)"<<endl;
+	}
+	else if(CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2){
+	  cout<<" (forced to 0 on the 3 outermost barrel layers)"<<endl;
+	}
+	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::STRIP_MASK)<<" bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE)"<<endl;
       }
       cout<<"**"<<endl;
       while(true){
@@ -1330,7 +1338,7 @@ int main(int av, char** ac){
 	  cout<<layers[j]<<" ("<<st.getSuperStripSize(layers[j])<<") - ";
 	}
 	for(unsigned int j=layers.size();j<8;j++){
-	  cout<<"Unused ";
+	  cout<<"Unused - ";
 	}
 	cout<<endl;
 	cout<<"**"<<endl;

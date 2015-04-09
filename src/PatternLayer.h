@@ -140,6 +140,12 @@ class PatternLayer{
   **/
   virtual bool isFake()=0;
 
+  /**
+     \brief Gives the number of bits used from a mask
+     \param mask The mask used
+  **/
+  static int getSizeFromMask(short mask);
+
  private:
   /**
      Get the list of positions from the DC bits

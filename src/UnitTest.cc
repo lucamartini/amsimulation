@@ -33,9 +33,9 @@ BOOST_AUTO_TEST_CASE( CMSPatternLayer_constructor_test )
 {
   const int NB_LAYERS = 6;
   const int SEGMENT = 1;
-  const int MODULE = 2;
-  const int LADDER = 3;
-  const int SSTRIP = 4;
+  const int MODULE = 13;
+  const int LADDER = 14;
+  const int SSTRIP = 126;
 
   Pattern p(NB_LAYERS);
 

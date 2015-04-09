@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "PatternTrunk.h"
+#include "CMSPatternLayer.h"
 
 using namespace std;
 /**
@@ -135,14 +136,51 @@ class PatternTree{
   friend class boost::serialization::access;
  
   template<class Archive> void save(Archive & ar, const unsigned int version) const{
+    ar << CMSPatternLayer::MOD_START_BIT;
+    ar << CMSPatternLayer::PHI_START_BIT;
+    ar << CMSPatternLayer::STRIP_START_BIT;
+    ar << CMSPatternLayer::SEG_START_BIT;
+    ar << CMSPatternLayer::MOD_MASK;
+    ar << CMSPatternLayer::PHI_MASK;
+    ar << CMSPatternLayer::STRIP_MASK;
+    ar << CMSPatternLayer::SEG_MASK;
+    ar << CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE;
+    ar << CMSPatternLayer::INNER_LAYER_SEG_DIVIDE;
+
     ar << patterns;
   }
   
   template<class Archive> void load(Archive & ar, const unsigned int version){
+    if(version>0){//The format of the pattern is contained in the file
+      ar >> CMSPatternLayer::MOD_START_BIT;
+      ar >> CMSPatternLayer::PHI_START_BIT;
+      ar >> CMSPatternLayer::STRIP_START_BIT;
+      ar >> CMSPatternLayer::SEG_START_BIT;
+      
+      ar >> CMSPatternLayer::MOD_MASK;
+      ar >> CMSPatternLayer::PHI_MASK;
+      ar >> CMSPatternLayer::STRIP_MASK;
+      ar >> CMSPatternLayer::SEG_MASK;
+      ar >> CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE;
+      ar >> CMSPatternLayer::INNER_LAYER_SEG_DIVIDE;
+    }
+    else{//we use the old values for retro compatibility
+      CMSPatternLayer::MOD_START_BIT = 11;
+      CMSPatternLayer::PHI_START_BIT = 7;
+      CMSPatternLayer::STRIP_START_BIT = 1;
+      CMSPatternLayer::SEG_START_BIT = 0;
+      CMSPatternLayer::MOD_MASK = 0x1F;
+      CMSPatternLayer::PHI_MASK = 0xF;
+      CMSPatternLayer::STRIP_MASK = 0x3F;
+      CMSPatternLayer::SEG_MASK = 0x1;
+      CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE = 1;
+      CMSPatternLayer::INNER_LAYER_SEG_DIVIDE = 1;
+    }
     ar >> patterns;
   }
   
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 bool comparePatterns(PatternTrunk* p1, PatternTrunk* p2);
+BOOST_CLASS_VERSION(PatternTree, 1)
 #endif

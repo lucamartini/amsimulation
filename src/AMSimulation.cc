@@ -787,7 +787,7 @@ int main(int av, char** ac){
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
     ("testCode", "Dev tests")
-    ("analyseBank", "Creates histograms from a pattern bank file")
+    ("analyseBank", "Creates histograms from a pattern bank file (needs --bankFile and --outputFile)")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
     ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --truncate or --minFS and/or --maxFS)")
     ("inputFile", po::value<string>(), "The file to analyse")
@@ -1330,15 +1330,38 @@ int main(int av, char** ac){
       cout<<"** Bank of patterns formatted for AM05 chip. Patterns are displayed with 1 line per layer (from innermost to outermost layer) and separated with an empty line."<<endl;
       cout<<"** Each line contains the decimal representation of the 18 bits value to store in the AM chip followed by the number of DC bits configured on that layer."<<endl;
       cout<<"** The format of the 16 bits superstrips to send to the AM chip is (all positions are relative to the trigger tower): "<<endl;
-      if(patterns[0]->getLayerStrip(0)->getDCBitsNumber()<3)
-	cout<<"** \t5 bits for the position of the module on the ladder"<<endl;
-      else{
-	cout<<"** \t1 bit set at 0"<<endl;
-	cout<<"** \t4 bits for the position of the module on the ladder"<<endl;
+      int total_nb_bits = PatternLayer::getSizeFromMask(CMSPatternLayer::MOD_MASK)+
+	PatternLayer::getSizeFromMask(CMSPatternLayer::PHI_MASK)+
+	PatternLayer::getSizeFromMask(CMSPatternLayer::SEG_MASK)+
+	PatternLayer::getSizeFromMask(CMSPatternLayer::STRIP_MASK);
+
+      bool overflow = false;
+      if(total_nb_bits+patterns[0]->getLayerStrip(0)->getDCBitsNumber()>18){//format+DC bit too large
+	if(PatternLayer::getSizeFromMask(CMSPatternLayer::MOD_MASK)==5){//can we take of a module bit?
+	  overflow=true;
+	  cout<<"** \t1 bit set at 0"<<endl;
+	  cout<<"** \t4 bits for the position of the module on the ladder"<<endl;
+	}
+	else{//not enough room...
+	  cout<<"** Your format can not fit in the 18 bits of the AM05 chip!!! ("<<total_nb_bits+patterns[0]->getLayerStrip(0)->getDCBitsNumber()<<" bits needed)"<<endl;
+	}
       }
-      cout<<"** \t4 bits for the position of the ladder on the layer"<<endl;
-      cout<<"** \t1 bit for the position of the segment on the module"<<endl;
-      cout<<"** \t6 bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE"<<endl;
+      else{//we have enough room
+	if(!overflow){//module is not already treated
+	  cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::MOD_MASK)<<" bits for the position of the module on the ladder"<<endl;
+	}
+	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::PHI_MASK)<<" bits for the position of the ladder on the layer"<<endl;
+	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::SEG_MASK)<<" bit for the position of the segment on the module";
+	if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2 && CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2) 
+	  cout<<" (forced to 0 on barrel layers)"<<endl;
+	else if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2){
+	  cout<<" (forced to 0 on the 3 innermost barrel layers)"<<endl;
+	}
+	else if(CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2){
+	  cout<<" (forced to 0 on the 3 outermost barrel layers)"<<endl;
+	}
+	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::STRIP_MASK)<<" bits for the position of the superstrip on the segment (stub's strip index divided by the superstrip size (see below) ENCODED IN GRAY CODE)"<<endl;
+      }
       cout<<"**"<<endl;
       while(true){
 	cout<<"** The 8 input buses are used for the following layers (CMS IDs - superstrips size between parenthesis) : ";
@@ -1350,7 +1373,7 @@ int main(int av, char** ac){
 	  cout<<layers[j]<<" ("<<st.getSuperStripSize(layers[j])<<") - ";
 	}
 	for(unsigned int j=layers.size();j<8;j++){
-	  cout<<"Unused ";
+	  cout<<"Unused - ";
 	}
 	cout<<endl;
 	cout<<"**"<<endl;

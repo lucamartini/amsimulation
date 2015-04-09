@@ -32,22 +32,13 @@ using namespace std;
 
 class CMSPatternLayer : public PatternLayer{
  private:
-  static const short MOD_START_BIT = 12;
-  static const short PHI_START_BIT = 8;
-  static const short STRIP_START_BIT = 1;
-  static const short SEG_START_BIT = 0;
-
-  static const short MOD_MASK = 0xF;
-  static const short PHI_MASK = 0xF;
-  static const short STRIP_MASK = 0x7F;
-  static const short SEG_MASK = 0x1;
 
   short binaryToGray(short num);
   short grayToBinary(short gray);
 
   friend class boost::serialization::access;
   
-  template<class Archive> void save(Archive & ar, const unsigned int version) const//const boost::serialization::version_type& version) const 
+  template<class Archive> void save(Archive & ar, const unsigned int version) const
     {
       ar << boost::serialization::base_object<PatternLayer>(*this);
     }
@@ -72,6 +63,20 @@ class CMSPatternLayer : public PatternLayer{
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
  public:
+
+  static short MOD_START_BIT;
+  static short PHI_START_BIT;
+  static short STRIP_START_BIT;
+  static short SEG_START_BIT;
+
+  static short MOD_MASK;
+  static short PHI_MASK;
+  static short STRIP_MASK;
+  static short SEG_MASK;
+
+  static short OUTER_LAYER_SEG_DIVIDE;//Simplification factor on outer barrel layers segments (1:we use segment, 2:all values to 0)
+  static short INNER_LAYER_SEG_DIVIDE;//Simplification factor on inner barrel layers segments (1:we use segment, 2:all values to 0)
+
   CMSPatternLayer();
   CMSPatternLayer* clone();
   vector<SuperStrip*> getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d);

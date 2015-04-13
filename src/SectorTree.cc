@@ -2,7 +2,7 @@
 
 SectorTree::SectorTree(){
   srand ( time(NULL) );
-  superStripSize=-1;
+  setSuperStripSize(0,-1);
   mapNeedsUpdate=true;
 }
 
@@ -153,13 +153,26 @@ vector<Sector*> SectorTree::getActivePatternsPerSectorUsingMissingHit(int max_nb
   return list;
 }
 
-int SectorTree::getSuperStripSize(){
-  return superStripSize;
+int SectorTree::getSuperStripSize(int layer_id){
+  try{
+    return superStripSize.at(layer_id);
+  }
+  catch (const std::out_of_range& oor) {
+    return superStripSize[0];
+  }
 }
 
-void SectorTree::setSuperStripSize(int s){
-  if(s>0)
-    superStripSize=s;
+void SectorTree::setSuperStripSize(int s, int layer_id){
+  if(s>0 && layer_id>-1)
+    superStripSize[layer_id]=s;
+}
+
+vector<int> SectorTree::getSuperStripSizeLayers(){
+  vector<int> keys;
+  for(map<int,int>::iterator it = superStripSize.begin(); it != superStripSize.end(); ++it) {
+    keys.push_back(it->first);
+  }
+  return keys;
 }
 
 int SectorTree::getNbSectors(){

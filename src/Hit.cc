@@ -1,6 +1,6 @@
 #include "Hit.h"
 
-Hit::Hit(char l, char lad, char zp, char seg, short strip, int idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0, float bend){
+Hit::Hit(char l, char lad, char zp, char seg, short strip, int idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0, float p_b){
   layer = l;
   ladder = lad;
   zPos = zp;
@@ -18,10 +18,7 @@ Hit::Hit(char l, char lad, char zp, char seg, short strip, int idx, int tp, floa
   X0 = p_x0;
   Y0 = p_y0;
   Z0 = p_z0;
-  if(bend<0)
-    stub_bend = 0;
-  else
-    stub_bend = 1;
+  bend = p_b;
 }
 
 Hit::Hit(const Hit& h){
@@ -42,7 +39,7 @@ Hit::Hit(const Hit& h){
   X0=h.X0;
   Y0=h.Y0;  
   Z0=h.Z0;
-  stub_bend=h.stub_bend;
+  bend=h.bend;
 }
 
 char Hit::getLayer() const{
@@ -113,13 +110,13 @@ float Hit::getZ0() const{
   return Z0;
 }
 
-signed char Hit::getBend() const{
-  return stub_bend;
+float Hit::getBend() const{
+  return bend;
 }
 
 ostream& operator<<(ostream& out, const Hit& h){
   double d0=(h.getY0()-(tan(h.getParticulePHI0())*h.getX0()))*cos(h.getParticulePHI0());
 
-  out<<"Layer "<<(int)h.getLayer()<<", ladder "<<(int)h.getLadder()<<", module "<<(int)h.getModule()<<", segment "<<(int)h.getSegment()<<", strip "<<h.getStripNumber()<<" (tp "<<h.getParticuleID()<<" - PT : "<<h.getParticulePT()<<" GeV - ip : "<<h.getParticuleIP()<<" - PHI0 : "<<h.getParticulePHI0()<<" - ETA0 : "<<h.getParticuleETA()<<" - D0 : "<<d0<<" - X0 : "<<h.getX0()<<" - Y0 : "<<h.getY0()<<" - Z0 : "<<h.getZ0()<<" - Bend : "<<(int)h.getBend()<<")";
+  out<<"Layer "<<(int)h.getLayer()<<", ladder "<<(int)h.getLadder()<<", module "<<(int)h.getModule()<<", segment "<<(int)h.getSegment()<<", strip "<<h.getStripNumber()<<" (tp "<<h.getParticuleID()<<" - PT : "<<h.getParticulePT()<<" GeV - ip : "<<h.getParticuleIP()<<" - PHI0 : "<<h.getParticulePHI0()<<" - ETA0 : "<<h.getParticuleETA()<<" - D0 : "<<d0<<" - X0 : "<<h.getX0()<<" - Y0 : "<<h.getY0()<<" - Z0 : "<<h.getZ0()<<" - Bend : "<<h.getBend()<<")";
   return out;
 }

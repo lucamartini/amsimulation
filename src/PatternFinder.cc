@@ -1,7 +1,6 @@
 #include "PatternFinder.h"
 
-PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of){
-  superStripSize = sp;
+PatternFinder::PatternFinder(int at, SectorTree* st, string f, string of){
   active_threshold = at;
   max_nb_missing_hit = 0;
   useMissingHits=false;
@@ -16,13 +15,13 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
   map< int, vector<int> > detector_config = Sector::readConfig("detector.cfg");
 
   //We add the layers corresponding to the sectors structure
-  vector<Sector*> sectors = st->getAllSectors();
-  if(sectors.size()>0){
-    for(int i=0;i<sectors[0]->getNbLayers();i++){
-      int layerID = sectors[0]->getLayerID(i);
+  vector<Sector*> sector_list = sectors->getAllSectors();
+  if(sector_list.size()>0){
+    for(int i=0;i<sector_list[0]->getNbLayers();i++){
+      int layerID = sector_list[0]->getLayerID(i);
       if(detector_config.size()>0){
 	if(detector_config.find(layerID)!=detector_config.end())
-	  tracker.addLayer(detector_config[layerID][0],detector_config[layerID][1],detector_config[layerID][2],detector_config[layerID][3], superStripSize);
+	  tracker.addLayer(detector_config[layerID][0],detector_config[layerID][1],detector_config[layerID][2],detector_config[layerID][3], sectors->getSuperStripSize(layerID));
 	else
 	  cout<<"WARNING : Layer "<<layerID<<" is used in the sector definition of the bank but is missing in the configuration of the virtual detector"<<endl;
       }
@@ -31,13 +30,12 @@ PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of
 
   //Link the patterns with the tracker representation
   cout<<"linking..."<<endl;
-  st->link(tracker);
+  sectors->link(tracker);
   cout<<"done."<<endl;
 }
 
 #ifdef USE_CUDA
-PatternFinder::PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
-  superStripSize = sp;
+PatternFinder::PatternFinder(int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp){
   active_threshold = at;
   max_nb_missing_hit=0;
   useMissingHits=false;
@@ -172,6 +170,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *input1_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input1_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input1_hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC1->SetBranchAddress("sectorID",            &input1_sector_id);//ID du secteur
   SEC1->SetBranchAddress("nbLayers",            &input1_sector_layers);// nombre de layers dans le secteur
@@ -223,6 +222,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT1->SetBranchAddress("stub_X0",             input1_hit_X0);
   PATT1->SetBranchAddress("stub_Y0",             input1_hit_Y0);
   PATT1->SetBranchAddress("stub_Z0",             input1_hit_Z0);
+  PATT1->SetBranchAddress("stub_bend",             input1_hit_bend);
 
   /*********************************************/
 
@@ -308,6 +308,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *input2_hit_X0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_Y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float *input2_hit_Z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float *input2_hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SEC2->SetBranchAddress("sectorID",            &input2_sector_id);//ID du secteur
   SEC2->SetBranchAddress("nbLayers",            &input2_sector_layers);// nombre de layers dans le secteur
@@ -359,6 +360,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATT2->SetBranchAddress("stub_X0",             input2_hit_X0);
   PATT2->SetBranchAddress("stub_Y0",             input2_hit_Y0);
   PATT2->SetBranchAddress("stub_Z0",             input2_hit_Z0);
+  PATT2->SetBranchAddress("stub_bend",             input2_hit_bend);
 
   /*********************OUTPUT FILE *************************************/
   TTree *PATTOUT    = new TTree("Patterns", "Active patterns");
@@ -443,6 +445,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   float *hit_X0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_Y0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   float *hit_Z0 = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
+  float *hit_bend = new float[MAX_NB_OUTPUT_PATTERNS*MAX_NB_HITS];
   
   SECOUT->Branch("sectorID",            &sector_id);
   SECOUT->Branch("nbLayers",            &sector_layers);
@@ -497,18 +500,19 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   PATTOUT->Branch("stub_X0",             hit_X0, "stub_X0[total_nb_stubs]/F");
   PATTOUT->Branch("stub_Y0",             hit_Y0, "stub_Y0[total_nb_stubs]/F");
   PATTOUT->Branch("stub_Z0",             hit_Z0, "stub_Z0[total_nb_stubs]/F");
+  PATTOUT->Branch("stub_bend",             hit_bend, "stub_bend[total_nb_stubs]/F");
   
 
   /*********************************************/
 
   /******************** MERGING SECTOR DATA************************/
-  vector<int> sectors;
+  vector<int> sector_list;
   //copy all the content of the first file
   int nb_entries1 = SEC1->GetEntries();
   for(int i=0;i<nb_entries1;i++){
     SEC1->GetEntry(i);
     sector_id = input1_sector_id;
-    sectors.push_back(sector_id);
+    sector_list.push_back(sector_id);
     sector_layers=input1_sector_layers;
     memcpy(sector_layer_list, input1_sector_layer_list, sector_layers*sizeof(int));
     memcpy(nb_ladders_layer, input1_nb_ladders_layer, sector_layers*sizeof(int));
@@ -522,9 +526,9 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   int nb_entries2 = SEC2->GetEntries();
   for(int i=0;i<nb_entries2;i++){
     SEC2->GetEntry(i);
-    if(std::find(sectors.begin(),sectors.end(), input2_sector_id)==sectors.end()){ // We do not know this sector
+    if(std::find(sector_list.begin(),sector_list.end(), input2_sector_id)==sector_list.end()){ // We do not know this sector
       sector_id = input2_sector_id;
-      sectors.push_back(sector_id);
+      sector_list.push_back(sector_id);
       sector_layers=input2_sector_layers;
       memcpy(sector_layer_list, input2_sector_layer_list, sector_layers*sizeof(int));
       memcpy(nb_ladders_layer, input2_nb_ladders_layer, sector_layers*sizeof(int));
@@ -654,6 +658,9 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
     memcpy(hit_Z0,input1_hit_Z0,input1_totalNbHits*sizeof(float));
     memcpy(hit_Z0+input1_totalNbHits,input2_hit_Z0,input2_totalNbHits*sizeof(float));
 
+    memcpy(hit_bend,input1_hit_bend,input1_totalNbHits*sizeof(float));
+    memcpy(hit_bend+input1_totalNbHits,input2_hit_bend,input2_totalNbHits*sizeof(float));
+
     PATTOUT->Fill();
   }
 
@@ -694,6 +701,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input1_hit_X0;
   delete [] input1_hit_Y0;
   delete [] input1_hit_Z0;
+  delete [] input1_hit_bend;
   
   delete [] input2_superStrip_layer_0;
   delete [] input2_superStrip_layer_1;
@@ -728,6 +736,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] input2_hit_X0;
   delete [] input2_hit_Y0;
   delete [] input2_hit_Z0;
+  delete [] input2_hit_bend;
 
   delete [] superStrip_layer_0;
   delete [] superStrip_layer_1;
@@ -761,6 +770,7 @@ void PatternFinder::mergeFiles(string outputFile, string inputFile1, string inpu
   delete [] hit_X0;
   delete [] hit_Y0;
   delete [] hit_Z0;
+  delete [] hit_bend;
  
   delete PATT1;
   delete PATT2;
@@ -851,7 +861,6 @@ void PatternFinder::find(int start, int& stop){
   short* hit_segment = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   short* hit_strip = new short[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_tp = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
-  int* hit_bend = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   int* hit_idx = new int[MAX_NB_PATTERNS*MAX_NB_HITS];
   bool* hit_used_fit = new bool[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_ptGEN = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
@@ -864,6 +873,7 @@ void PatternFinder::find(int start, int& stop){
   float* hit_x0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float* hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SectorOut->Branch("sectorID",            &sector_id);
   SectorOut->Branch("nbLayers",            &sector_layers);
@@ -925,6 +935,7 @@ void PatternFinder::find(int start, int& stop){
   Out->Branch("stub_X0",             hit_x0, "stub_X0[total_nb_stubs]/F");
   Out->Branch("stub_Y0",             hit_y0, "stub_Y0[total_nb_stubs]/F");
   Out->Branch("stub_Z0",             hit_z0, "stub_Z0[total_nb_stubs]/F");
+  Out->Branch("stub_bend",           hit_bend, "stub_bend[total_nb_stubs]/F");
   
 
   /*********************************************/
@@ -975,6 +986,7 @@ void PatternFinder::find(int start, int& stop){
   vector<float>         m_stub_bend;     // bend du stub
   vector<float>         m_stub_px_gen; // pt initial de la particule ayant genere le stub
   vector<float>         m_stub_py_gen; // pt initial de la particule ayant genere le stub
+  vector<float>         m_stub_deltas; // bend of the stub
   vector<float>         m_stub_x0;     // utilise pour calculer la distance au point d'interaction
   vector<float>         m_stub_y0;     // utilise pour calculer la distance au point d'interaction
   vector<float>         m_stub_z0;
@@ -993,6 +1005,7 @@ void PatternFinder::find(int start, int& stop){
   vector<float>         *p_m_stub_bend =    &m_stub_bend;
   vector<float>         *p_m_stub_pxGEN = &m_stub_px_gen;  
   vector<float>         *p_m_stub_pyGEN = &m_stub_py_gen;  
+  vector<float>         *p_m_stub_deltas = &m_stub_deltas;  
   vector<float>         *p_m_stub_x0 =     &m_stub_x0;
   vector<float>         *p_m_stub_y0 =     &m_stub_y0;
   vector<float>         *p_m_stub_z0 =     &m_stub_z0;
@@ -1019,6 +1032,7 @@ void PatternFinder::find(int start, int& stop){
   TT->SetBranchAddress("STUB_etaGEN",    &p_m_stub_etaGEN);
   TT->SetBranchAddress("STUB_pxGEN",     &p_m_stub_pxGEN);
   TT->SetBranchAddress("STUB_pyGEN",     &p_m_stub_pyGEN);
+  TT->SetBranchAddress("STUB_deltas",    &p_m_stub_deltas);
   TT->SetBranchAddress("STUB_x",         &p_m_stub_x);
   TT->SetBranchAddress("STUB_y",         &p_m_stub_y);
   TT->SetBranchAddress("STUB_z",         &p_m_stub_z);
@@ -1062,7 +1076,7 @@ void PatternFinder::find(int start, int& stop){
       float x0 = m_stub_x0[i];
       float y0 = m_stub_y0[i];
       float z0 = m_stub_z0[i];
-      float bend = m_stub_bend[i];
+      float bend = m_stub_deltas[i];
       
       //cout<<layer<<" "<<module<<" "<<ladder<<" "<<segment<<" "<<strip<<endl;
 
@@ -1104,6 +1118,7 @@ void PatternFinder::find(int start, int& stop){
     memset(hit_x0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_y0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_z0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
+    memset(hit_bend,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
 
     int patternIndex=0;
     int trackIndex=0;
@@ -1140,82 +1155,86 @@ void PatternFinder::find(int start, int& stop){
       unsigned int max_patterns = pl.size();
       unsigned int max_tracks = tracks.size();
       if((int)max_patterns>MAX_NB_PATTERNS){
-          max_patterns=MAX_NB_PATTERNS;
-	  nb_patterns=MAX_NB_PATTERNS;
-	  if(max_tracks>max_patterns)
-	    max_tracks=max_patterns;
-          cout<<"WARNING : Too may patterns in event "<<n_evt<<" : "<<pl.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
+	max_patterns=MAX_NB_PATTERNS;
+	nb_patterns=MAX_NB_PATTERNS;
+	cout<<"WARNING : Too may patterns in event "<<n_evt<<" : "<<pl.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
+      }
+      if((int)max_tracks>MAX_NB_PATTERNS){
+	max_tracks=MAX_NB_PATTERNS;
+	cout<<"WARNING : Too may tracks in event "<<n_evt<<" : "<<tracks.size()<<" -> keep only the first "<<MAX_NB_PATTERNS<<"."<<endl;
       }
 
       set<int> stub_ids;
 
       set<int> indexOfStubsInTracks;
-      
-      for(unsigned int k=0;k<max_tracks;k++){
-	track_pt[trackIndex] = tracks[k]->getCurve();
-	track_phi[trackIndex]= tracks[k]->getPhi0();
-	track_d0[trackIndex] = tracks[k]->getD0();
-	track_eta[trackIndex]= tracks[k]->getEta0();
-	track_z0[trackIndex] = tracks[k]->getZ0();
-	
-	vector<int> stubsInTrack = tracks[k]->getStubs();
-	for(unsigned int l=0;l<stubsInTrack.size();l++){
-	  indexOfStubsInTracks.insert(stubsInTrack[l]);
+
+      for(unsigned int k=0;k<tracks.size();k++){
+	if(k<max_tracks){
+	  track_pt[trackIndex] = tracks[k]->getCurve();
+	  track_phi[trackIndex]= tracks[k]->getPhi0();
+	  track_d0[trackIndex] = tracks[k]->getD0();
+	  track_eta[trackIndex]= tracks[k]->getEta0();
+	  track_z0[trackIndex] = tracks[k]->getZ0();
+	  
+	  vector<int> stubsInTrack = tracks[k]->getStubs();
+	  for(unsigned int l=0;l<stubsInTrack.size();l++){
+	    indexOfStubsInTracks.insert(stubsInTrack[l]);
+	  }
+	  trackIndex++;
 	}
-	
 	delete tracks[k];
-	trackIndex++;
       }
       
-      for(unsigned int j=0;j<max_patterns;j++){
-	//loop on layers
-	for(int k=0;k<nb_layers;k++){
-	  int sstripValue = pl[j]->getLayerStrip(k)->getIntValue();
-	  superStrips[k][patternIndex]=sstripValue;
-	}
-	//sector of the pattern
-	pattern_sector_id[patternIndex]=sec_id;
-	
-	
-	//stubs of the patterns
-	vector<Hit*> active_hits = pl[j]->getHits();
-
-	int nbHits = active_hits.size();
-	if(nbHits>MAX_NB_HITS) // if we have too many hits, we keep only the MAX_NB_HITS first
-	  nbHits=MAX_NB_HITS;
-	nbHitPerPattern[patternIndex]=nbHits;
-	totalNbHits+=nbHits;
-	for(int k=0;k<nbHits;k++){
-	  //cout<<*active_hits[k]<<endl;
-	  
-	  hit_layer[stubIndex]=active_hits[k]->getLayer();
-	  hit_ladder[stubIndex]=active_hits[k]->getLadder();
-	  hit_zPos[stubIndex]=active_hits[k]->getModule();
-	  hit_segment[stubIndex]=active_hits[k]->getSegment();
-	  hit_strip[stubIndex]=active_hits[k]->getStripNumber();
-	  hit_tp[stubIndex]=active_hits[k]->getParticuleID();
-	  hit_bend[stubIndex]=active_hits[k]->getBend();
-	  hit_idx[stubIndex]=active_hits[k]->getID();
-	  if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
-	    hit_used_fit[stubIndex]=true;
+      for(unsigned int j=0;j<pl.size();j++){
+	if(j<max_patterns){
+	  //loop on layers
+	  for(int k=0;k<nb_layers;k++){
+	    int sstripValue = pl[j]->getLayerStrip(k)->getIntValue();
+	    superStrips[k][patternIndex]=sstripValue;
 	  }
-	  hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
-	  hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
-	  hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();
-	  hit_ip[stubIndex]=active_hits[k]->getParticuleIP();
-	  hit_x[stubIndex]=active_hits[k]->getX();
-	  hit_y[stubIndex]=active_hits[k]->getY();
-	  hit_z[stubIndex]=active_hits[k]->getZ();
-	  hit_x0[stubIndex]=active_hits[k]->getX0();
-	  hit_y0[stubIndex]=active_hits[k]->getY0();
-	  hit_z0[stubIndex]=active_hits[k]->getZ0();
-
-	  stub_ids.insert(active_hits[k]->getID());
+	  //sector of the pattern
+	  pattern_sector_id[patternIndex]=sec_id;
+	  	  
+	  //stubs of the patterns
+	  vector<Hit*> active_hits = pl[j]->getHits();
 	  
-	  stubIndex++;
+	  int nbHits = active_hits.size();
+	  if(nbHits>MAX_NB_HITS) // if we have too many hits, we keep only the MAX_NB_HITS first
+	    nbHits=MAX_NB_HITS;
+	  nbHitPerPattern[patternIndex]=nbHits;
+	  totalNbHits+=nbHits;
+	  for(int k=0;k<nbHits;k++){
+	    //cout<<*active_hits[k]<<endl;
+	    
+	    hit_layer[stubIndex]=active_hits[k]->getLayer();
+	    hit_ladder[stubIndex]=active_hits[k]->getLadder();
+	    hit_zPos[stubIndex]=active_hits[k]->getModule();
+	    hit_segment[stubIndex]=active_hits[k]->getSegment();
+	    hit_strip[stubIndex]=active_hits[k]->getStripNumber();
+	    hit_tp[stubIndex]=active_hits[k]->getParticuleID();
+	    hit_idx[stubIndex]=active_hits[k]->getID();
+	    if(indexOfStubsInTracks.find(active_hits[k]->getID())!=indexOfStubsInTracks.end()){
+	      hit_used_fit[stubIndex]=true;
+	    }
+	    hit_ptGEN[stubIndex]=active_hits[k]->getParticulePT();
+	    hit_etaGEN[stubIndex]=active_hits[k]->getParticuleETA();
+	    hit_phi0GEN[stubIndex]=active_hits[k]->getParticulePHI0();
+	    hit_ip[stubIndex]=active_hits[k]->getParticuleIP();
+	    hit_x[stubIndex]=active_hits[k]->getX();
+	    hit_y[stubIndex]=active_hits[k]->getY();
+	    hit_z[stubIndex]=active_hits[k]->getZ();
+	    hit_x0[stubIndex]=active_hits[k]->getX0();
+	    hit_y0[stubIndex]=active_hits[k]->getY0();
+	    hit_z0[stubIndex]=active_hits[k]->getZ0();
+	    hit_bend[stubIndex]=active_hits[k]->getBend();
+	    
+	    stub_ids.insert(active_hits[k]->getID());
+	    
+	    stubIndex++;
+	  }
+	  
+	  patternIndex++;
 	}
-	
-	patternIndex++;
 	delete pl[j];
       }
 
@@ -1266,6 +1285,7 @@ void PatternFinder::find(int start, int& stop){
   delete[]  hit_x0;
   delete[]  hit_y0;
   delete[] hit_z0;
+  delete[] hit_bend;
 }
 
 #ifdef USE_CUDA
@@ -1362,6 +1382,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   float* hit_x0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_y0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   float* hit_z0 = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
+  float* hit_bend = new float[MAX_NB_PATTERNS*MAX_NB_HITS];
   
   SectorOut->Branch("sectorID",            &sector_id);
   SectorOut->Branch("nbLayers",            &sector_layers);
@@ -1421,6 +1442,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   Out->Branch("stub_X0",             hit_x0, "stub_X0[total_nb_stubs]/F");
   Out->Branch("stub_Y0",             hit_y0, "stub_Y0[total_nb_stubs]/F");
   Out->Branch("stub_Z0",             hit_z0, "stub_Z0[total_nb_stubs]/F");
+  Out->Branch("stub_bend",           hit_bend, "stub_bend[total_nb_stubs]/F");
 
   /*********************************************/
 
@@ -1575,7 +1597,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 	cuda_hits[cuda_idx+1]=ladder;
 	cuda_hits[cuda_idx+2]=module;
 	cuda_hits[cuda_idx+3]=segment;
-	cuda_hits[cuda_idx+4]=(char)(strip/superStripSize);
+	cuda_hits[cuda_idx+4]=(char)(strip/sectors->getSuperStripSize(layer));
 	cuda_nb_hits++;
 
       }
@@ -1622,6 +1644,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
     memset(hit_x0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_y0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
     memset(hit_z0,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
+    memset(hit_bend,0,MAX_NB_PATTERNS*MAX_NB_HITS*sizeof(float));
 
     int stubIndex = 0;
     totalNbHits = 0;
@@ -1647,6 +1670,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
 	hit_x0[stubIndex]=hits[i]->getX0();
 	hit_y0[stubIndex]=hits[i]->getY0();
 	hit_z0[stubIndex]=hits[i]->getZ0();
+	hit_bend[stubIndex]=hits[i]->getBend();
 	
 	stubIndex++;
       }
@@ -1699,6 +1723,7 @@ void PatternFinder::findCuda(int start, int& stop, deviceStubs* d_stubs){
   delete[]  hit_x0;
   delete[]  hit_y0;
   delete[] hit_z0;
+  delete[] hit_bend;
 }
 #endif
 
@@ -1768,6 +1793,7 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
 
     cout<<"Event "<<n_evt<<endl;
 
+    vector<Hit*> hits;
     for(int i=0;i<m_stub;i++){
       int layer = m_stub_layer[i];
       int module = -1;
@@ -1782,20 +1808,33 @@ void PatternFinder::displayEventsSuperstrips(int start, int& stop){
       }
       int strip = m_stub_strip[i];
       
-      Hit h(layer,ladder, module, segment, strip, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-      Sector* firstSector = sectors->getAllSectors()[0];
-      if(sectors->getSector(h)==firstSector){//we manage only one sector
-	module = firstSector->getModuleCode(layer, ladder, module);
-	ladder=firstSector->getLadderCode(layer, ladder);
-	strip = strip/superStripSize;
-	CMSPatternLayer pat;
-	pat.setValues(module, ladder, strip, segment);
-	cout<<layer<<" "<<pat.toStringBinary()<<endl;
-      }
+      Hit* h = new Hit(layer,ladder, module, segment, strip, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      cout<<*h<<endl;
+      hits.push_back(h);
     }
+    displaySuperstrips(hits);
+    for(unsigned int i=0;i<hits.size();i++){
+      delete(hits[i]);
+    }
+    hits.clear();
     num_evt++;
   }
   delete TT;
+}
+
+void PatternFinder::displaySuperstrips(const vector<Hit*> &hits){
+  Sector* firstSector = sectors->getAllSectors()[0];
+  for(unsigned int i=0;i<hits.size();i++){
+    Hit* myHit = hits[i];
+    if(sectors->getSector(*myHit)==firstSector){//we manage only one sector
+      int module = firstSector->getModuleCode(myHit->getLayer(), myHit->getLadder(), myHit->getModule());
+      int ladder=firstSector->getLadderCode(myHit->getLayer(), myHit->getLadder());
+      int strip = myHit->getStripNumber()/sectors->getSuperStripSize(myHit->getLayer());
+      CMSPatternLayer pat;
+      pat.setValues(module, ladder, strip, myHit->getSegment());
+      cout<<(int)myHit->getLayer()<<" "<<pat.toStringSuperstripBinary()<<" (layer "<<(int)myHit->getLayer()<<" ladder "<<(int)myHit->getLadder()<<" module "<<(int)myHit->getModule()<<" segment "<<(int)myHit->getSegment()<<" strip "<<(int)myHit->getStripNumber()<<")"<<endl;
+    }
+  }
 }
 
 void PatternFinder::useMissingHitThreshold(int max_nb_missing_hit){

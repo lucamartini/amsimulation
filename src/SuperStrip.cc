@@ -42,7 +42,7 @@ void SuperStrip::clear(){
 
 void SuperStrip::touch(const Hit* h){
   hit=true;
-  if(h->getBend())
+  if(h->getBend()>=0)
     hit_by_positive_bend=true;
   else
     hit_by_negative_bend=true;

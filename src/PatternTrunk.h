@@ -63,6 +63,11 @@ class PatternTrunk{
      \return The PT in GeV/c
   **/
   float getLDPatternPT();
+ /**
+     \brief Get the number of tracks that have created the low definition pattern
+     \return The number of tracks leading to this pattern
+  **/
+  int getLDPatternGrade() const;
   /**
      \brief Get the number of FD patterns
      \return The number of FD patterns stored in the PatternTrunk

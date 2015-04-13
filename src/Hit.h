@@ -27,8 +27,7 @@ class Hit{
   float X0;
   float Y0;
   float Z0;
-  signed char stub_bend;
-
+  float bend;
   
 
  public :
@@ -51,9 +50,9 @@ class Hit{
      \param p_x0 The X0 coordinate of the hit in the tracker
      \param p_y0 The Y0 coordinate of the hit in the tracker
      \param p_z0 The Z0 coordinate of the hit in the tracker
-     \param bend The bend of the stub (0=negative or 1=positive)
+     \param p_b The bend of the stub (difference between the clusters) in number of strips
   **/
-  Hit(char l, char lad, char zp, char seg, short strip, int idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0, float bend=0);
+  Hit(char l, char lad, char zp, char seg, short strip, int idx, int tp, float pt, float ip, float eta, float phi0, float p_x, float p_y, float p_z, float p_x0, float p_y0, float p_z0, float p_b=0);
   /**
      \brief The copy Constructor
   **/
@@ -143,11 +142,12 @@ class Hit{
      \return The value as a float
   **/
   float getZ0() const;
- /**
-     \brief Get the bend of the stub
-     \return 0 if negative, 1 if positive
+  /**
+     \brief Get the bend of the hit
+     \return The value as a float (may be half a strip)
   **/
-  signed char getBend() const;
+  float getBend() const;
+
 
   /**
      \brief Allows to display a Hit as a string

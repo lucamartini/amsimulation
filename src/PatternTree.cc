@@ -287,3 +287,22 @@ bool PatternTree::checkPattern(Pattern* lp, Pattern* hp){
     return (it->second)->checkPattern(hp);
   }
 }
+
+bool comparePatterns(PatternTrunk* p1, PatternTrunk* p2){
+  if(p1->getLDPatternGrade()==p2->getLDPatternGrade())
+    return p1->getLDPatternPT()>p2->getLDPatternPT();
+  else
+    return p1->getLDPatternGrade()>p2->getLDPatternGrade();
+}
+
+void PatternTree::truncate(int nbPatterns){
+  switchToVector();
+  sort(v_patterns.begin(),v_patterns.end(), comparePatterns);
+  cout<<"Scores ranging from  : "<<v_patterns[0]->getLDPatternGrade()<<" to "<<v_patterns[v_patterns.size()-1]->getLDPatternGrade()<<endl;
+  int nbToDelete = v_patterns.size()-nbPatterns;
+  for(int i=0;i<nbToDelete;i++){
+    v_patterns.pop_back();
+  }
+  cout<<"Keep "<<v_patterns.size()<<" patterns with scores ranging from  : "<<v_patterns[0]->getLDPatternGrade()<<" to "<<v_patterns[v_patterns.size()-1]->getLDPatternGrade()<<endl;
+  switchToMap();
+}

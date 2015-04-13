@@ -18,7 +18,6 @@ using namespace std;
 **/
 class PatternFinder{
  private:
-  int superStripSize;
   int active_threshold;
   int max_nb_missing_hit;
   bool useMissingHits;
@@ -39,18 +38,16 @@ class PatternFinder{
  public:
  /**
      \brief Constructor
-     \param sp Size of a super strip
      \param at The minimum number of hit super strip to activate a pattern
      \param st The SectorTree containing the sectors with their associated patterns
      \param f The name of the file to analyse
      \param of The name of the output file
   **/
-  PatternFinder(int sp, int at, SectorTree* st, string f, string of);
+  PatternFinder(int at, SectorTree* st, string f, string of);
 
 #ifdef USE_CUDA
  /**
      \brief Constructor
-     \param sp Size of a super strip
      \param at The minimum number of hit super strip to activate a pattern
      \param st The SectorTree containing the sectors with their associated patterns
      \param f The name of the file to analyse
@@ -59,7 +56,7 @@ class PatternFinder{
      \param d The device detector
      \param d_p Structure containing device addresses where parameters are stored
   **/
-  PatternFinder(int sp, int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp);
+  PatternFinder(int at, SectorTree* st, string f, string of, patternBank* p, deviceDetector* d, deviceParameters* dp);
 
   /**
      \brief Get active patterns from list of hits (public for CMSSW).
@@ -111,7 +108,11 @@ class PatternFinder{
      \param stop The search will end at this event number
    **/
   void displayEventsSuperstrips(int start, int& stop);
-
+  /**
+     \brief Display the given hits as superstrips if they are part of the sector. Each line will contain the layer ID followed by the 16 bits of the superstrip as an integer.
+     \param hits The list of hits in the event
+   **/
+  void displaySuperstrips(const vector<Hit*> &hits);
   /**
      \brief Use the maximum missing hit threshold instead of the active_threshold
    **/

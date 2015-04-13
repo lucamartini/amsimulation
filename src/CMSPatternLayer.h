@@ -18,7 +18,7 @@ using namespace std;
 
 
 /**
-   \brief CMS pattern structure (14 bits are used)
+   \brief CMS pattern structure (15 to 16 bits are used)
    Also contains all the detector geometry :
      - ids of layers
      - number of ladders per layer
@@ -32,22 +32,13 @@ using namespace std;
 
 class CMSPatternLayer : public PatternLayer{
  private:
-  static const short MOD_START_BIT = 10;
-  static const short PHI_START_BIT = 6;
-  static const short SEG_START_BIT = 5;
-  static const short STRIP_START_BIT = 0;
-
-  static const short MOD_MASK = 0xF;
-  static const short PHI_MASK = 0xF;
-  static const short STRIP_MASK = 0x1F;
-  static const short SEG_MASK = 0x1;
 
   short binaryToGray(short num);
   short grayToBinary(short gray);
 
   friend class boost::serialization::access;
   
-  template<class Archive> void save(Archive & ar, const unsigned int version) const//const boost::serialization::version_type& version) const 
+  template<class Archive> void save(Archive & ar, const unsigned int version) const
     {
       ar << boost::serialization::base_object<PatternLayer>(*this);
     }
@@ -72,6 +63,20 @@ class CMSPatternLayer : public PatternLayer{
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
  public:
+
+  static short MOD_START_BIT;
+  static short PHI_START_BIT;
+  static short STRIP_START_BIT;
+  static short SEG_START_BIT;
+
+  static short MOD_MASK;
+  static short PHI_MASK;
+  static short STRIP_MASK;
+  static short SEG_MASK;
+
+  static short OUTER_LAYER_SEG_DIVIDE;//Simplification factor on outer barrel layers segments (1:we use segment, 2:all values to 0)
+  static short INNER_LAYER_SEG_DIVIDE;//Simplification factor on inner barrel layers segments (1:we use segment, 2:all values to 0)
+
   CMSPatternLayer();
   CMSPatternLayer* clone();
   vector<SuperStrip*> getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d);
@@ -96,7 +101,16 @@ class CMSPatternLayer : public PatternLayer{
      \return A string describing the PatternLayer
   **/
   string toStringBinary();
-
+  /**
+     \brief Returns a string representation of the PatternLayer, using binary values and in the correct AM05 order (strip position at the end).
+     \return A string describing the PatternLayer
+  **/
+  string toStringSuperstripBinary();
+  /**
+     \brief Returns a string representation of the PatternLayer, using the encoding needed for a AM05 chip
+     \return A string describing the PatternLayer
+  **/
+  string toAM05Format();
   /**
      \brief Returns the module's Z position
      \return The module's Z position

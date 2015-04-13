@@ -7,18 +7,18 @@ CUDA_ROOTDIR=/usr/local/cuda/
 CUDA_EXAMPLEDIR=${CUDA_ROOTDIR}/samples/common/
 
 ifeq ($(UNAME), Darwin)
-	FLAG=-O2 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
+	FLAG=-O2 -std=c++11 -Wall -I `root-config --incdir` -I /opt/local/include/ -I ${SRC}
 	LIBS = -L ${ROOTSYS}/lib -L /opt/local/lib/
    BOOSTLIBS = -lboost_serialization-mt -lboost_program_options-mt -lboost_iostreams 
 endif
 ifeq ($(UNAME), Linux)
 
 ifeq ($(CUDA_ENABLED),true)
-	FLAG=-DUSE_CUDA -O3 -Wall -Werror=type-limits
+	FLAG=-DUSE_CUDA -O3 -Wall -std=c++11 -Werror=type-limits
 	INC =-I `root-config --incdir` -I ${SRC} -I ${CUDA_EXAMPLEDIR}/inc -I${CUDA_ROOTDIR}/include/
 	LIBS =-L ${ROOTSYS}/lib -L${CUDA_ROOTDIR}/lib64 -lcuda -lcudart
 else
-	FLAG=-O3 -Wall -Werror=type-limits
+	FLAG=-O3 -Wall -std=c++11 -Werror=type-limits
 	INC =-I `root-config --incdir` -I `scram tool tag boost INCLUDE` -I ${SRC}
 	LIBS =-L ${ROOTSYS}/lib -L `scram tool tag boost LIBDIR`
 endif
@@ -26,13 +26,22 @@ endif
 endif
 
 ifeq ($(CUDA_ENABLED),true)
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
+	OBJECTS=SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o \
+	PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o \
+	Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o \
+	PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o SeedClusteringFitter.o \
+	ComputerHough.o	Retina.o RetinaTrackFitter.o libhoughCPU.o FileEventProxy.o GPUPooler.o gpu.o
 else
-	OBJECTS=AMSimulation.o SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o KarimakiTrackFitter.o HoughFitter.o ComputerHough.o libhoughCPU.o
+	OBJECTS=SuperStrip.o Hit.o Pattern.o PatternLayer.o GradedPattern.o PatternTrunk.o PatternTree.o \
+	PatternGenerator.o Sector.o SectorTree.o CMSPatternLayer.o Segment.o Module.o \
+	Ladder.o Layer.o Detector.o PatternFinder.o Track.o TrackFitter.o FitParams.o \
+	PrincipalTrackFitter.o PrincipalFitGenerator.o MultiDimFitData.o \
+	Retina.o RetinaTrackFitter.o KarimakiTrackFitter.o HoughFitter.o SeedClusteringFitter.o \
+	ComputerHough.o libhoughCPU.o
 endif
 
-AMSimulation:$(OBJECTS)
-	g++ -o AMSimulation $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix
+AMSimulation:$(OBJECTS) AMSimulation.o
+	g++ -o AMSimulation $(OBJECTS) AMSimulation.o ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad
 
 clean:	
 	rm -rf *.o;rm -f ${SRC}/*~;rm -f ${SRC}/*#
@@ -112,11 +121,20 @@ KarimakiTrackFitter.o:${SRC}/KarimakiTrackFitter.h ${SRC}/KarimakiTrackFitter.cc
 HoughFitter.o:${SRC}/HoughFitter.h ${SRC}/HoughFitter.cc
 	g++ -c ${FLAG} ${INC} ${SRC}/HoughFitter.cc
 
+SeedClusteringFitter.o:${SRC}/SeedClusteringFitter.h ${SRC}/SeedClusteringFitter.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/SeedClusteringFitter.cc
+
 ComputerHough.o:${SRC}/ComputerHough.h ${SRC}/ComputerHough.cc $(SRC)/libhoughStruct.h $(SRC)/HoughStruct.h libhoughCPU.o
 	g++ -c ${FLAG} ${INC} ${SRC}/ComputerHough.cc
 
 libhoughCPU.o:${SRC}/libhoughCPU.h ${SRC}/libhoughCPU.c
 	g++ -c ${FLAG} ${INC} ${SRC}/libhoughCPU.c
+
+Retina.o:${SRC}/Retina.h ${SRC}/Retina.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/Retina.cc
+
+RetinaTrackFitter.o:${SRC}/RetinaTrackFitter.h ${SRC}/RetinaTrackFitter.cc
+	g++ -c ${FLAG} ${INC} ${SRC}/RetinaTrackFitter.cc
 
 FileEventProxy.o:${SRC}/FileEventProxy.h ${SRC}/FileEventProxy.cc
 	g++ -c ${FLAG} ${INC} ${SRC}/FileEventProxy.cc
@@ -129,6 +147,10 @@ AMSimulation.o:${SRC}/AMSimulation.cc
 
 gpu.o:${SRC}/gpu.h ${SRC}/gpu_struct.h ${SRC}/gpu.cu 
 	${CUDA_ROOTDIR}/bin/nvcc -ccbin g++ ${INC} -m64 -arch compute_30 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=\"sm_35,compute_35\"  -o gpu.o -c src/gpu.cu
+
+tests:${SRC}/UnitTest.cc ${SRC}/UnitTest.h $(OBJECTS)
+	g++ -c ${FLAG} ${INC} ${SRC}/UnitTest.cc
+	g++ -o UnitTest UnitTest.o  $(OBJECTS) ${LIBS} ${BOOSTLIBS} -lCore -lCint -lRIO -lHist -lTree -lMatrix -lGpad -lboost_unit_test_framework
 
 doc:doxygen.cfg
 	doxygen doxygen.cfg

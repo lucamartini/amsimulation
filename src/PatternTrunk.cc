@@ -65,6 +65,10 @@ float PatternTrunk::getLDPatternPT(){
   return lowDefPattern->getAveragePt();
 }
 
+int PatternTrunk::getLDPatternGrade() const{
+  return lowDefPattern->getGrade();
+}
+
 int PatternTrunk::getFDPatternNumber(){
   return fullDefPatterns.size();
 }
@@ -130,7 +134,7 @@ void PatternTrunk::computeAdaptativePattern(short r, bool pt){
 
     if(pt){
       //We add a DC bit for the stub PT
-      if(pl->getPT()==-1)
+      if(i==0 || pl->getPT()==-1) // never use stub's PT on first layer
 	pl->setDC(bits.size(),2);
       else
 	pl->setDC(bits.size(),pl->getPT());

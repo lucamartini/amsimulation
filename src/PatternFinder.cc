@@ -1285,7 +1285,6 @@ void PatternFinder::find(int start, int& stop){
   delete[]  hit_x0;
   delete[]  hit_y0;
   delete[] hit_z0;
-  delete[] hit_bend;
 }
 
 #ifdef USE_CUDA

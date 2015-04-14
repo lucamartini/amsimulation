@@ -1,14 +1,14 @@
 #include "CMSPatternLayer.h"
 
-short CMSPatternLayer::MOD_START_BIT = 12;
-short CMSPatternLayer::PHI_START_BIT = 8;
-short CMSPatternLayer::STRIP_START_BIT = 1;
+short CMSPatternLayer::MOD_START_BIT = 11;
+short CMSPatternLayer::PHI_START_BIT = 7;
+short CMSPatternLayer::STRIP_START_BIT = 0;
 short CMSPatternLayer::SEG_START_BIT = 0;
 short CMSPatternLayer::MOD_MASK = 0xF;
 short CMSPatternLayer::PHI_MASK = 0xF;
 short CMSPatternLayer::STRIP_MASK = 0x7F;
-short CMSPatternLayer::SEG_MASK = 0x1;
-short CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE = 1;
+short CMSPatternLayer::SEG_MASK = 0x0;
+short CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE = 2;
 short CMSPatternLayer::INNER_LAYER_SEG_DIVIDE = 2;
 
 CMSPatternLayer::CMSPatternLayer():PatternLayer(){

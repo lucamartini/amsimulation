@@ -142,8 +142,7 @@ class SectorTree{
 
   /**
      \brief Retrieve the superstrip size used for the patterns inside the SectorTree
-     \param layer_id The ID of the layer for which you want the superstrip size (0 for default).
-									\If the ID is not know, returns the default value.
+     \param layer_id The ID of the layer for which you want the superstrip size (0 for default).If the ID is not know, returns the default value.
      \return -1 if not specified, the superStrip size otherwise.
   **/
   int getSuperStripSize(int layer_id=0);

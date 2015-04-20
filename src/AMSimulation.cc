@@ -83,7 +83,7 @@ using namespace std;
    \endcode
    All options can be stored in a file called amsimulation.cfg, here is an example :
    \code
-   # Number of strips in a superstrip {16,32,64,128,256,512,1024}
+   # Number of strips in a superstrip {16,32,64,128,256,512,1024}, either one value for all layers or one value per layer
    ss_size=32
    # Number of DC bits to use [0-3]
    dc_bits=3
@@ -115,7 +115,7 @@ using namespace std;
    \code
    ./AMSimulation --generateBank --ss_size=64
    \endcode
-   will set the value of the ss_size option to 64, whatever is contained in the configuration file.
+   will set the value of the ss_size option to 64, whatever is contained in the configuration file. If --ss_size is a unique value it will be used for all layers. If you want to use a different values you have to set a value per layer (same format than --active_layers).
 
    If you have created 2 banks for the same sector with 2 different PT range (2-10 GeV and 10-50 GeV for example), you can merge the 2 files into a single one using the command :
    \code

@@ -24,10 +24,11 @@
 
 #include <TH1I.h>
 #include <TFile.h>
+#include "TROOT.h"
 
 #ifndef __APPLE__
-BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer) 
-BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter) 
+BOOST_CLASS_EXPORT_IMPLEMENT(CMSPatternLayer)
+BOOST_CLASS_EXPORT_IMPLEMENT(PrincipalTrackFitter)
 #endif
 
 using namespace std;
@@ -42,7 +43,7 @@ using namespace std;
    \endcode
 
    If everything goes fine, you should get a binary file called "AMSimulation".
- 
+
    \subsection CUDA
    Some features of the program (pattern recognition) can use a GPU card to accelarate the computing. If you want to use this feature you will need:
    - Root (http://root.cern.ch) installed and configured ($ROOTSYS must be pointing on the installation directory and $ROOTSYS/bin must be in the PATH)
@@ -66,7 +67,7 @@ using namespace std;
    \endcode
    which should return :
    \code
-   --useGPU              Use the GPU card to accelerate the pattern recognition 
+   --useGPU              Use the GPU card to accelerate the pattern recognition
    (needs cuda libraries and a configured GPU card)
    \endcode
 
@@ -141,7 +142,7 @@ using namespace std;
 If you compiled the program using the cuda libraries, you can add the --useGPU flag to use the GPU device to perform the pattern recognition.
 
    \subsection merge Merging banks
-   If you have created 2 banks for the same sector but with different PT range (for example 2 to 10 GeV and 10 to 100 GeV) you can merge the 2 files into a single one by using the command :   
+   If you have created 2 banks for the same sector but with different PT range (for example 2 to 10 GeV and 10 to 100 GeV) you can merge the 2 files into a single one by using the command :
    \code
    ./AMSimulation --MergeBanks --inputFile <PBK file of the first bank> --secondFile <PBK file of the second bank> --outputFile  <output PBK file name>
    \endcode
@@ -169,7 +170,7 @@ If you compiled the program using the cuda libraries, you can add the --useGPU f
 
    It should display one pattern per line. The interpretation process is the following : if you have '11014 (00X)' you have to convert the decimal value 11014 to binary : '00101 0110 000011 0'. The first 5 bits are the Z position of the module (00101 is 5 in decimal), then you have the index of the ladder (0110 is 6), the last bit is the segment (0 is 0). 000011 gives you the superstrip position and is encoded using gray code. You have to append the DC bits : 00001100X which corresponds to 2 values : 000011000 and 000011001. The decimal values of these gray encoded binary values are 16 and 17 which are the indices of the high resolution superstrips inside the module.
 
-   You can also display the patterns using a format compatible with AM05 chips : for every pattern you will get one 18 bits value per line corresponding to the value you have to upload in the AM05 chip. DC bits encoding is taken care of. 
+   You can also display the patterns using a format compatible with AM05 chips : for every pattern you will get one 18 bits value per line corresponding to the value you have to upload in the AM05 chip. DC bits encoding is taken care of.
    \code
    ./AMSimulation --printBankAM05 --bankFile <Your patterns bank file>
    \endcode
@@ -180,6 +181,10 @@ If you compiled the program using the cuda libraries, you can add the --useGPU f
  **/
 
 bool sorting (GradedPattern* p1, GradedPattern* p2) { return (*p2<*p1); }
+
+// #ifdef __MAKECINT__
+// #pragma link C++ class std::vector < std::vector<int> >+;
+// #endif
 
 void getLayers(vector<int> &l){
   cout<<"Enter the layer numbers (separated by spaces) :"<<endl;
@@ -289,7 +294,7 @@ void createAnalysis(SectorTree &st){
   if(list.size()>0)
     nbLayers = list[0]->getNbLayers();
   vector<TH1I*> modulesPlot;
-  
+
   for(int i=0;i<nbLayers;i++){
     ostringstream oss;
     oss<<"Layer "<<i;
@@ -307,7 +312,7 @@ void createAnalysis(SectorTree &st){
   }
   //sorting the patterns
   sort(allPatterns.begin(), allPatterns.end(), sorting);
-  
+
   //float patterns[allPatterns.size()];
   //float tracks[allPatterns.size()];
   //float tracks_nb[allPatterns.size()];
@@ -398,7 +403,7 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
   // Stub info (fait a partir de paires de clusters matches)
 
   //static const int      m_stub_MAX    = 10000;     // Nombre maximal de stubs
-  
+
   int m_stub;
   vector<int>           m_stub_layer;  // Layer du stub (5 a 10 pour les 6 layers qui nous interessent)
   vector<int>           m_stub_module; // Position en Z du module contenant le stub
@@ -408,7 +413,7 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
   vector<float>         m_stub_pxGEN;  // pxGEN de la particule originelle
   vector<float>         m_stub_pyGEN;  // pyGEN de la particule originelle
   vector<float>         m_stub_etaGEN;  // etaGEN de la particule originelle
- 
+
   vector<int>           *p_m_stub_layer = &m_stub_layer;
   vector<int>           *p_m_stub_module = &m_stub_module;
   vector<int>           *p_m_stub_ladder = &m_stub_ladder;
@@ -417,7 +422,7 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
   vector<float>         *p_m_stub_pxGEN = &m_stub_pxGEN;
   vector<float>         *p_m_stub_pyGEN = &m_stub_pyGEN;
   vector<float>         *p_m_stub_etaGEN = &m_stub_etaGEN;
-  
+
   TT->SetBranchAddress("STUB_n",         &m_stub);
   TT->SetBranchAddress("STUB_layer",     &p_m_stub_layer);
   TT->SetBranchAddress("STUB_module",    &p_m_stub_module);
@@ -437,7 +442,7 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
   int layers[tracker_layers.size()];
   int ladder_per_layer[tracker_layers.size()];
   int module_per_layer[tracker_layers.size()];
-  
+
   int nbUsedTracks = 0;
 
   float found_phi_min = 1000;
@@ -466,7 +471,7 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
       }
 
       phi0 = atan2(m_stub_pyGEN[j], m_stub_pxGEN[j]);
-     
+
       if(phi0<phi_min){//The stub is coming from a particule outside the considered sector
 	continue;
       }
@@ -503,11 +508,11 @@ void createFromSimu(string fileName, vector<int> tracker_layers, vector< vector<
     for(unsigned int j=0;j<tracker_layers.size();j++){
       if(layers[j]==-1){
 	missing_stub=true;
-	
+
       }
     }
     if(missing_stub)
-      continue;//no stub on each layer -> drop the event    
+      continue;//no stub on each layer -> drop the event
     nbInLayer++;
     //restriction to some ladders
     bool useTrack = true;
@@ -564,7 +569,7 @@ void getOrderData(vector<int> list, int* first, int* nb){
   if((*nb)>0){
     int index = list.size()-1;
     *first = list[index];//greatest value
-    
+
     //we decrease the greatest value and stop as soon as there is a gap
     while(index>0 && list[index-1]==(*first)-1){
       index--;
@@ -596,7 +601,7 @@ void getOrderDataForModules(vector<int> list, int maxNbModules, int* first, int*
   if(dif==2){
     newList.push_back(list[list.size()-1]+1);
   }
-  
+
   if(maxGap>2)
     list=newList;
 
@@ -604,7 +609,7 @@ void getOrderDataForModules(vector<int> list, int maxNbModules, int* first, int*
   if((*nb)>0){
     int index = list.size()-1;
     *first = list[index];//greatest value
-    
+
     //we decrease the greatest value and stop as soon as there is a gap
     while(index>0 && list[index-1]==(*first)-1){
       index--;
@@ -632,7 +637,7 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
 	  std::string item;
 	  int column_index=0;
 	  while (std::getline(ss, item, ',')) {
-	    if(column_index>1){   
+	    if(column_index>1){
 	      int number=0;
 	      std::istringstream ss( item );
 	      ss >> number;
@@ -658,9 +663,9 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     vector< vector<float> > * p_m_coords = &m_coords;
     tree->SetBranchAddress("sectors",   &p_m_mod_tot);
     tree->SetBranchAddress("sectors_coord",    &p_m_coords);
-    
+
     tree->GetEntry(0);
-  
+
     modules = m_mod_tot[sector_id];
     cout<<"\tmodule number : "<<modules.size()<<endl;
 
@@ -675,7 +680,7 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     ostringstream oss;
     oss<<std::setfill('0');
     oss<<setw(6)<<modules[i];
-    
+
     int layer,ladder,module;
     istringstream ss_layer(oss.str().substr(0,2));
     ss_layer>>layer;
@@ -684,11 +689,11 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
     ladder = CMSPatternLayer::getLadderCode(layer,ladder);
 
     ////// TMP FIX FOR TKLAYOUT NUMBERING (10 JUL 2013)
-    
+
     if(layer<11){
       int tmp_nb_ladders = CMSPatternLayer::getNbLadders(layer);
       ladder = (ladder+tmp_nb_ladders*1/4) % tmp_nb_ladders;
-    } 
+    }
 
     //////////////////////////////////////////////////
 
@@ -721,10 +726,10 @@ void createSectorFromRootFile(SectorTree* st, string fileName, vector<int> layer
 
   if(tree!=NULL){
     delete tree;
-    cout<<"\tPHI min : "<<coords[0]<<endl;  
-    cout<<"\tPHI max : "<<coords[1]<<endl;  
-    cout<<"\tETA min : "<<coords[2]<<endl;  
-    cout<<"\tETA max : "<<coords[3]<<endl;  
+    cout<<"\tPHI min : "<<coords[0]<<endl;
+    cout<<"\tPHI max : "<<coords[1]<<endl;
+    cout<<"\tETA min : "<<coords[2]<<endl;
+    cout<<"\tETA max : "<<coords[3]<<endl;
     cout<<endl;
   }
 
@@ -751,6 +756,7 @@ int main(int av, char** ac){
     ("printBank", "Display all patterns from a bank (needs --bankFile)")
     ("printBankBinary", "Display all patterns from a bank using a decimal representation of the binary values (needs --bankFile)")
     ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
+    ("treeBank", "make a tree from a bank (needs --bankFile)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file (needs --bankFile and --outputFile)")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
@@ -776,19 +782,19 @@ int main(int av, char** ac){
     ("sector_file", po::value<string>(), "The file (.root or .csv) containing the sectors definition")
     ("sector_id", po::value<int>(), "The index of the sector to use in the sector file. In a CSV file the first sector has index 0.")
     ("active_layers", po::value<string>(), "The layers to use in the sector (8 at most). If a layer ID is prefixed with '+' it will never contain a fake superstrip, if it's prefixed with '-' it will always contain a fake superstrip.")
-    ("bank_name", po::value<string>(), "The bank file name")    
+    ("bank_name", po::value<string>(), "The bank file name")
     ("minFS", po::value<int>(), "Used with --alterBank : only patterns with at least minFS fake stubs will be kept in the new bank")
     ("maxFS", po::value<int>(), "Used with --alterBank : only patterns with at most maxFS fake stubs will be kept in the new bank")
     ("truncate", po::value<int>(), "Used with --alterBank : gives the number of patterns to keep in the new bank, starting with the most used ones.")
     ("nbActiveLayers", po::value<int>(), "Used with --printBankAM05 : only patterns with this exact number of active layers will be printed")
     ;
-     
+
   po::variables_map vm;
-  std::ifstream in_file( "amsimulation.cfg" ); 
+  std::ifstream in_file( "amsimulation.cfg" );
   po::store(po::parse_command_line(av, ac, desc), vm);
   po::store(po::parse_config_file(in_file, desc), vm);
-  po::notify(vm);    
-  
+  po::notify(vm);
+
   if (vm.count("help")) {
     cout << desc << "\n";
 
@@ -802,7 +808,7 @@ int main(int av, char** ac){
       //Decompression
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -818,7 +824,7 @@ int main(int av, char** ac){
     TFile f( vm["outputFile"].as<string>().c_str(), "recreate");
     createAnalysis(st);
   } else if (vm.count("generateBank")) {
-    
+
     vector<int> layers;
     SectorTree st;
     string stripSizes="";
@@ -838,7 +844,7 @@ int main(int av, char** ac){
     int maxNbFake=0;
     int sector_tklayout_id=0;
     map<int,pair<float,float> > eta = CMSPatternLayer::getLayerDefInEta();
-    
+
     try{
       stripSizes=vm["ss_size"].as<string>();
       cout<<"Superstrip sizes : "<<stripSizes<<endl;
@@ -938,7 +944,7 @@ int main(int av, char** ac){
       else{
 	st.setSuperStripSize(-1);
       }
-      
+
 
       size_t end_index = bankFileName.find(".pbk");
       if(end_index==string::npos)
@@ -952,7 +958,7 @@ int main(int av, char** ac){
       cout<<desc<<endl;
       return -1;
     }
-    
+
     vector<Sector*> list = st.getAllSectors();
     cout<<"Sector :"<<endl;
     for(unsigned int i=0;i<list.size();i++){
@@ -964,7 +970,7 @@ int main(int av, char** ac){
       cout<<"ERROR : your sector contains "<<active_layers.size()<<" layers : maximum number of layers is 9!"<<endl;
       return -1;
     }
-    
+
     PatternGenerator pg;
     pg.setLayers(active_layers);
     pg.setInactiveLayers(desactivated_layers);
@@ -982,7 +988,7 @@ int main(int av, char** ac){
     if(pg.getVariableResolutionState()>0){
       cout<<"LD Patterns : "<<st.getLDPatternNumber()<<endl;
     }
-  
+
     cout<<"Saving SectorTree...";
     {
       const SectorTree& ref = st;
@@ -996,7 +1002,7 @@ int main(int av, char** ac){
       oa << ref;
       cout<<"done."<<endl;
     }
-    
+
   }
   else if(vm.count("testSectors")) {
     vector<int> layers;
@@ -1023,7 +1029,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1051,7 +1057,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1092,8 +1098,8 @@ int main(int av, char** ac){
 
       st.getAllSectors()[0]->linkCuda(&d_pb,&d_detector);
 
-      PatternFinder pf(vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(), 
-		       &d_pb, &d_detector, &d_param); 
+      PatternFinder pf(vm["ss_threshold"].as<int>(), &st,  vm["inputFile"].as<string>().c_str(),  vm["outputFile"].as<string>().c_str(),
+		       &d_pb, &d_detector, &d_param);
       {
 	boost::progress_timer t;
 	int start = vm["startEvent"].as<int>();
@@ -1144,7 +1150,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1162,7 +1168,7 @@ int main(int av, char** ac){
 
     PrincipalFitGenerator pfg(vm["input_directory"].as<string>().c_str(), &st);
     pfg.generate(eta_limits, 2, 100, 0, 0.87);
-    
+
     cout<<"Saving SectorTree...";
     {
       const SectorTree& ref = st;
@@ -1176,7 +1182,7 @@ int main(int av, char** ac){
       oa << ref;
       cout<<"done."<<endl;
     }
-    
+
   }
   else if(vm.count("printBank")) {
     SectorTree st;
@@ -1186,7 +1192,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1221,7 +1227,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1247,7 +1253,7 @@ int main(int av, char** ac){
 	cout<<endl;
       }
     }
-  } 
+  }
   else if(vm.count("printBankAM05")) {
     SectorTree st;
     {
@@ -1255,7 +1261,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1317,7 +1323,7 @@ int main(int av, char** ac){
 	}
 	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::PHI_MASK)<<" bits for the position of the ladder on the layer"<<endl;
 	cout<<"** \t"<<PatternLayer::getSizeFromMask(CMSPatternLayer::SEG_MASK)<<" bit for the position of the segment on the module";
-	if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2 && CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2) 
+	if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2 && CMSPatternLayer::OUTER_LAYER_SEG_DIVIDE==2)
 	  cout<<" (forced to 0 on barrel layers)"<<endl;
 	else if(CMSPatternLayer::INNER_LAYER_SEG_DIVIDE==2){
 	  cout<<" (forced to 0 on the 3 innermost barrel layers)"<<endl;
@@ -1387,6 +1393,93 @@ int main(int av, char** ac){
       }
     }
   }
+  else if(vm.count("treeBank")) {
+    SectorTree st;
+    cout<<"making pattern bank tree..."<<endl;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      boost::iostreams::filtering_stream<boost::iostreams::input> f;
+      f.push(boost::iostreams::gzip_decompressor());
+      //we try to read a compressed file
+      try {
+	f.push(ifs);
+	boost::archive::text_iarchive ia(f);
+	ia >> st;
+      }
+      catch (boost::iostreams::gzip_error& e) {
+	if(e.error()==4){//file is not compressed->read it without decompression
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
+	  boost::archive::text_iarchive ia(new_ifs);
+	  ia >> st;
+	}
+      }
+    }
+
+    vector<Sector*> sectors = st.getAllSectors();
+    vector <TTree *> trees;
+    unsigned int HDSS_size = 0;
+    for(unsigned int i=0;i<sectors.size();i++){
+      const int LAYERS_SIZE(6);
+      const unsigned int HDSS_SIZE(8);
+      int layers_t;
+      short ladder_t[LAYERS_SIZE];
+      short module_t[LAYERS_SIZE];
+      short segment_t[LAYERS_SIZE];
+      // vector <vector < int > > HDSS_t; slowwwww
+      int sstrips_t[LAYERS_SIZE];
+      int HDSS_t[LAYERS_SIZE][HDSS_SIZE];
+
+      TTree * tree = new TTree(Form("sector%d", i), Form("Patterns for sector %d", i));
+      tree->Branch("layers", &layers_t, "layers/I");
+      tree->Branch("ladder_t", ladder_t, "ladder_t[layers]/S");
+      tree->Branch("module_t", module_t, "module_t[layers]/S");
+      tree->Branch("segment_t", segment_t, "segment_t[layers]/S");
+      //      tree.Branch("HDSS", &HDSS_t);
+      tree->Branch("sstrips", sstrips_t, "sstrips[layers]/I");
+      //   tree->Branch("HDSS_t", HDSS_t, Form("HDSS_t[layers][%d]/I", HDSS_SIZE));
+      tree->Branch("HDSS_t", HDSS_t, Form("HDSS_t[%d][%d]/I", LAYERS_SIZE, HDSS_SIZE));
+
+      Sector* mySector = sectors[i];
+      vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
+      for(unsigned int j=0;j<patterns.size();j++){
+        if (j%10000==0) cout << "pattern " << j << " / " << patterns.size() << endl;
+	Pattern* p = patterns[j];
+        layers_t = p->getNbLayers();
+        for(int k=0;k<p->getNbLayers();k++){
+	  PatternLayer* mp = p->getLayerStrip(k);
+	  ladder_t[k] = ((CMSPatternLayer*)mp)->getPhi();
+          module_t[k] = ((CMSPatternLayer*)mp)->getModule();
+          segment_t[k] = ((CMSPatternLayer*)mp)->getSegment();
+
+          //for (unsigned int l = 0; l < HDSS_SIZE; l++) HDSS_t[k][l] = -1;
+          vector <int> HDSS_temp =  ((CMSPatternLayer*)mp)->getHDSuperstrips();
+          sstrips_t[k] = HDSS_temp.size();
+          if (HDSS_temp.size() > HDSS_size) HDSS_size = HDSS_temp.size();
+          if (HDSS_temp.size() > HDSS_SIZE) cout << "HDSS size = " << HDSS_temp.size() << endl;
+          for (unsigned int l = 0; l < HDSS_temp.size(); l++) {
+            //        cout << HDSS_temp[l] << " ";
+            HDSS_t[k][l] = HDSS_temp[l];
+//          HDSS_t.push_back( ((CMSPatternLayer*)mp)->getHDSuperstrips());
+          }
+          //     cout << endl;
+
+	}
+        // cout << endl;
+        int tree_output = tree->Fill();
+        if (tree_output <=0 ) cout << "tree output = " << tree_output << endl;
+      }
+      cout << "tree entries = " << tree->GetEntries() << endl;
+      trees.push_back(tree);
+    }
+    TFile * outfile = new TFile("treeBank.root","RECREATE");
+
+    for(unsigned int i=0;i<sectors.size();i++){
+       trees.at(i)->Write();
+     }
+    outfile->Write();
+    cout << "maximum HDSS size is " << HDSS_size << endl;
+
+  }
   else if(vm.count("alterBank")) {
     SectorTree st;
     SectorTree st2;
@@ -1415,7 +1508,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st;
@@ -1439,7 +1532,7 @@ int main(int av, char** ac){
       for(unsigned int i=0;i<size_on_layers.size();i++){
 	st2.setSuperStripSize(st.getSuperStripSize(size_on_layers[i]), size_on_layers[i]);
       }
-      
+
       cout<<"Altering bank..."<<endl;
       vector<Sector*> sectors = st.getAllSectors();
       for(unsigned int i=0;i<sectors.size();i++){
@@ -1485,7 +1578,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st1;
@@ -1514,7 +1607,7 @@ int main(int av, char** ac){
       boost::iostreams::filtering_stream<boost::iostreams::input> f;
       f.push(boost::iostreams::gzip_decompressor());
       //we try to read a compressed file
-      try { 
+      try {
 	f.push(ifs);
 	boost::archive::text_iarchive ia(f);
 	ia >> st2;
@@ -1526,7 +1619,7 @@ int main(int av, char** ac){
 	  ia >> st2;
 	}
       }
-    } 
+    }
     vector<Sector*> list2 = st2.getAllSectors();
     unsigned int nbSectors2 = list2.size();
     if(nbSectors2>1){
@@ -1606,7 +1699,7 @@ int main(int av, char** ac){
 	boost::iostreams::filtering_stream<boost::iostreams::input> f;
 	f.push(boost::iostreams::gzip_decompressor());
 	//we try to read a compressed file
-	try { 
+	try {
 	  f.push(ifs);
 	  boost::archive::text_iarchive ia(f);
 	  ia >> sTest;

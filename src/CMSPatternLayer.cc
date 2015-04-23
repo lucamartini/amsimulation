@@ -253,13 +253,13 @@ string CMSPatternLayer::toAM05Format(){
   short seg = getSegment();
   short sstrip = getStripCode();
 
-  int am_format=0;//18 bits value for the AM05 chip  
+  int am_format=0;//18 bits value for the AM05 chip
 
   if(used_dc_bits==0){
 
     /*
       we need to encode the 2 last bits of the sstrip as DC bits
-      First we retrieve the values and remove them from the sstrip position      
+      First we retrieve the values and remove them from the sstrip position
     */
     short dcbit0_val = (sstrip>>1)&0x1;
     short dcbit1_val = sstrip&0x1;
@@ -294,7 +294,7 @@ string CMSPatternLayer::toAM05Format(){
 
     /*
       we need to encode the last bit of the sstrip as a DC bit
-      First we retrieve the value and remove it from the sstrip position      
+      First we retrieve the value and remove it from the sstrip position
     */
     short dcbit0_val = sstrip&0x1;
     short dcbit1_val = dc_bits[0];
@@ -314,7 +314,7 @@ string CMSPatternLayer::toAM05Format(){
     case 1 : dcbit1_val=2;//10
       break;
     }
-    
+
     // in case this is a fake superstrip, it must not be activable : we use the 11 value of the DC bits
     if(isFake()){
       dcbit0_val=3;//11
@@ -357,7 +357,7 @@ string CMSPatternLayer::toAM05Format(){
     if(isFake()){
       dcbit0_val=3;//11
       dcbit1_val=3;//11
-    }    
+    }
 
     //5 bits for Z + 4 bits for ladder + 1 bit for seg + 4 bits for sstrip + 2 bits for sstrips DC bit 0 + 2 bits for sstrips DC bit 1 = 18 bits
     am_format |= (z&AM05_MOD_MASK)<<AM05_MOD_START_BIT |
@@ -376,7 +376,7 @@ string CMSPatternLayer::toAM05Format(){
     AM05_STRIP_DC0_BIT = 4;
     AM05_STRIP_DC1_BIT = 2;
     AM05_STRIP_DC2_BIT = 0;
-    
+
     AM05_MOD_MASK = 0xF;
     AM05_PHI_MASK = 0xF;
     AM05_SEG_MASK = 0x1;
@@ -416,7 +416,7 @@ string CMSPatternLayer::toAM05Format(){
     case 1 : dcbit2_val=2;//10
       break;
     }
-    
+
     //we are using 4 bits for the Z value so it must be below 16 (should be ok with official trigger towers)
     if(z>15){
       cout<<"The module value is too high ("<<z<<">15) : pattern can not be stored in an AM05 chip"<<endl;
@@ -568,4 +568,21 @@ map<int, pair<float,float> > CMSPatternLayer::getLayerDefInEta(){
   eta[21]=pair<float,float>(-2.5,-1.49);
   eta[22]=pair<float,float>(-2.5,-1.65);
   return eta;
+}
+
+vector<int> CMSPatternLayer::getHDSuperstrips(){
+  vector<int> array;
+  int nb_dc = getDCBitsNumber();
+  int base_index = getStripCode()<<nb_dc;
+  if(nb_dc>0){
+    vector<short> positions=getPositionsFromDC();
+    for(unsigned int i=0;i<positions.size();i++){
+      int index = base_index | positions[i];
+      array.push_back(grayToBinary(index));
+    }
+  }
+  else{
+    array.push_back(grayToBinary(base_index));
+      }
+  return array;
 }

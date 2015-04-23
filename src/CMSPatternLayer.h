@@ -37,12 +37,12 @@ class CMSPatternLayer : public PatternLayer{
   short grayToBinary(short gray);
 
   friend class boost::serialization::access;
-  
+
   template<class Archive> void save(Archive & ar, const unsigned int version) const
     {
       ar << boost::serialization::base_object<PatternLayer>(*this);
     }
-  
+
   template<class Archive> void load(Archive & ar, const unsigned int version)
     {
       ar >> boost::serialization::base_object<PatternLayer>(*this);
@@ -59,7 +59,7 @@ class CMSPatternLayer : public PatternLayer{
 	}
       }
     }
-  
+
   BOOST_SERIALIZATION_SPLIT_MEMBER()
 
  public:
@@ -81,7 +81,7 @@ class CMSPatternLayer : public PatternLayer{
   CMSPatternLayer* clone();
   vector<SuperStrip*> getSuperStrip(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, Detector& d);
   void getSuperStripCuda(int l, const vector<int>& ladd, const map<int, vector<int> >& modules, int layerID, unsigned int* v);
-  
+
   /**
      \brief Set the values in the patternLayer
      \param m The module Z position (0 to 13 for modules 23 to 47)
@@ -191,12 +191,12 @@ class CMSPatternLayer : public PatternLayer{
      \param ladderID The ladder ID
      \return The number of modules on the layer layerID / ladder ladderID
   **/
-  static int getNbModules(int layerID, int ladderID);  
+  static int getNbModules(int layerID, int ladderID);
 
  /**
      \brief Check if the PatternLayer is a fake one (used on layers not crossed by the track)
      \return True if the PatternLayer is a placeholder
-  **/  
+  **/
   bool isFake();
 
   /**
@@ -204,6 +204,8 @@ class CMSPatternLayer : public PatternLayer{
      \return For each layerID, gives the minimum and maximum ETA values
   **/
   static map<int, pair<float,float> > getLayerDefInEta();
+
+  vector<int> getHDSuperstrips();
 
 };
 BOOST_CLASS_VERSION(CMSPatternLayer, 1)

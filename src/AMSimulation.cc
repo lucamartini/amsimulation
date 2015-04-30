@@ -1443,6 +1443,11 @@ int main(int av, char** ac){
       vector<GradedPattern*> patterns = mySector->getPatternTree()->getLDPatterns();
       for(unsigned int j=0;j<patterns.size();j++){
         if (j%10000==0) cout << "pattern " << j << " / " << patterns.size() << endl;
+        for (unsigned int jj = 0; jj < LAYERS_SIZE; jj++) {
+          for (unsigned int jjj = 0; jjj < HDSS_SIZE; jjj++) {
+            HDSS_t[jj][jjj] = -2;
+          }
+        }
 	Pattern* p = patterns[j];
         layers_t = p->getNbLayers();
         for(int k=0;k<p->getNbLayers();k++){

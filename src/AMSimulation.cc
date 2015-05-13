@@ -1419,7 +1419,7 @@ int main(int av, char** ac){
     vector <TTree *> trees;
     unsigned int HDSS_size = 0;
     for(unsigned int i=0;i<sectors.size();i++){
-      const int LAYERS_SIZE(6);
+      const unsigned int LAYERS_SIZE(6);
       const unsigned int HDSS_SIZE(8);
       int layers_t;
       short ladder_t[LAYERS_SIZE];
@@ -1476,7 +1476,7 @@ int main(int av, char** ac){
       cout << "tree entries = " << tree->GetEntries() << endl;
       trees.push_back(tree);
     }
-    TFile * outfile = new TFile("treeBank.root","RECREATE");
+    TFile * outfile = new TFile(vm["outputFile"].as<string>().c_str(),"RECREATE");
 
     for(unsigned int i=0;i<sectors.size();i++){
        trees.at(i)->Write();

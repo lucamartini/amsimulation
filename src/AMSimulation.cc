@@ -283,6 +283,51 @@ vector< vector<int> > getRestrictions(const vector<int> &layers){
   return res;
 }
 
+void displayInformations(SectorTree &st){ 
+  vector<Sector*> list = st.getAllSectors();
+  for(unsigned int i=0;i<list.size();i++){
+    vector<GradedPattern*> patterns = list[i]->getPatternTree()->getLDPatterns();
+    vector<int> layers = list[i]->getLayersID();
+    
+    cout<<"The bank contains "<<patterns.size();
+    if(patterns.size()>1)
+      cout<<" patterns ";
+    else
+      cout<<" pattern ";
+    cout<<" for sector "<<list[i]->getOfficialID()<<endl;
+    //cout<<*list[i]<<endl;
+
+    cout<<"Superstrips size :"<<endl;
+    for(unsigned int j=0;j<layers.size();j++){
+      cout<<"\tLayer "<<layers[j]<<" : "<<st.getSuperStripSize(layers[j])<<endl;
+    }
+
+    float maxPT=-1;
+    float minPT=1000;    
+    int maxDC = 0;
+    int nbDC = 0;
+    for(unsigned int j=0;j<patterns.size();j++){
+      float pt = patterns[j]->getAveragePt();
+      if(pt>maxPT)
+	maxPT=pt;
+      if(pt<minPT)
+	minPT=pt;
+
+      for(int k=0;k<patterns[j]->getNbLayers();k++){
+	PatternLayer* pl = patterns[j]->getLayerStrip(k);
+	nbDC = pl->getDCBitsNumber();
+	if(maxDC<nbDC)
+	  maxDC=nbDC;
+      }
+      delete patterns[j];
+    }
+    patterns.clear();
+
+    cout<<"PT range is ["<<round(minPT)<<","<<round(maxPT)<<"] GeV"<<endl;
+    cout<<"Number of used DC bits is "<<maxDC<<endl;
+  }
+}
+
 void createAnalysis(SectorTree &st){
   vector<Sector*> list = st.getAllSectors();
   int nbLayers = 0;
@@ -753,6 +798,7 @@ int main(int av, char** ac){
     ("printBankAM05", "Display all patterns from a bank with the format used for the AM05 chip (needs --bankFile and optionaly --nbActiveLayers)")
     ("testCode", "Dev tests")
     ("analyseBank", "Creates histograms from a pattern bank file (needs --bankFile and --outputFile)")
+    ("showBankInfos", "Display some informations about the bank content (needs --bankFile)")
     ("stubsToSuperstrips", "Display each stub of an event file as a superstrip (used for tests) (needs --inputFile, --bankFile, --startEvent, --stopEvent)")
     ("alterBank", "Creates a new bank from an existing one, the existing bank is not modified (used with --bankFile and --outputFile and --truncate or --minFS and/or --maxFS)")
     ("inputFile", po::value<string>(), "The file to analyse")
@@ -817,6 +863,28 @@ int main(int av, char** ac){
     }
     TFile f( vm["outputFile"].as<string>().c_str(), "recreate");
     createAnalysis(st);
+  } else if (vm.count("showBankInfos")) {
+    SectorTree st;
+    cout<<"Loading pattern bank..."<<endl;
+    {
+      std::ifstream ifs(vm["bankFile"].as<string>().c_str());
+      //Decompression
+      boost::iostreams::filtering_stream<boost::iostreams::input> f;
+      f.push(boost::iostreams::gzip_decompressor());
+      try { 
+	f.push(ifs);
+	boost::archive::text_iarchive ia(f);
+	ia >> st;
+      }
+      catch (boost::iostreams::gzip_error& e) {
+	if(e.error()==4){//file is not compressed->read it without decompression
+	  std::ifstream new_ifs(vm["bankFile"].as<string>().c_str());
+	  boost::archive::text_iarchive ia(new_ifs);
+	  ia >> st;
+	}
+      }
+    }
+    displayInformations(st);
   } else if (vm.count("generateBank")) {
     
     vector<int> layers;

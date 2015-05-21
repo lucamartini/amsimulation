@@ -291,9 +291,9 @@ void displayInformations(SectorTree &st){
     
     cout<<"The bank contains "<<patterns.size();
     if(patterns.size()>1)
-      cout<<" patterns ";
+      cout<<" patterns";
     else
-      cout<<" pattern ";
+      cout<<" pattern";
     cout<<" for sector "<<list[i]->getOfficialID()<<endl;
     //cout<<*list[i]<<endl;
 
